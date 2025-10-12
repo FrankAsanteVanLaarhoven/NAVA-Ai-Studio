@@ -1,0 +1,72 @@
+{
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:5173",
+    "distDir": "../dist",
+    "withGlobalTauri": false
+  },
+  "package": {
+    "productName": "NAVΛ Studio",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": true,
+      "fs": {
+        "all": true,
+        "scope": ["$APPDATA/**", "$RESOURCE/**", "$APPCONFIG/**", "$APPLOG/**"]
+      },
+      "shell": {
+        "all": false,
+        "open": true
+      },
+      "dialog": {
+        "all": true,
+        "open": true,
+        "save": true
+      },
+      "protocol": {
+        "asset": true,
+        "assetScope": ["$RESOURCE/**"]
+      }
+    },
+    "bundle": {
+      "active": true,
+      "targets": "all",
+      "identifier": "studio.navlambda.ide",
+      "icon": [
+        "assets/icons/32x32.png",
+        "assets/icons/128x128.png",
+        "assets/icons/128x128@2x.png",
+        "assets/icons/icon.icns",
+        "assets/icons/icon.ico"
+      ],
+      "resources": ["assets/**"],
+      "category": "DeveloperTool",
+      "copyright": "Copyright (c) 2025 Frank Van Laarhoven",
+      "shortDescription": "Revolutionary IDE for Van Laarhoven Navigation Calculus",
+      "longDescription": "NAVΛ Studio IDE is the world's first development environment designed specifically for Van Laarhoven Navigation Calculus (VNC) programming, featuring native ⋋ symbol support, 3D navigation visualization, multi-target compilation, and revolutionary mathematical programming capabilities."
+    },
+    "security": {
+      "csp": null
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "resizable": true,
+        "title": "NAVΛ Studio",
+        "width": 1920,
+        "height": 1080,
+        "minWidth": 1280,
+        "minHeight": 720
+      }
+    ],
+    "systemTray": {
+      "iconPath": "assets/icons/icon.png",
+      "iconAsTemplate": true,
+      "menuOnLeftClick": false
+    }
+  }
+}
+

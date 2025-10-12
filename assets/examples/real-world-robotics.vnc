@@ -1,0 +1,114 @@
+// Real-World Robotics Navigation
+// Practical example for autonomous robot navigation
+
+// Robot configuration
+let robot = {
+  position: [0.0, 0.0, 0.0],
+  velocity: [0.0, 0.0, 0.0],
+  max_speed: 2.0,
+  max_acceleration: 1.0,
+  footprint_radius: 0.5
+}
+
+// Environment setup
+let obstacles = [
+  obstacle([5.0, 5.0], radius: 1.0),
+  obstacle([7.0, 3.0], radius: 0.8),
+  obstacle([3.0, 7.0], radius: 1.2),
+]
+
+let walls = [
+  wall([0.0, 0.0], [10.0, 0.0]),
+  wall([10.0, 0.0], [10.0, 10.0]),
+  wall([10.0, 10.0], [0.0, 10.0]),
+  wall([0.0, 10.0], [0.0, 0.0]),
+]
+
+// Create navigable space
+let free_space = create_space([0.0, 0.0], [10.0, 10.0])
+  .subtract_obstacles(obstacles)
+  .add_walls(walls)
+  .add_safety_margin(robot.footprint_radius)
+
+// Goal position
+let goal = [9.0, 9.0, 0.0]
+
+// Plan path with robot constraints
+let path = find_optimal_path⋋(robot.position, goal, {
+  space: free_space,
+  max_velocity: robot.max_speed,
+  max_acceleration: robot.max_acceleration,
+  dynamic_obstacles: true,
+  safety_distance: 0.5
+})
+
+// Apply master operator for smoothness
+let smooth_path = 𝒩ℐ(path, {
+  smoothness_weight: 0.8,
+  time_optimal: true
+})
+
+// Generate velocity profile
+let velocity_profile = generate_velocity_profile(smooth_path, {
+  max_speed: robot.max_speed,
+  max_accel: robot.max_acceleration,
+  comfort_level: 0.7
+})
+
+// Real-time path execution with re-planning
+fn execute_path(robot, path, obstacles) {
+  let current_waypoint = 0
+  
+  while current_waypoint < path.waypoints.length {
+    // Check for dynamic obstacles
+    let nearby_obstacles = detect_obstacles(robot.position, radius: 3.0)
+    
+    if nearby_obstacles.length > 0 {
+      // Re-plan around new obstacles
+      let remaining_path = path.waypoints[current_waypoint:]
+      path = find_optimal_path⋋(
+        robot.position,
+        remaining_path[-1],
+        { 
+          space: free_space.with_obstacles(nearby_obstacles),
+          start_velocity: robot.velocity
+        }
+      )
+      current_waypoint = 0
+    }
+    
+    // Follow path
+    let target = path.waypoints[current_waypoint]
+    let control = compute_control(robot, target, velocity_profile)
+    
+    robot.move(control)
+    
+    // Check if waypoint reached
+    if distance(robot.position, target) < 0.1 {
+      current_waypoint += 1
+    }
+    
+    // Update visualization
+    visualize⋋(path, {
+      robot_position: robot.position,
+      obstacles: nearby_obstacles,
+      realtime: true
+    })
+    
+    sleep(0.1)  // 10 Hz control loop
+  }
+  
+  print("Goal reached!")
+}
+
+// Execute the navigation
+execute_path(robot, smooth_path, obstacles)
+
+// Performance metrics
+print("Navigation Performance:")
+print("  Path length: ", calculate_path_length(smooth_path), " meters")
+print("  Estimated time: ", smooth_path.duration, " seconds")
+print("  Average speed: ", smooth_path.average_speed, " m/s")
+print("  Energy efficiency: ", smooth_path.energy_efficiency, "%")
+print("  Safety margin maintained: ", smooth_path.min_obstacle_distance, " meters")
+

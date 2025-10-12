@@ -1,0 +1,150 @@
+.deployment-panel {
+  padding: 24px;
+  background: #1a1a1a;
+  border-radius: 8px;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.deployment-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #00ff00;
+  margin-bottom: 24px;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.deployment-targets {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.target-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: #2a2a2a;
+  border: 2px solid #444;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.target-btn:hover {
+  background: #3a3a3a;
+  border-color: #666;
+}
+
+.target-btn.active {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  color: #00ff00;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.deployment-config {
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.deployment-config h3 {
+  color: #00ccff;
+  margin-bottom: 16px;
+  font-size: 16px;
+}
+
+.config-field {
+  margin-bottom: 16px;
+}
+
+.config-field label {
+  display: block;
+  color: #aaa;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+
+.config-field input {
+  width: 100%;
+  padding: 10px;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+}
+
+.config-field input:focus {
+  border-color: #00ff00;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(0, 255, 0, 0.1);
+}
+
+.deploy-btn {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #00ff00, #00cc00);
+  border: none;
+  border-radius: 8px;
+  color: #000;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.deploy-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #00ff33, #00dd00);
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.deploy-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.deployment-log {
+  margin-top: 24px;
+  background: #0d0d0d;
+  border: 1px solid #00ff00;
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.deployment-log h3 {
+  color: #00ff00;
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.log-entry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  color: #aaa;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.log-icon {
+  color: #00ff00;
+  flex-shrink: 0;
+}
+

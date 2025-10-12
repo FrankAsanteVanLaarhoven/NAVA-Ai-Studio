@@ -1,0 +1,57 @@
+.navigation-visualizer {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #0d0d0d;
+  overflow: hidden;
+}
+
+.navigation-metrics-panel {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: rgba(26, 26, 26, 0.95);
+  border: 1px solid #00ff00;
+  border-radius: 8px;
+  padding: 16px;
+  min-width: 250px;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+  backdrop-filter: blur(10px);
+}
+
+.navigation-metrics-panel h3 {
+  margin: 0 0 12px 0;
+  color: #00ff00;
+  font-size: 16px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.metric {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 8px 0;
+  padding: 8px;
+  background: rgba(0, 255, 0, 0.05);
+  border-radius: 4px;
+}
+
+.metric-label {
+  color: #aaa;
+  font-size: 13px;
+}
+
+.metric-value {
+  color: #fff;
+  font-size: 14px;
+  font-weight: bold;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.metric-value.vnc {
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+

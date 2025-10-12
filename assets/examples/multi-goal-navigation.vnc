@@ -1,0 +1,57 @@
+// Multi-Goal Navigation with Parallel Paths
+// Demonstrates navigation to multiple goals using VNC operators
+
+// Define starting position
+let start = [0.0, 0.0, 0.0]
+
+// Define multiple goals
+let goals = [
+  [10.0, 0.0, 0.0],   // East
+  [0.0, 10.0, 0.0],   // North
+  [10.0, 10.0, 0.0],  // Northeast
+  [-5.0, 5.0, 0.0],   // Northwest
+]
+
+// Create parallel navigation paths using ⊕⋋ operator
+let paths = []
+for goal in goals {
+  let path = navigate_to⋋(start, goal)
+  paths.append(path)
+}
+
+// Combine paths with navigation sum
+let combined = paths[0]
+for i in range(1, paths.length) {
+  combined = combined ⊕⋋ paths[i]
+}
+
+// Find common waypoints (intersection)
+let common_waypoints = paths[0]
+for i in range(1, paths.length) {
+  common_waypoints = common_waypoints ∩⋋ paths[i]
+}
+
+// Merge all possible routes (union)
+let all_routes = paths[0]
+for i in range(1, paths.length) {
+  all_routes = all_routes ∪⋋ paths[i]
+}
+
+// Visualize all paths
+visualize⋋(combined, {
+  show_all_paths: true,
+  highlight_optimal: true,
+  show_common_points: true
+})
+
+// Print statistics
+print("Multi-Goal Navigation Results:")
+print("  Number of goals: ", goals.length)
+print("  Combined path energy: ", combined.energy)
+print("  Common waypoints: ", common_waypoints.length)
+print("  Total route variants: ", all_routes.variants.length)
+
+// Optimize the entire multi-goal trajectory
+let optimized_multi = 𝒩ℐ(combined)
+print("  Optimized energy: ", optimized_multi.energy)
+

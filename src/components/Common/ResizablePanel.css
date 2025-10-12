@@ -1,0 +1,131 @@
+.resizable-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  transition: width 0.2s ease;
+  overflow: hidden;
+}
+
+.resizable-panel.collapsed {
+  width: 0 !important;
+  min-width: 0;
+  border: none;
+}
+
+.resizable-panel.dragging {
+  transition: none;
+  user-select: none;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: #252526;
+  border-bottom: 1px solid #3c3c3c;
+  min-height: 35px;
+}
+
+.panel-title {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #cccccc;
+  letter-spacing: 0.5px;
+}
+
+.collapse-btn {
+  background: none;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.collapse-btn:hover {
+  background: #3c3c3c;
+  color: #ffffff;
+}
+
+.panel-content {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+.resize-handle {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  cursor: col-resize;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.resize-handle:hover .resize-handle-bar,
+.resizable-panel.dragging .resize-handle-bar {
+  background: #007acc;
+  opacity: 1;
+}
+
+.left-handle {
+  right: 0;
+}
+
+.right-handle {
+  left: 0;
+}
+
+.resize-handle-bar {
+  width: 2px;
+  height: 100%;
+  background: #3c3c3c;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.resize-handle:hover .resize-handle-bar {
+  opacity: 1;
+}
+
+/* Codicon support (VS Code icons) */
+.codicon {
+  font-family: 'codicon';
+  font-size: 16px;
+  line-height: 1;
+}
+
+.codicon-chevron-left::before {
+  content: '‹';
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.codicon-chevron-right::before {
+  content: '›';
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.codicon-chevron-down::before {
+  content: '⌄';
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.codicon-chevron-up::before {
+  content: '^';
+  font-size: 20px;
+  font-weight: bold;
+}
+

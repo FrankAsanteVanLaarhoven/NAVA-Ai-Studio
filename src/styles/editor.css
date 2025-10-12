@@ -1,0 +1,122 @@
+/* Editor-specific styles */
+
+.monaco-editor-wrapper {
+  height: 100%;
+  width: 100%;
+}
+
+.monaco-editor-container {
+  height: 100%;
+  width: 100%;
+}
+
+/* VNC Symbol Palette */
+.vnc-symbol-palette-panel {
+  background: var(--vnc-bg-lighter);
+  border: 1px solid var(--vnc-border);
+  border-radius: 8px;
+  padding: 16px;
+  margin: 8px;
+}
+
+.vnc-symbol-palette-panel h3 {
+  color: var(--vnc-primary);
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.symbol-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.symbol-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 8px;
+  background: var(--vnc-bg-dark);
+  border: 1px solid var(--vnc-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.symbol-btn:hover {
+  border-color: var(--vnc-primary);
+  background: rgba(0, 255, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.symbol-btn .symbol {
+  font-size: 24px;
+  color: var(--vnc-primary);
+  margin-bottom: 4px;
+}
+
+.symbol-btn .name {
+  font-size: 10px;
+  color: var(--vnc-text-dim);
+  text-align: center;
+}
+
+/* Navigation Gutter */
+.navigation-gutter {
+  width: 40px;
+  background: var(--vnc-bg-darker);
+  border-right: 1px solid var(--vnc-border);
+}
+
+.gutter-line {
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-hint {
+  color: var(--vnc-primary);
+  font-size: 12px;
+  cursor: help;
+}
+
+/* IntelliSense */
+.intellisense-popup {
+  position: absolute;
+  background: var(--vnc-bg-lighter);
+  border: 1px solid var(--vnc-primary);
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.2);
+  z-index: 1000;
+  min-width: 250px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.completion-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.completion-item:hover,
+.completion-item.selected {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.completion-icon {
+  color: var(--vnc-primary);
+  margin-right: 8px;
+  font-size: 14px;
+}
+
+.completion-text {
+  color: var(--vnc-text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+

@@ -1,0 +1,20 @@
+// Basic Navigation Example
+// Demonstrates fundamental VNC navigation concepts
+
+// Define start and goal positions
+let start = [0.0, 0.0, 0.0]
+let goal = [10.0, 10.0, 0.0]
+
+// Navigate using VNC optimization
+let path = navigate_to⋋(start, goal)
+
+// Visualize the navigation path
+visualize⋋(path)
+
+// Print path information
+print("Navigation Path:")
+print("  Start: ", start)
+print("  Goal: ", goal)
+print("  Energy: ", path.energy)
+print("  Waypoints: ", path.waypoints.length)
+

@@ -1,0 +1,61 @@
+{
+  "name": "navlambda-studio",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "NAVΛ Studio IDE - The world's first IDE for Van Laarhoven Navigation Calculus programming",
+  "author": "Frank Van Laarhoven <frank@navlambda.studio>",
+  "license": "MIT OR Apache-2.0",
+  "homepage": "https://navlambda.studio",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frankvanlaarhoven/navlambda-studio"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "test": "vitest",
+    "test:ui": "vitest --ui"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "monaco-editor": "^0.47.0",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "@monaco-editor/react": "^4.6.0",
+    "three": "^0.163.0",
+    "@react-three/fiber": "^8.16.1",
+    "@react-three/drei": "^9.105.4",
+    "@tauri-apps/api": "^1.5.3",
+    "mathjax": "^3.2.2",
+    "zustand": "^4.5.2",
+    "immer": "^10.0.4",
+    "lucide-react": "^0.356.0",
+    "clsx": "^2.1.0",
+    "tailwindcss": "^3.4.1"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^1.5.11",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@types/three": "^0.163.0",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "^10.4.19",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "postcss": "^8.4.38",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.3",
+    "vite": "^5.2.0",
+    "vitest": "^1.4.0"
+  }
+}
+

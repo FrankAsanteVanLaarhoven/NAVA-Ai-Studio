@@ -1,0 +1,98 @@
+/* VNC Mathematical Theme */
+
+:root {
+  --vnc-theme-bg: #1a1a1a;
+  --vnc-theme-fg: #ffffff;
+  --vnc-theme-primary: #00ff00;
+  --vnc-theme-secondary: #00ccff;
+  --vnc-theme-accent: #ff0099;
+  --vnc-theme-border: #444444;
+}
+
+/* Mathematical symbols */
+.math-symbol {
+  font-family: 'Latin Modern Math', 'STIX Two Math', 'Cambria Math', serif;
+  font-size: 1.2em;
+  color: var(--vnc-theme-primary);
+}
+
+/* VNC operators */
+.vnc-operator {
+  color: var(--vnc-theme-primary);
+  font-weight: bold;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+.vnc-operator-tensor {
+  color: var(--vnc-theme-secondary);
+}
+
+.vnc-operator-master {
+  color: var(--vnc-theme-accent);
+  font-size: 1.3em;
+  text-shadow: 0 0 10px rgba(255, 0, 153, 0.6);
+}
+
+/* Mathematical equation blocks */
+.math-equation {
+  display: inline-block;
+  padding: 4px 8px;
+  background: rgba(0, 255, 0, 0.05);
+  border-radius: 4px;
+  font-family: 'Latin Modern Math', serif;
+}
+
+.math-equation.display-mode {
+  display: block;
+  padding: 16px;
+  margin: 12px 0;
+  text-align: center;
+  font-size: 1.2em;
+}
+
+/* Theorem environments */
+.theorem-box {
+  border-left: 3px solid var(--vnc-theme-primary);
+  background: rgba(0, 255, 0, 0.05);
+  padding: 16px;
+  margin: 16px 0;
+  border-radius: 4px;
+}
+
+.theorem-box .theorem-title {
+  color: var(--vnc-theme-primary);
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.theorem-box .theorem-content {
+  color: var(--vnc-theme-fg);
+  line-height: 1.6;
+}
+
+/* Proof environments */
+.proof-box {
+  border-left: 2px solid var(--vnc-theme-secondary);
+  padding-left: 16px;
+  margin: 12px 0;
+  font-style: italic;
+  color: var(--vnc-theme-fg);
+  opacity: 0.9;
+}
+
+.proof-box::before {
+  content: 'Proof:';
+  font-weight: bold;
+  font-style: normal;
+  color: var(--vnc-theme-secondary);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.proof-box::after {
+  content: '∎';
+  float: right;
+  color: var(--vnc-theme-primary);
+  font-size: 1.2em;
+}
+

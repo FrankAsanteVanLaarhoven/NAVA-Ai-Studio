@@ -1,0 +1,43 @@
+[package]
+name = "navlambda-studio"
+version.workspace = true
+authors.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[build-dependencies]
+tauri-build.workspace = true
+
+[dependencies]
+# Tauri
+tauri.workspace = true
+serde_json.workspace = true
+serde.workspace = true
+
+# Async runtime
+tokio.workspace = true
+futures.workspace = true
+
+# Language Server Protocol
+tower-lsp.workspace = true
+lsp-types.workspace = true
+
+# Parsing
+nom.workspace = true
+
+# Error handling
+anyhow.workspace = true
+thiserror.workspace = true
+
+# Logging
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+# Performance
+rayon.workspace = true
+parking_lot.workspace = true
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+

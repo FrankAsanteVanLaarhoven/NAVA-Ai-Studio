@@ -1,0 +1,141 @@
+.activity-bar {
+  width: 50px;
+  background: #333333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1px solid #2a2a2a;
+  position: relative;
+  z-index: 100;
+}
+
+.activity-bar-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 4px;
+  overflow-y: auto;
+}
+
+.activity-bar-bottom {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 4px;
+  border-top: 1px solid #2a2a2a;
+}
+
+.activity-item {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: #cccccc;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.activity-item:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.activity-item.active {
+  color: #ffffff;
+  border-left-color: #007acc;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.activity-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #007acc;
+}
+
+/* Activity Menu */
+.activity-item-menu {
+  position: relative;
+}
+
+.activity-menu {
+  position: absolute;
+  bottom: 0;
+  left: 50px;
+  background: #252526;
+  border: 1px solid #3c3c3c;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  min-width: 240px;
+  padding: 4px;
+  z-index: 1000;
+  animation: slideIn 0.2s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.activity-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.activity-menu button:hover {
+  background: #2a2d2e;
+  color: #ffffff;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #3c3c3c;
+  margin: 4px 0;
+}
+
+/* Scrollbar for activity bar */
+.activity-bar-main::-webkit-scrollbar {
+  width: 6px;
+}
+
+.activity-bar-main::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.activity-bar-main::-webkit-scrollbar-thumb {
+  background: #555555;
+  border-radius: 3px;
+}
+
+.activity-bar-main::-webkit-scrollbar-thumb:hover {
+  background: #666666;
+}
+

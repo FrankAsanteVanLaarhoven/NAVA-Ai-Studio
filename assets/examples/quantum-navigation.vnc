@@ -1,0 +1,50 @@
+// Quantum Navigation Example
+// Demonstrates quantum-inspired navigation using VNC
+
+// Enable quantum mode
+quantum_mode(true)
+
+// Define quantum superposition of start states
+let start_superposition = quantum_state([
+  ([0.0, 0.0, 0.0], 0.5),   // 50% probability
+  ([1.0, 1.0, 0.0], 0.3),   // 30% probability
+  ([-1.0, 1.0, 0.0], 0.2),  // 20% probability
+])
+
+// Define quantum goal
+let goal_superposition = quantum_state([
+  ([10.0, 10.0, 0.0], 0.6),
+  ([9.0, 11.0, 0.0], 0.4),
+])
+
+// Navigate in quantum space
+let quantum_path = navigate_to⋋(start_superposition, goal_superposition)
+
+// Apply quantum evolution operator
+let evolved_path = ℰ(quantum_path, time: 1.0)
+
+// Measure the path (collapse quantum state)
+let measured_path = measure(evolved_path)
+
+// Visualize quantum probability clouds
+visualize⋋(quantum_path, {
+  mode: "quantum",
+  show_probability: true,
+  show_interference: true,
+  show_tunneling: true
+})
+
+// Compare quantum and classical paths
+let classical_path = navigate_to⋋(
+  [0.0, 0.0, 0.0],
+  [10.0, 10.0, 0.0]
+)
+
+print("Quantum Navigation Results:")
+print("  Quantum path energy: ", measured_path.energy)
+print("  Classical path energy: ", classical_path.energy)
+print("  Quantum advantage: ", 
+      (classical_path.energy - measured_path.energy) / classical_path.energy * 100, "%")
+print("  Quantum tunneling events: ", measured_path.tunneling_count)
+print("  Entanglement strength: ", measured_path.entanglement)
+

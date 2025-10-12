@@ -1,0 +1,86 @@
+.toolbar {
+  display: flex;
+  align-items: center;
+  background: #2a2a2a;
+  border-bottom: 1px solid #444;
+  padding: 8px 16px;
+  height: 56px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar-logo {
+  margin-right: 24px;
+}
+
+.logo-text {
+  font-size: 20px;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 1px;
+}
+
+.logo-lambda {
+  color: #00ff00;
+  font-size: 24px;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+}
+
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #3a3a3a;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 8px 16px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.toolbar-btn:hover {
+  background: #4a4a4a;
+  border-color: #777;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.toolbar-btn.primary {
+  background: linear-gradient(135deg, #00ff00, #00cc00);
+  border-color: #00ff00;
+  color: #000;
+  font-weight: bold;
+}
+
+.toolbar-btn.primary:hover {
+  background: linear-gradient(135deg, #00ff33, #00dd00);
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.4);
+}
+
+.toolbar-btn.icon-only {
+  padding: 8px;
+}
+
+.toolbar-btn.active {
+  background: #007acc;
+  border-color: #007acc;
+  color: #fff;
+}
+
+.toolbar-btn.active:hover {
+  background: #005a9e;
+  border-color: #005a9e;
+}
+
+.toolbar-spacer {
+  flex: 1;
+}
+
