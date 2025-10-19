@@ -1,0 +1,8 @@
+# Redirect URLs without .html extension
+/workspace    /workspace.html    200
+/app          /app.html          200
+/download     /download.html     200
+
+# SPA fallback for other routes
+/*            /workspace.html    200
+

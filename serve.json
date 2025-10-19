@@ -1,0 +1,25 @@
+{
+  "public": "dist",
+  "rewrites": [
+    { "source": "/workspace", "destination": "/workspace.html" },
+    { "source": "/app", "destination": "/app.html" },
+    { "source": "/download", "destination": "/download.html" }
+  ],
+  "redirects": [
+    { "source": "/", "destination": "/workspace.html", "type": 301 }
+  ],
+  "headers": [
+    {
+      "source": "**/*",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false
+}
+
