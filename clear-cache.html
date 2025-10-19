@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clear Firefox Cache - NAVΛ Studio</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            background: #252526;
+            border: 2px solid #00ff00;
+            border-radius: 12px;
+            padding: 40px;
+            max-width: 700px;
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+        }
+        h1 {
+            color: #00ff00;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 32px;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.8);
+        }
+        .subtitle {
+            text-align: center;
+            color: #aaaaaa;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        .warning {
+            background: rgba(255, 200, 0, 0.1);
+            border-left: 4px solid #ffcc00;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        .steps {
+            list-style: none;
+            counter-reset: step-counter;
+        }
+        .steps li {
+            counter-increment: step-counter;
+            margin-bottom: 20px;
+            padding-left: 50px;
+            position: relative;
+            line-height: 1.6;
+        }
+        .steps li::before {
+            content: counter(step-counter);
+            position: absolute;
+            left: 0;
+            top: 0;
+            background: #00ff00;
+            color: #000000;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .kbd {
+            background: #1a1a1a;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-family: 'Courier New', monospace;
+            color: #00ff00;
+            font-size: 14px;
+            display: inline-block;
+            margin: 0 3px;
+            box-shadow: 0 0 5px rgba(0, 255, 0, 0.3);
+        }
+        .btn {
+            background: linear-gradient(135deg, #00ff00 0%, #00cc00 100%);
+            color: #000000;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            display: block;
+            width: 100%;
+            margin-top: 30px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 255, 0, 0.4);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 255, 0, 0.6);
+        }
+        .note {
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .code {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 12px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧹 Clear Firefox Cache</h1>
+        <p class="subtitle">NAVΛ Studio IDE - Fix Cached Files Issue</p>
+        
+        <div class="warning">
+            ⚠️ <strong>Firefox is loading old cached files.</strong> Follow these steps to fix it.
+        </div>
+
+        <h3 style="color: #00ff00; margin-bottom: 15px;">🔧 Method 1: Quick Fix (Try This First)</h3>
+        <ol class="steps">
+            <li>Press <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">Delete</span> (or <span class="kbd">Cmd</span> + <span class="kbd">Shift</span> + <span class="kbd">Delete</span> on Mac)</li>
+            <li>In the popup, select <strong>"Time range: Everything"</strong></li>
+            <li>Check <strong>"Cache"</strong> and <strong>"Cookies"</strong></li>
+            <li>Click <strong>"Clear Now"</strong></li>
+            <li>Close ALL Firefox windows completely</li>
+            <li>Reopen Firefox and click the button below</li>
+        </ol>
+
+        <div class="note">
+            <strong>💡 Alternative Method (If above doesn't work):</strong><br>
+            1. Open Firefox Settings (type <span class="kbd">about:preferences#privacy</span> in address bar)<br>
+            2. Scroll to "Cookies and Site Data"<br>
+            3. Click "Clear Data..."<br>
+            4. Check both boxes and click "Clear"<br>
+            5. Restart Firefox
+        </div>
+
+        <div class="code">
+            After clearing cache, access:<br>
+            http://localhost:5173/app.html
+        </div>
+
+        <button class="btn" onclick="window.location.href='http://localhost:5173/app.html?nocache=' + Date.now()">
+            🚀 OPEN NAVΛ STUDIO IDE (Fresh Load)
+        </button>
+
+        <div class="note" style="margin-top: 20px; background: rgba(0, 200, 255, 0.05); border-color: rgba(0, 200, 255, 0.3);">
+            <strong>✅ What Fixed:</strong><br>
+            • Added <code style="color: #00ff00;">currentFilePath</code> state to App.tsx<br>
+            • Cleared ALL server caches<br>
+            • Restarted dev server with fresh build<br>
+            • The issue is now ONLY in your browser cache
+        </div>
+    </div>
+</body>
+</html>
+

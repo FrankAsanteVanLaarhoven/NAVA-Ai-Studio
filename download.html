@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Download NAVΛ Studio - Navigation Calculus IDE">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Download NAVΛ Studio</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        /* Full Screen Workspace Background - Photorealistic */
+        .workspace-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            background: 
+                linear-gradient(to bottom, rgba(5, 10, 25, 0.3), rgba(5, 10, 25, 0.6)),
+                radial-gradient(ellipse at 50% 80%, rgba(30, 60, 100, 0.4) 0%, transparent 60%),
+                linear-gradient(135deg, #0a1530 0%, #0f1f3d 50%, #0a1530 100%);
+        }
+
+        /* Simulated 3D workspace elements */
+        .workspace-scene {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                radial-gradient(ellipse 35% 40% at 60% 35%, rgba(70, 130, 255, 0.25) 0%, transparent 50%),
+                linear-gradient(180deg, transparent 0%, transparent 60%, rgba(40, 70, 120, 0.15) 70%, rgba(20, 40, 80, 0.3) 90%, rgba(10, 20, 50, 0.5) 100%),
+                radial-gradient(ellipse at 85% 50%, rgba(80, 150, 200, 0.1) 0%, transparent 40%),
+                radial-gradient(ellipse at 15% 60%, rgba(40, 80, 140, 0.08) 0%, transparent 50%);
+        }
+
+        /* Center Monitor Display */
+        .center-monitor {
+            position: absolute;
+            top: 15%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50%;
+            height: 55%;
+            background: linear-gradient(135deg, rgba(30, 60, 130, 0.4) 0%, rgba(20, 45, 100, 0.5) 100%);
+            border: 3px solid rgba(70, 130, 200, 0.5);
+            border-radius: 10px;
+            box-shadow: 
+                0 30px 120px rgba(70, 130, 200, 0.4),
+                inset 0 0 100px rgba(70, 130, 200, 0.15),
+                0 0 200px rgba(70, 130, 200, 0.2);
+            backdrop-filter: blur(5px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 2rem;
+        }
+
+        .center-monitor::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .center-monitor::-webkit-scrollbar-track {
+            background: rgba(10, 20, 40, 0.5);
+        }
+
+        .center-monitor::-webkit-scrollbar-thumb {
+            background: rgba(70, 130, 200, 0.5);
+            border-radius: 4px;
+        }
+
+        /* Download Content */
+        .download-content {
+            position: relative;
+            z-index: 10;
+            color: #9ab4d4;
+        }
+
+        .download-title {
+            font-size: 2.5rem;
+            color: #6ba3e0;
+            text-align: center;
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(70, 130, 200, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .nav-symbol {
+            font-size: 3rem;
+            color: #00ff00;
+            text-shadow: 
+                0 0 20px rgba(0, 255, 0, 0.8),
+                0 0 40px rgba(0, 255, 0, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .download-subtitle {
+            text-align: center;
+            color: #7a94b4;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+
+        .download-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .download-card {
+            background: rgba(10, 25, 50, 0.7);
+            border: 1px solid rgba(70, 130, 200, 0.3);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .download-card:hover {
+            background: rgba(20, 40, 80, 0.8);
+            border-color: rgba(70, 130, 200, 0.6);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(70, 130, 200, 0.4);
+        }
+
+        .download-card.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .download-card.disabled:hover {
+            transform: none;
+            background: rgba(10, 25, 50, 0.7);
+            box-shadow: none;
+        }
+
+        .download-icon {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .download-info {
+            flex: 1;
+        }
+
+        .download-platform {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #6ba3e0;
+            margin-bottom: 0.3rem;
+        }
+
+        .download-details {
+            font-size: 0.9rem;
+            color: #7a94b4;
+        }
+
+        .coming-soon {
+            display: inline-block;
+            padding: 0.3rem 0.8rem;
+            background: rgba(234, 179, 8, 0.2);
+            border: 1px solid #eab308;
+            border-radius: 6px;
+            color: #fbbf24;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+
+        .instructions-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(5, 15, 35, 0.8);
+            border: 1px solid rgba(70, 130, 200, 0.2);
+            border-radius: 12px;
+        }
+
+        .instructions-section h3 {
+            color: #6ba3e0;
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .instructions-section ol {
+            padding-left: 1.5rem;
+            line-height: 1.8;
+            color: #8ba3c4;
+        }
+
+        .instructions-section li {
+            margin-bottom: 0.5rem;
+        }
+
+        .security-note {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: rgba(234, 179, 8, 0.1);
+            border-left: 3px solid #eab308;
+            border-radius: 6px;
+            color: #fbbf24;
+            font-size: 0.9rem;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45px;
+            background: rgba(15, 30, 70, 0.95);
+            backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            border-bottom: 1px solid rgba(70, 130, 200, 0.3);
+        }
+
+        .top-bar-link {
+            color: #9ab4d4;
+            text-decoration: none;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: all 0.3s;
+        }
+
+        .top-bar-link:hover {
+            color: #6ba3e0;
+        }
+
+        /* Left Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 45px;
+            bottom: 65px;
+            width: 120px;
+            background: rgba(5, 15, 35, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(70, 130, 200, 0.2);
+            padding: 1rem 0;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.8rem 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            color: #8ba3c4;
+            gap: 0.4rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .nav-item:hover {
+            background: rgba(70, 130, 200, 0.15);
+            color: #6ba3e0;
+        }
+
+        .nav-icon {
+            font-size: 2.5rem;
+            transition: all 0.3s;
+            filter: drop-shadow(0 4px 10px rgba(70, 130, 200, 0.4));
+            line-height: 1;
+        }
+
+        .nav-item:hover .nav-icon {
+            transform: scale(1.05);
+            filter: drop-shadow(0 6px 15px rgba(70, 130, 200, 0.6));
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.2;
+            word-wrap: break-word;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .nav-section-title {
+            font-size: 0.65rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #5a7a9a;
+            padding: 0.6rem 0.5rem 0.3rem;
+            text-align: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Feedback Button */
+        .feedback-section {
+            padding: 0.6rem;
+            border-top: 1px solid rgba(70, 130, 200, 0.2);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .feedback-btn {
+            width: 100%;
+            padding: 0.7rem 0.4rem;
+            background: linear-gradient(135deg, #4a8fd8, #5ca9e8);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.7rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(70, 130, 200, 0.4);
+            line-height: 1.1;
+            box-sizing: border-box;
+        }
+
+        .feedback-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(70, 130, 200, 0.6);
+            background: linear-gradient(135deg, #5a9fe8, #6cb9f8);
+        }
+
+        /* Bottom Bar */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: rgba(5, 15, 35, 0.98);
+            backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(70, 130, 200, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 100;
+        }
+
+        .bottom-left {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .bottom-icon {
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: rgba(70, 130, 200, 0.15);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: #6ba3e0;
+        }
+
+        .bottom-icon:hover {
+            background: rgba(70, 130, 200, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(70, 130, 200, 0.4);
+        }
+
+        .bottom-icon.download-icon {
+            background: linear-gradient(135deg, #22c55e, #4ade80);
+            color: white;
+        }
+
+        .bottom-icon.download-icon:hover {
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+        }
+
+        .bottom-right {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        .time-display {
+            font-size: 0.9rem;
+            color: #8ba3c4;
+            font-weight: 500;
+        }
+
+        .lang-selector {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(70, 130, 200, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+            color: #8ba3c4;
+        }
+
+        .lang-selector:hover {
+            background: rgba(70, 130, 200, 0.2);
+        }
+
+        .power-btn {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: #e57373;
+            background: rgba(229, 115, 115, 0.1);
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .power-btn:hover {
+            background: rgba(229, 115, 115, 0.2);
+            transform: scale(1.1);
+        }
+
+        /* Bottom Right Branding */
+        .branding {
+            position: fixed;
+            bottom: 8rem;
+            right: 3rem;
+            z-index: 60;
+            display: flex;
+            align-items: flex-end;
+            gap: 2rem;
+        }
+
+        .institute-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 1.5rem;
+            background: rgba(10, 20, 45, 0.9);
+            border: 2px solid rgba(70, 130, 200, 0.4);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .badge-icon {
+            font-size: 2rem;
+            color: #6ba3e0;
+            filter: drop-shadow(0 4px 15px rgba(70, 130, 200, 0.6));
+        }
+
+        .badge-text {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .institute-name {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #6ba3e0;
+            line-height: 1.2;
+        }
+
+        .institute-subtitle {
+            font-size: 0.75rem;
+            color: #7a94b4;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tagline {
+            font-size: 0.85rem;
+            color: #8ba3c4;
+            max-width: 250px;
+            line-height: 1.4;
+        }
+
+        @media (max-width: 1024px) {
+            .branding {
+                bottom: 9rem;
+            }
+            .center-monitor {
+                width: 65%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .branding {
+                bottom: 10rem;
+                right: 1.5rem;
+            }
+            .center-monitor {
+                width: 80%;
+                padding: 1.5rem;
+            }
+            .download-title {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Workspace Background -->
+    <div class="workspace-background">
+        <div class="workspace-scene"></div>
+    </div>
+
+    <!-- Top Bar -->
+    <div class="top-bar">
+        <a href="/" class="top-bar-link">
+            <span style="font-size: 1.3rem;">←</span>
+            <span>Back to Workspace Interface</span>
+        </a>
+    </div>
+
+    <!-- Left Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-nav">
+            <a href="#public-projects" class="nav-item">
+                <div class="nav-icon">📁</div>
+                <div class="nav-label">Public<br>Rosjects</div>
+            </a>
+
+            <a href="#my-projects" class="nav-item">
+                <div class="nav-icon">📂</div>
+                <div class="nav-label">My<br>Rosjects</div>
+            </a>
+
+            <div class="nav-section-title">ACHIEVEMENTS</div>
+
+            <a href="#portfolio" class="nav-item">
+                <div class="nav-icon">📜</div>
+                <div class="nav-label">My<br>Portfolio</div>
+            </a>
+        </div>
+
+        <div class="feedback-section">
+            <button class="feedback-btn" onclick="window.location.href='mailto:feedback@navlambda.studio'">
+                <span style="font-size: 1.5rem; line-height: 1;">📝</span>
+                <span style="font-size: 0.65rem;">Send Us Your</span>
+                <span style="font-size: 0.65rem;">Feedback</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Center Monitor with Download Content -->
+    <div class="center-monitor">
+        <div class="download-content">
+            <h1 class="download-title">
+                <span class="nav-symbol">⋋</span>
+                Download NAVΛ Studio SDK
+                <span class="nav-symbol">⋋</span>
+            </h1>
+            <p class="download-subtitle">Full Offline-Capable SDK • Van Laarhoven Navigation Calculus</p>
+            <p class="download-subtitle" style="margin-top: 10px; color: #00ff00; font-weight: bold;">✓ Complete PWA • ✓ WebRTC Enabled • ✓ Works 100% Offline</p>
+
+            <div class="download-grid">
+                <!-- macOS Download -->
+                <a href="/downloads/NAVΛ-Studio-1.0.0-macOS.dmg" class="download-card" download>
+                    <div class="download-icon">🍎</div>
+                    <div class="download-info">
+                        <div class="download-platform">macOS</div>
+                        <div class="download-details">Universal (Intel & Apple Silicon) • DMG Installer</div>
+                    </div>
+                </a>
+
+                <!-- Windows Download (Coming Soon) -->
+                <div class="download-card disabled" onclick="alert('Windows version coming soon!')">
+                    <div class="download-icon">🪟</div>
+                    <div class="download-info">
+                        <div class="download-platform">
+                            Windows
+                            <span class="coming-soon">Coming Soon</span>
+                        </div>
+                        <div class="download-details">Windows 10/11 • MSI Installer</div>
+                    </div>
+                </div>
+
+                <!-- Linux Download (Coming Soon) -->
+                <div class="download-card disabled" onclick="alert('Linux version coming soon!')">
+                    <div class="download-icon">🐧</div>
+                    <div class="download-info">
+                        <div class="download-platform">
+                            Linux
+                            <span class="coming-soon">Coming Soon</span>
+                        </div>
+                        <div class="download-details">AppImage & Debian Package</div>
+                    </div>
+                </div>
+
+                <!-- Web App -->
+                <a href="/app.html" class="download-card">
+                    <div class="download-icon">🌐</div>
+                    <div class="download-info">
+                        <div class="download-platform">Web App</div>
+                        <div class="download-details">No installation required • Works in any browser</div>
+                    </div>
+                </a>
+            </div>
+
+            <!-- Installation Instructions -->
+            <div class="instructions-section">
+                <h3>📦 macOS Installation Instructions</h3>
+                <ol>
+                    <li>Download the <strong>NAVΛ-Studio.dmg</strong> file</li>
+                    <li>Open the downloaded DMG file</li>
+                    <li>Drag <strong>NAVΛ Studio</strong> to your Applications folder</li>
+                    <li>Right-click the app and select <strong>"Open"</strong> (first time only)</li>
+                    <li>Click <strong>"Open"</strong> in the security dialog</li>
+                    <li>You're all set! The app will now launch</li>
+                </ol>
+
+                <div class="security-note">
+                    ⚠️ <strong>First Launch:</strong> macOS may show a security warning because the app is not notarized yet. 
+                    To bypass this, right-click the app and select "Open" instead of double-clicking.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="bottom-bar">
+        <div class="bottom-left">
+            <div class="bottom-icon" title="Browser">🌐</div>
+            <div class="bottom-icon" title="Packages">📦</div>
+            <div class="bottom-icon" title="NAVΛ">⋋</div>
+            <div class="bottom-icon" title="Explorer">🌍</div>
+            <div class="bottom-icon download-icon" title="Download" onclick="window.location.href='/downloads/NAVΛ-Studio-1.0.0-macOS.dmg'">📥</div>
+        </div>
+
+        <div class="bottom-right">
+            <div class="bottom-icon" title="Help">?</div>
+            <div class="bottom-icon" title="Settings">⚙️</div>
+            <div class="time-display" id="time-display">Loading...</div>
+            <div class="lang-selector">
+                <span>🇬🇧</span>
+                <span>EN</span>
+            </div>
+            <div class="power-btn" title="Power">⏻</div>
+        </div>
+    </div>
+
+    <!-- Bottom Right Branding -->
+    <div class="branding">
+        <div class="institute-badge">
+            <div class="badge-icon">⋋</div>
+            <div class="badge-text">
+                <div class="institute-name">The NAVΛ</div>
+                <div class="institute-subtitle">NAVIGATION INSTITUTE</div>
+            </div>
+        </div>
+        <div class="tagline">
+            Where Your Navigation Calculus Career Happens
+        </div>
+    </div>
+
+    <script>
+        // Update time display
+        function updateTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', { 
+                hour: '2-digit', 
+                minute: '2-digit',
+                hour12: true 
+            });
+            const dateString = now.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            document.getElementById('time-display').textContent = `${timeString} • ${dateString}`;
+        }
+
+        updateTime();
+        setInterval(updateTime, 60000); // Update every minute
+    </script>
+</body>
+</html>

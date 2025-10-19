@@ -1,11 +1,13 @@
 import React, { useEffect, useRef } from 'react';
 import * as monaco from 'monaco-editor';
+import { registerNavLambdaLanguage } from '../../services/navlambda-language';
 import './MonacoEditor.css';
 
 interface MonacoEditorProps {
   initialCode: string;
   onCodeChange: (code: string) => void;
   onCursorPositionChange?: (position: monaco.Position) => void;
+  filePath?: string;
 }
 
 /**
@@ -17,81 +19,20 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
   initialCode,
   onCodeChange,
   onCursorPositionChange,
+  filePath,
 }) => {
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isLanguageRegistered = useRef(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
 
-    // Register NAVΛ language with Monaco
-    monaco.languages.register({ id: 'navlambda' });
-
-    // Define NAVΛ syntax highlighting with ⋋ symbols
-    monaco.languages.setMonarchTokensProvider('navlambda', {
-      tokenizer: {
-        root: [
-          // Van Laarhoven symbols
-          [/⋋/, 'vnc-lambda-nav'],
-          [/⊗⋋/, 'vnc-nav-tensor'],
-          [/⊕⋋/, 'vnc-nav-sum'],
-          [/∪⋋/, 'vnc-nav-union'],
-          [/∩⋋/, 'vnc-nav-intersection'],
-          [/[↑↓→←]⋋/, 'vnc-nav-direction'],
-
-          // Master operators
-          [/𝒩ℐ/, 'vnc-master-operator'],
-          [/ℰ/, 'vnc-evolution-operator'],
-
-          // Navigation keywords
-          [/\bnavigate_to⋋\b/, 'keyword'],
-          [/\bfind_optimal_path⋋\b/, 'keyword'],
-          [/\benergy_landscape⋋\b/, 'keyword'],
-
-          // Standard tokens
-          [/\b(let|fn|return|if|else|while|for)\b/, 'keyword'],
-          [/\b\d+(\.\d+)?\b/, 'number'],
-          [/"([^"\\]|\\.)*"/, 'string'],
-          [/'([^'\\]|\\.)*'/, 'string'],
-          [/\/\/.*$/, 'comment'],
-          [/\/\*/, 'comment', '@comment'],
-        ],
-        comment: [
-          [/[^/*]+/, 'comment'],
-          [/\*\//, 'comment', '@pop'],
-          [/[/*]/, 'comment'],
-        ],
-      },
-    });
-
-    // Define VNC theme with distinctive colors
-    monaco.editor.defineTheme('vnc-theme', {
-      base: 'vs-dark',
-      inherit: true,
-      rules: [
-        { token: 'vnc-lambda-nav', foreground: '00ff00', fontStyle: 'bold' },
-        { token: 'vnc-nav-tensor', foreground: '00ccff' },
-        { token: 'vnc-nav-sum', foreground: '00ccff' },
-        { token: 'vnc-nav-union', foreground: 'ff6600' },
-        { token: 'vnc-nav-intersection', foreground: 'ff6600' },
-        { token: 'vnc-nav-direction', foreground: 'ffff00' },
-        { token: 'vnc-master-operator', foreground: 'ff0099', fontStyle: 'bold' },
-        { token: 'vnc-evolution-operator', foreground: 'cc00ff' },
-        { token: 'keyword', foreground: '569cd6', fontStyle: 'bold' },
-        { token: 'comment', foreground: '6a9955' },
-        { token: 'string', foreground: 'ce9178' },
-        { token: 'number', foreground: 'b5cea8' },
-      ],
-      colors: {
-        'editor.background': '#1a1a1a',
-        'editor.foreground': '#ffffff',
-        'editorCursor.foreground': '#00ff00',
-        'editor.lineHighlightBackground': '#2a2a2a',
-        'editorLineNumber.foreground': '#858585',
-        'editor.selectionBackground': '#264f78',
-        'editor.inactiveSelectionBackground': '#3a3d41',
-      },
-    });
+    // Register NAVΛ language once
+    if (!isLanguageRegistered.current) {
+      registerNavLambdaLanguage();
+      isLanguageRegistered.current = true;
+    }
 
     // Create editor instance
     editorRef.current = monaco.editor.create(containerRef.current, {
@@ -113,6 +54,17 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
       suggestOnTriggerCharacters: true,
       tabSize: 2,
       insertSpaces: true,
+      wordWrap: 'on',
+      folding: true,
+      foldingStrategy: 'indentation',
+      showFoldingControls: 'always',
+      bracketPairColorization: {
+        enabled: true,
+      },
+      guides: {
+        bracketPairs: true,
+        indentation: true,
+      },
     });
 
     // Handle code changes
@@ -157,14 +109,47 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
       }
     );
 
+    editorRef.current.addCommand(
+      monaco.KeyMod.Alt | monaco.KeyMod.Shift | monaco.KeyCode.KeyE,
+      () => {
+        editorRef.current?.trigger('keyboard', 'type', { text: 'ℰ' });
+      }
+    );
+
+    // Add save command (Ctrl+S / Cmd+S)
+    editorRef.current.addCommand(
+      monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS,
+      () => {
+        // Trigger save event
+        const event = new CustomEvent('editor-save', {
+          detail: { code: editorRef.current?.getValue() },
+        });
+        window.dispatchEvent(event);
+      }
+    );
+
     return () => {
       editorRef.current?.dispose();
     };
-  }, [initialCode, onCodeChange, onCursorPositionChange]);
+  }, []);
+
+  // Update editor content when initialCode changes
+  useEffect(() => {
+    if (editorRef.current && initialCode !== editorRef.current.getValue()) {
+      editorRef.current.setValue(initialCode);
+    }
+  }, [initialCode]);
 
   return (
     <div className="monaco-editor-wrapper">
       <div className="monaco-editor-toolbar">
+        <div className="file-info">
+          {filePath && (
+            <span className="file-path" title={filePath}>
+              {filePath.split('/').pop()}
+            </span>
+          )}
+        </div>
         <div className="vnc-symbols-palette">
           <button
             className="vnc-symbol-btn"
@@ -190,14 +175,23 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
           <button
             className="vnc-symbol-btn"
             onClick={() => editorRef.current?.trigger('keyboard', 'type', { text: '∪⋋' })}
+            title="Union"
           >
             ∪⋋
           </button>
           <button
             className="vnc-symbol-btn"
             onClick={() => editorRef.current?.trigger('keyboard', 'type', { text: '∩⋋' })}
+            title="Intersection"
           >
             ∩⋋
+          </button>
+          <button
+            className="vnc-symbol-btn"
+            onClick={() => editorRef.current?.trigger('keyboard', 'type', { text: '∇⋋' })}
+            title="Gradient"
+          >
+            ∇⋋
           </button>
           <button
             className="vnc-symbol-btn"
@@ -209,6 +203,7 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
           <button
             className="vnc-symbol-btn"
             onClick={() => editorRef.current?.trigger('keyboard', 'type', { text: 'ℰ' })}
+            title="Evolution (Alt+Shift+E)"
           >
             ℰ
           </button>
@@ -218,4 +213,3 @@ export const NavLambdaMonacoEditor: React.FC<MonacoEditorProps> = ({
     </div>
   );
 };
-

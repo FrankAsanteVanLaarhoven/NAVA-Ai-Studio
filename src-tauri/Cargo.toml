@@ -1,43 +1,31 @@
 [package]
 name = "navlambda-studio"
-version.workspace = true
-authors.workspace = true
-license.workspace = true
-edition.workspace = true
+version = "1.0.0"
+authors = ["Frank Van Laarhoven <frank@navlambda.studio>"]
+license = "MIT OR Apache-2.0"
+edition = "2021"
+homepage = "https://navlambda.studio"
+repository = "https://github.com/frankvanlaarhoven/navlambda-studio"
 
 [build-dependencies]
-tauri-build.workspace = true
+tauri-build = { version = "1.5", features = [] }
 
 [dependencies]
-# Tauri
-tauri.workspace = true
-serde_json.workspace = true
-serde.workspace = true
-
-# Async runtime
-tokio.workspace = true
-futures.workspace = true
-
-# Language Server Protocol
-tower-lsp.workspace = true
-lsp-types.workspace = true
-
-# Parsing
-nom.workspace = true
-
-# Error handling
-anyhow.workspace = true
-thiserror.workspace = true
-
-# Logging
-tracing.workspace = true
-tracing-subscriber.workspace = true
-
-# Performance
-rayon.workspace = true
-parking_lot.workspace = true
+tauri = { version = "1.6", features = ["shell-open", "dialog-all", "fs-all"] }
+serde_json = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1", features = ["full"] }
+futures = "0.3"
+tower-lsp = "0.20"
+lsp-types = "0.94"
+nom = "7.1"
+anyhow = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+rayon = "1.7"
+parking_lot = "0.12"
 
 [features]
 default = ["custom-protocol"]
 custom-protocol = ["tauri/custom-protocol"]
-

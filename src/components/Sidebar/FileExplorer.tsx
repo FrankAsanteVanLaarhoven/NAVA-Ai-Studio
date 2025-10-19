@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, File, Folder, FolderOpen } from 'lucide-react';
+import { ChevronRight, ChevronDown, File, Folder, FolderOpen, RefreshCw, FilePlus, FolderPlus, MoreVertical } from 'lucide-react';
 import './FileExplorer.css';
 
 interface FileNode {
@@ -61,6 +61,8 @@ const PROJECT_STRUCTURE: FileNode = {
 
 export const FileExplorer: React.FC = () => {
   const [tree, setTree] = useState(PROJECT_STRUCTURE);
+  const [selectedPath, setSelectedPath] = useState<string>('/');
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   const toggleFolder = (path: string) => {
     const updateTree = (node: FileNode): FileNode => {
@@ -75,15 +77,71 @@ export const FileExplorer: React.FC = () => {
     setTree(updateTree(tree));
   };
 
+  const addFileToTree = (parentPath: string, fileName: string) => {
+    const updateTree = (node: FileNode): FileNode => {
+      if (node.path === parentPath && node.type === 'folder') {
+        const newFile: FileNode = {
+          name: fileName,
+          type: 'file',
+          path: `${parentPath}/${fileName}`.replace('//', '/'),
+        };
+        return {
+          ...node,
+          expanded: true,
+          children: [...(node.children || []), newFile].sort((a, b) => {
+            if (a.type === b.type) return a.name.localeCompare(b.name);
+            return a.type === 'folder' ? -1 : 1;
+          }),
+        };
+      }
+      if (node.children) {
+        return { ...node, children: node.children.map(updateTree) };
+      }
+      return node;
+    };
+    setTree(updateTree(tree));
+  };
+
+  const addFolderToTree = (parentPath: string, folderName: string) => {
+    const updateTree = (node: FileNode): FileNode => {
+      if (node.path === parentPath && node.type === 'folder') {
+        const newFolder: FileNode = {
+          name: folderName,
+          type: 'folder',
+          path: `${parentPath}/${folderName}`.replace('//', '/'),
+          expanded: false,
+          children: [],
+        };
+        return {
+          ...node,
+          expanded: true,
+          children: [...(node.children || []), newFolder].sort((a, b) => {
+            if (a.type === b.type) return a.name.localeCompare(b.name);
+            return a.type === 'folder' ? -1 : 1;
+          }),
+        };
+      }
+      if (node.children) {
+        return { ...node, children: node.children.map(updateTree) };
+      }
+      return node;
+    };
+    setTree(updateTree(tree));
+  };
+
   const renderNode = (node: FileNode, depth: number = 0) => {
     const isFolder = node.type === 'folder';
+    const isSelected = node.path === selectedPath;
 
     return (
       <div key={node.path}>
         <div
-          className="file-node"
+          className={`file-node ${isSelected ? 'selected' : ''}`}
           style={{ paddingLeft: `${depth * 16 + 8}px` }}
-          onClick={() => isFolder && toggleFolder(node.path)}
+          onClick={() => {
+            setSelectedPath(node.path);
+            if (isFolder) toggleFolder(node.path);
+          }}
         >
           {isFolder ? (
             <>
@@ -107,10 +165,140 @@ export const FileExplorer: React.FC = () => {
     );
   };
 
+  const findNodeByPath = (path: string, node: FileNode = tree): FileNode | null => {
+    if (node.path === path) return node;
+    if (node.children) {
+      for (const child of node.children) {
+        const found = findNodeByPath(path, child);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const getParentPath = (path: string): string => {
+    const parts = path.split('/').filter(Boolean);
+    parts.pop();
+    return parts.length > 0 ? '/' + parts.join('/') : '/';
+  };
+
+  const handleRefresh = () => {
+    setTree({ ...PROJECT_STRUCTURE });
+  };
+
+  const handleNewFile = () => {
+    const fileName = prompt('Enter file name (e.g., mycode.vnc):');
+    if (!fileName || fileName.trim() === '') return;
+
+    const selectedNode = findNodeByPath(selectedPath);
+    let targetPath = selectedPath;
+
+    // If selected node is a file, add to its parent folder
+    if (selectedNode && selectedNode.type === 'file') {
+      targetPath = getParentPath(selectedPath);
+    }
+
+    addFileToTree(targetPath, fileName.trim());
+  };
+
+  const handleNewFolder = () => {
+    const folderName = prompt('Enter folder name:');
+    if (!folderName || folderName.trim() === '') return;
+
+    const selectedNode = findNodeByPath(selectedPath);
+    let targetPath = selectedPath;
+
+    // If selected node is a file, add to its parent folder
+    if (selectedNode && selectedNode.type === 'file') {
+      targetPath = getParentPath(selectedPath);
+    }
+
+    addFolderToTree(targetPath, folderName.trim());
+  };
+
+  const handleMoreActions = () => {
+    setShowMoreMenu(!showMoreMenu);
+  };
+
+  const handleCollapseAll = () => {
+    const collapseTree = (node: FileNode): FileNode => {
+      if (node.type === 'folder') {
+        return {
+          ...node,
+          expanded: false,
+          children: node.children?.map(collapseTree),
+        };
+      }
+      return node;
+    };
+    setTree(collapseTree(tree));
+    setShowMoreMenu(false);
+  };
+
+  const handleExpandAll = () => {
+    const expandTree = (node: FileNode): FileNode => {
+      if (node.type === 'folder') {
+        return {
+          ...node,
+          expanded: true,
+          children: node.children?.map(expandTree),
+        };
+      }
+      return node;
+    };
+    setTree(expandTree(tree));
+    setShowMoreMenu(false);
+  };
+
   return (
     <div className="file-explorer">
       <div className="explorer-header">
         <h3>EXPLORER</h3>
+        <div className="explorer-toolbar">
+          <button 
+            className="explorer-toolbar-btn" 
+            onClick={handleRefresh}
+            title="Refresh Explorer"
+          >
+            <RefreshCw size={14} />
+          </button>
+          <button 
+            className="explorer-toolbar-btn" 
+            onClick={handleNewFile}
+            title="New File (Ctrl+N)"
+          >
+            <FilePlus size={14} />
+          </button>
+          <button 
+            className="explorer-toolbar-btn" 
+            onClick={handleNewFolder}
+            title="New Folder (Ctrl+Shift+N)"
+          >
+            <FolderPlus size={14} />
+          </button>
+          <div style={{ position: 'relative' }}>
+            <button 
+              className={`explorer-toolbar-btn ${showMoreMenu ? 'active' : ''}`}
+              onClick={handleMoreActions}
+              title="More Actions"
+            >
+              <MoreVertical size={14} />
+            </button>
+            {showMoreMenu && (
+              <div className="more-actions-menu">
+                <button onClick={handleExpandAll}>
+                  Expand All Folders
+                </button>
+                <button onClick={handleCollapseAll}>
+                  Collapse All Folders
+                </button>
+                <button onClick={() => { setShowMoreMenu(false); }}>
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
       <div className="explorer-tree">{renderNode(tree)}</div>
     </div>

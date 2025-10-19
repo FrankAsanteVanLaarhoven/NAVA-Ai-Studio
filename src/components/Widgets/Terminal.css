@@ -1,0 +1,310 @@
+.terminal-widget {
+  background: #1a1a1a;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  width: 700px;
+  height: 500px;
+  font-family: 'Fira Code', 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  color: #e5e5e5;
+}
+
+.terminal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #2d2d2d;
+  border-bottom: 1px solid #404040;
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.terminal-icon {
+  font-size: 16px;
+}
+
+.terminal-title h3 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e5e5e5;
+}
+
+.terminal-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.terminal-btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.terminal-btn.minimize {
+  background: #ffbd2e;
+  color: #995700;
+}
+
+.terminal-btn.maximize {
+  background: #28ca42;
+  color: #0d5016;
+}
+
+.terminal-btn.close {
+  background: #ff5f56;
+  color: #8b0000;
+}
+
+.terminal-btn:hover {
+  opacity: 0.8;
+  transform: scale(1.1);
+}
+
+.terminal-content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #1a1a1a;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.terminal-entry {
+  margin-bottom: 8px;
+}
+
+.terminal-command {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.terminal-prompt {
+  color: #4ade80;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.terminal-command-text {
+  color: #e5e5e5;
+  flex: 1;
+}
+
+.terminal-timestamp {
+  color: #6b7280;
+  font-size: 12px;
+  margin-left: auto;
+}
+
+.terminal-output {
+  margin-left: 0;
+  color: #d1d5db;
+  white-space: pre-wrap;
+  font-family: inherit;
+}
+
+.terminal-line {
+  margin-bottom: 2px;
+}
+
+.terminal-input-line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.terminal-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #e5e5e5;
+  font-family: inherit;
+  font-size: 14px;
+  caret-color: #4ade80;
+}
+
+.terminal-input::placeholder {
+  color: #6b7280;
+}
+
+.terminal-footer {
+  padding: 8px 16px;
+  background: #2d2d2d;
+  border-top: 1px solid #404040;
+}
+
+.terminal-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Scrollbar styling */
+.terminal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.terminal-content::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.terminal-content::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.terminal-content::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Cursor animation */
+.terminal-input {
+  position: relative;
+}
+
+.terminal-input:focus::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #4ade80;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Syntax highlighting for common commands */
+.terminal-command-text {
+  color: #e5e5e5;
+}
+
+/* Highlight different types of output */
+.terminal-output {
+  color: #d1d5db;
+}
+
+/* Error messages */
+.terminal-output:has-text("not found"),
+.terminal-output:has-text("error"),
+.terminal-output:has-text("Error") {
+  color: #f87171;
+}
+
+/* Success messages */
+.terminal-output:has-text("success"),
+.terminal-output:has-text("Success"),
+.terminal-output:has-text("completed") {
+  color: #4ade80;
+}
+
+/* File listings */
+.terminal-output:has-text("drwx"),
+.terminal-output:has-text("-rw-") {
+  color: #93c5fd;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .terminal-widget {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0;
+  }
+  
+  .terminal-content {
+    font-size: 12px;
+    padding: 12px;
+  }
+  
+  .terminal-input {
+    font-size: 12px;
+  }
+  
+  .terminal-timestamp {
+    display: none;
+  }
+}
+
+/* High contrast mode */
+@media (prefers-contrast: high) {
+  .terminal-widget {
+    background: #000000;
+    border: 2px solid #ffffff;
+  }
+  
+  .terminal-header {
+    background: #000000;
+    border-bottom-color: #ffffff;
+  }
+  
+  .terminal-content {
+    background: #000000;
+  }
+  
+  .terminal-prompt {
+    color: #00ff00;
+  }
+  
+  .terminal-command-text,
+  .terminal-input {
+    color: #ffffff;
+  }
+  
+  .terminal-output {
+    color: #ffffff;
+  }
+}
+
+/* Selection styling */
+.terminal-content ::selection {
+  background: #4ade80;
+  color: #1a1a1a;
+}
+
+/* Focus indicators */
+.terminal-input:focus {
+  outline: 2px solid #4ade80;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Animation for new entries */
+.terminal-entry {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

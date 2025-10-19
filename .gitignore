@@ -9,6 +9,11 @@ node_modules/
 # Build outputs
 /dist
 /build
+/dist-app
+*.dmg
+*.zip
+*.app
+/public/downloads
 
 # IDEs
 .vscode/

@@ -1,0 +1,349 @@
+.file-explorer-widget {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 600px;
+  height: 500px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.file-explorer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+.file-explorer-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.file-explorer-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.view-mode-btn {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.view-mode-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.view-mode-btn.active {
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.file-explorer-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+.file-explorer-close:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.file-explorer-search {
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.search-input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  border-color: #f59e0b;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
+}
+
+.file-explorer-content {
+  flex: 1;
+  overflow-y: auto;
+  background: white;
+}
+
+.file-tree {
+  padding: 8px 0;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  margin: 2px 8px;
+  gap: 8px;
+}
+
+.file-item:hover {
+  background: #f3f4f6;
+}
+
+.file-item.selected {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.file-icon {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.file-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.file-size {
+  font-size: 12px;
+  color: #6b7280;
+  margin-left: auto;
+}
+
+.folder-children {
+  border-left: 1px solid #e5e7eb;
+  margin-left: 20px;
+}
+
+.file-list {
+  padding: 8px;
+}
+
+.file-list-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  margin-bottom: 4px;
+  gap: 12px;
+}
+
+.file-list-item:hover {
+  background: #f3f4f6;
+}
+
+.file-list-item.selected {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.file-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.file-details .file-name {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.file-path {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.file-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.file-date {
+  white-space: nowrap;
+}
+
+.file-explorer-footer {
+  padding: 12px 20px;
+  border-top: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.selected-file-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.selected-file-info strong {
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Scrollbar styling */
+.file-explorer-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.file-explorer-content::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.file-explorer-content::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.file-explorer-content::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .file-explorer-widget {
+    width: 100%;
+    height: 100vh;
+  }
+  
+  .file-explorer-header {
+    padding: 16px;
+  }
+  
+  .file-explorer-search {
+    padding: 12px 16px;
+  }
+  
+  .file-item {
+    padding: 12px;
+  }
+  
+  .file-list-item {
+    padding: 16px 12px;
+  }
+  
+  .file-meta {
+    display: none;
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .file-explorer-widget {
+    background: #1f2937;
+    color: #f9fafb;
+  }
+  
+  .file-explorer-header {
+    border-bottom-color: #374151;
+  }
+  
+  .file-explorer-search {
+    background: #111827;
+    border-bottom-color: #374151;
+  }
+  
+  .search-input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f9fafb;
+  }
+  
+  .search-input:focus {
+    border-color: #f59e0b;
+  }
+  
+  .file-explorer-content {
+    background: #1f2937;
+  }
+  
+  .file-item:hover {
+    background: #374151;
+  }
+  
+  .file-item.selected {
+    background: #1e40af;
+    color: #dbeafe;
+  }
+  
+  .file-list-item:hover {
+    background: #374151;
+  }
+  
+  .file-list-item.selected {
+    background: #1e40af;
+    color: #dbeafe;
+  }
+  
+  .folder-children {
+    border-left-color: #374151;
+  }
+  
+  .file-explorer-footer {
+    background: #111827;
+    border-top-color: #374151;
+  }
+  
+  .selected-file-info strong {
+    color: #f9fafb;
+  }
+}
+
+/* Animation for folder expand/collapse */
+.folder-children {
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

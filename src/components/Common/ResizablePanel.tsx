@@ -75,8 +75,8 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
             <div className="panel-header">
               <span className="panel-title">{title}</span>
               {onToggleCollapse && (
-                <button className="collapse-btn" onClick={onToggleCollapse} title="Collapse">
-                  <span className="codicon codicon-chevron-left"></span>
+                <button className="collapse-btn" onClick={onToggleCollapse} title={`Collapse ${side} panel`}>
+                  {side === 'left' ? '◀' : '▶'}
                 </button>
               )}
             </div>
@@ -85,12 +85,32 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
         </>
       )}
       
-      <div
-        className={`resize-handle ${side}-handle`}
-        onMouseDown={handleMouseDown}
-      >
-        <div className="resize-handle-bar"></div>
-      </div>
+      {/* Expand button when collapsed */}
+      {isCollapsed && onToggleCollapse && (
+        <button 
+          className="expand-btn" 
+          onClick={onToggleCollapse} 
+          title={`Expand ${side} panel`}
+          style={{
+            position: 'absolute',
+            [side === 'left' ? 'right' : 'left']: '-32px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            zIndex: 1000
+          }}
+        >
+          {side === 'left' ? '▶' : '◀'}
+        </button>
+      )}
+      
+      {!isCollapsed && (
+        <div
+          className={`resize-handle ${side}-handle`}
+          onMouseDown={handleMouseDown}
+        >
+          <div className="resize-handle-bar"></div>
+        </div>
+      )}
     </div>
   );
 };

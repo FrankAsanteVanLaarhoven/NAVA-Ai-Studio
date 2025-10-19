@@ -17,7 +17,9 @@ import {
   PinIcon,
   Plus,
   LogIn,
-  MoreVertical
+  MoreVertical,
+  Bot,
+  Gamepad2
 } from 'lucide-react';
 import './ActivityBar.css';
 
@@ -32,6 +34,9 @@ export type ActivityType =
   | 'stripe'
   | 'github'
   | 'chat-history'
+  | 'ros-learning'
+  | 'mcp-toolkit'
+  | 'simulation'
   | 'profile'
   | 'settings';
 
@@ -64,12 +69,15 @@ export const ActivityBar: React.FC<ActivityBarProps> = ({
     { id: 'search' as ActivityType, icon: Search, label: 'Search (Ctrl+Shift+F)' },
     { id: 'source-control' as ActivityType, icon: GitBranch, label: 'Source Control (Ctrl+Shift+G)' },
     { id: 'debug' as ActivityType, icon: Play, label: 'Run and Debug (Ctrl+Shift+D)' },
+    { id: 'simulation' as ActivityType, icon: Gamepad2, label: 'NAVΛ SIM 🤖 (Rust-Powered)' },
     { id: 'remote-explorer' as ActivityType, icon: Database, label: 'Remote Explorer' },
     { id: 'extensions' as ActivityType, icon: Box, label: 'Extensions (Ctrl+Shift+X)' },
     { id: 'containers' as ActivityType, icon: Database, label: 'Containers' },
     { id: 'stripe' as ActivityType, icon: CreditCard, label: 'Stripe Integration' },
     { id: 'github' as ActivityType, icon: Github, label: 'GitHub' },
     { id: 'chat-history' as ActivityType, icon: MessageSquare, label: 'Chat History' },
+    { id: 'ros-learning' as ActivityType, icon: Bot, label: 'ROS Learning Center 🤖 (Free Courses)' },
+    { id: 'mcp-toolkit' as ActivityType, icon: Bot, label: 'MCP Toolkit 🤖 (AI Agent Management)' },
   ];
 
   return (

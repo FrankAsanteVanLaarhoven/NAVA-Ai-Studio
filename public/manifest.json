@@ -1,11 +1,17 @@
 {
-  "name": "NAVΛ Studio",
-  "short_name": "NAVΛ Studio",
-  "description": "Van Laarhoven Navigation Calculus IDE",
+  "name": "⋋ NAVΛ Studio IDE - Van Laarhoven Navigation Calculus",
+  "short_name": "⋋ NAVΛ Studio",
+  "description": "Van Laarhoven Navigation Calculus IDE - Full Offline SDK with 3D/7D Navigation, WebRTC, and Complete Development Environment",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#1a1a1a",
+  "orientation": "any",
+  "background_color": "#0a1530",
   "theme_color": "#00ff00",
+  "categories": ["development", "productivity", "education", "navigation"],
+  "lang": "en-US",
+  "dir": "ltr",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/favicon-16x16.png",
@@ -29,6 +35,78 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/ide-view.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "⋋ NAVΛ Studio IDE - Monaco Editor with Navigation Calculus"
+    },
+    {
+      "src": "/screenshots/terminal-view.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide",
+      "label": "Integrated Terminal with NAVΛ Commands"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Open IDE",
+      "short_name": "IDE",
+      "description": "Open NAVΛ Studio IDE",
+      "url": "/app.html",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Workspace",
+      "short_name": "Workspace",
+      "description": "Open Navigation Workspace",
+      "url": "/workspace.html",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Download SDK",
+      "short_name": "SDK",
+      "description": "Download NAVΛ SDK",
+      "url": "/download.html",
+      "icons": [{ "src": "/icon-192x192.png", "sizes": "192x192" }]
+    }
+  ],
+  "share_target": {
+    "action": "/share-target/",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "file",
+          "accept": ["text/*", "application/*", ".nav", ".navλ"]
+        }
+      ]
+    }
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+navlambda",
+      "url": "/handler?url=%s"
+    }
+  ],
+  "related_applications": [],
+  "features": [
+    "offline",
+    "pwa",
+    "webrtc",
+    "terminal",
+    "monaco-editor",
+    "3d-navigation",
+    "7d-spacetime",
+    "van-laarhoven-calculus"
   ]
 }
 

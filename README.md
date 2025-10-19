@@ -7,6 +7,32 @@
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg)](https://react.dev/)
 [![Tauri](https://img.shields.io/badge/Tauri-1.6+-FFC131.svg)](https://tauri.app/)
 
+## 🤖 NEW: Free ROS Learning Courses + Live Terminal!
+
+**NAVΛ Studio now includes comprehensive, free ROS (Robot Operating System) education with a FULLY FUNCTIONAL TERMINAL!**
+
+- ✅ **3 Free Courses** - ROS2 Basics, Advanced Navigation, Gazebo Simulation
+- ✅ **💻 Live Terminal** - Execute real ROS2 commands in-browser
+- ✅ **17+ Commands** - ros2 run, launch, topic, node, pkg, and more
+- ✅ **One-Click Execution** - Run code examples instantly
+- ✅ **100% Free Forever** - No paywalls, no subscriptions
+- ✅ **VNC Integration** - Learn navigation calculus with robotics
+- ✅ **Certification** - Earn certificates on completion
+- ✅ **Hands-On ROSjects** - Practical robot projects
+- ✅ **Safe Learning** - Simulated environment, no installation needed
+
+**New Features:**
+- 💻 **Integrated Terminal** with command history and keyboard shortcuts
+- ▶️ **Run Command Buttons** on all code examples
+- 🚀 **Launch File Execution** with real-time output
+- 🎓 **Educational Output** designed for learning
+
+Inspired by [The Construct](https://app.theconstruct.ai) and enhanced with NAVΛ's mathematical navigation framework.
+
+📚 **[Full Documentation](ROS_LEARNING_SYSTEM.md)** | 💻 **[Terminal Guide](ROS_TERMINAL_INTEGRATION.md)**
+
+---
+
 ## 🚀 Revolutionary Features
 
 NAVΛ Studio is a world-class development environment that **surpasses VSCode, Cursor, and JetBrains** with:
@@ -45,7 +71,36 @@ NAVΛ Studio is a world-class development environment that **surpasses VSCode, C
 
 ## 🎯 Quick Start
 
-### Prerequisites
+### For End Users - Desktop Installation
+
+**Install NAVΛ Studio as a native desktop application:**
+
+#### **Automated Installation (Recommended)**
+
+**macOS / Linux:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/main/scripts/install-sdk.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/main/scripts/install-sdk.ps1 | iex
+```
+
+#### **Manual Installation**
+
+Download pre-built installers for your platform:
+- **macOS**: [Download DMG](https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/releases/latest)
+- **Windows**: [Download MSI](https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/releases/latest)
+- **Linux**: [Download AppImage/DEB/RPM](https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/releases/latest)
+
+📖 **See [SDK_QUICK_START.md](SDK_QUICK_START.md) for complete installation guide**
+
+---
+
+### For Developers - Build from Source
+
+#### Prerequisites
 
 - **Rust** 1.75+ ([rustup.rs](https://rustup.rs/))
 - **Node.js** 20+ and npm ([nodejs.org](https://nodejs.org/))
@@ -54,7 +109,7 @@ NAVΛ Studio is a world-class development environment that **surpasses VSCode, C
   - **macOS**: Xcode Command Line Tools
   - **Windows**: Microsoft C++ Build Tools
 
-### Installation
+#### Installation
 
 ```bash
 # Clone the repository
@@ -64,7 +119,7 @@ cd navlambda-studio
 # Install dependencies
 npm install
 
-# Build WebAssembly preview engine
+# Build WebAssembly preview engine (optional)
 cd wasm-preview
 wasm-pack build --target web
 cd ..
@@ -73,7 +128,7 @@ cd ..
 npm run tauri:dev
 ```
 
-### Build for Production
+#### Build for Production
 
 ```bash
 # Build optimized production version
@@ -83,13 +138,29 @@ npm run tauri:build
 # The installer will be in src-tauri/target/release/bundle/
 ```
 
+Or use the automated build script:
+```bash
+./scripts/build.sh
+```
+
+📖 **See [BUILD_INSTRUCTIONS.md](BUILD_INSTRUCTIONS.md) for detailed build guide**
+
 ## 📚 Documentation
 
+### Desktop SDK Documentation
+- [**SDK Quick Start**](SDK_QUICK_START.md) - ⚡ Fastest way to install and get started
+- [**SDK Download**](SDK_DOWNLOAD.md) - 📥 Pre-built installers for all platforms
+- [**Desktop SDK Installation**](DESKTOP_SDK_INSTALLATION.md) - 🛠️ Complete installation guide
+- [**Build Instructions**](BUILD_INSTRUCTIONS.md) - 🔨 Building from source
+- [**SDK Overview**](SDK_README.md) - 📖 Complete SDK documentation index
+
+### Developer Documentation
 - [**Architecture Overview**](docs/architecture.md) - System design and component architecture
 - [**NAVΛ Language Reference**](docs/vnc-language-reference.md) - Complete language specification
 - [**Plugin Development Guide**](docs/plugin-development.md) - Creating custom extensions
 - [**Multi-Target Compilation**](docs/compilation-targets.md) - Compiling to C++, Python, WASM, GLSL
 - [**Cloud Deployment Guide**](docs/deployment-guide.md) - Docker, Kubernetes, cloud platforms
+- [**Getting Started**](GETTING_STARTED.md) - User guide for the IDE
 
 ## 🎨 Key Features in Detail
 

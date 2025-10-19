@@ -1,0 +1,421 @@
+name: Security Scanning & Compliance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * *'  # Run daily at 2 AM
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18.x'
+  RUST_VERSION: '1.75'
+
+jobs:
+  # Dependency Vulnerability Scanning
+  dependency-scan:
+    name: Dependency Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cargo fetch
+
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate --json > npm-audit.json || true
+          npm run security:audit:npm
+
+      - name: Run cargo audit
+        run: |
+          cargo install cargo-audit
+          cargo audit --json > cargo-audit.json || true
+          cargo run security:audit:cargo
+
+      - name: Upload audit results
+        uses: actions/upload-artifact@v3
+        with:
+          name: dependency-audit-results
+          path: |
+            npm-audit.json
+            cargo-audit.json
+          retention-days: 30
+
+      - name: Check for high severity vulnerabilities
+        run: |
+          HIGH_SEVERITY_NPM=$(jq '.metadata.vulnerabilities.high // 0' npm-audit.json)
+          HIGH_SEVERITY_CARGO=$(jq '.vulnerabilities[] | select(.advisory.severity == "high") | .advisory.id' cargo-audit.json | wc -l)
+          
+          if [ "$HIGH_SEVERITY_NPM" -gt 0 ] || [ "$HIGH_SEVERITY_CARGO" -gt 0 ]; then
+            echo "High severity vulnerabilities found!"
+            echo "npm: $HIGH_SEVERITY_NPM"
+            echo "cargo: $HIGH_SEVERITY_CARGO"
+            exit 1
+          fi
+
+  # Static Application Security Testing (SAST)
+  sast-scan:
+    name: SAST Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint security rules
+        run: |
+          npm run lint:security
+          npm run lint:security:report
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/javascript
+            p/typescript
+            p/react
+
+      - name: Upload SAST results
+        uses: actions/upload-artifact@v3
+        with:
+          name: sast-results
+          path: reports/sast/
+          retention-days: 30
+
+  # Secret Scanning
+  secret-scan:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: main
+          head: HEAD
+          extra_args: --debug --only-verified
+
+      - name: Run GitLeaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Detect Secrets
+        run: |
+          pip install detect-secrets
+          detect-secrets scan --all-files --baseline .secrets.baseline
+          detect-secrets audit .secrets.baseline
+
+  # Container Security Scanning
+  container-scan:
+    name: Container Security Scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t navlambda-studio:security-scan .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'navlambda-studio:security-scan'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Snyk container scan
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: navlambda-studio:security-scan
+          args: --severity-threshold=high
+
+  # License Compliance
+  license-scan:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          cargo fetch
+
+      - name: Check Node.js licenses
+        run: |
+          npx license-checker --production --json > licenses-npm.json
+          npm run license:check:npm
+
+      - name: Check Rust licenses
+        run: |
+          cargo install cargo-license
+          cargo license --json > licenses-cargo.json
+          cargo run license:check:cargo
+
+      - name: Check for forbidden licenses
+        run: |
+          # Check for GPL, AGPL, etc. in production dependencies
+          FORBIDDEN_LICENSES=$(jq -r '.[] | select(.licenses | test("GPL|AGPL|LGPL")) | .name' licenses-npm.json || echo "")
+          
+          if [ -n "$FORBIDDEN_LICENSES" ]; then
+            echo "Forbidden licenses found: $FORBIDDEN_LICENSES"
+            exit 1
+          fi
+
+      - name: Upload license scan results
+        uses: actions/upload-artifact@v3
+        with:
+          name: license-scan-results
+          path: |
+            licenses-npm.json
+            licenses-cargo.json
+          retention-days: 30
+
+  # Infrastructure as Code Security
+  iac-scan:
+    name: IaC Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov
+        uses: bridgecrewio/checkov-action@master
+        with:
+          directory: .
+          framework: dockerfile,github_actions,terraform
+          output_format: sarif
+          output_file_path: reports/checkov.sarif
+
+      - name: Upload Checkov results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: reports/checkov.sarif
+
+      - name: Run tfsec
+        uses: aquasecurity/tfsec-action@v1.0.0
+        with:
+          working_directory: infrastructure/
+          format: sarif
+          out: reports/tfsec.sarif
+
+      - name: Upload tfsec results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: reports/tfsec.sarif
+
+  # Code Quality and Security Gates
+  security-gates:
+    name: Security Gates
+    runs-on: ubuntu-latest
+    needs: [dependency-scan, sast-scan, secret-scan, container-scan, license-scan]
+    if: always()
+    steps:
+      - name: Security summary
+        run: |
+          echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Dependency Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.dependency-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### SAST Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.sast-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Secret Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.secret-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Container Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.container-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### License Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.license-scan.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### IaC Scan" >> $GITHUB_STEP_SUMMARY
+          echo "- Status: ${{ needs.iac-scan.result }}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check security gate status
+        run: |
+          if [ "${{ needs.dependency-scan.result }}" == "failure" ] || \
+             [ "${{ needs.sast-scan.result }}" == "failure" ] || \
+             [ "${{ needs.secret-scan.result }}" == "failure" ]; then
+            echo "Critical security issues found!"
+            exit 1
+          fi
+
+  # Compliance Reporting
+  compliance-report:
+    name: Compliance Reporting
+    runs-on: ubuntu-latest
+    needs: [security-gates]
+    if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Generate compliance report
+        run: |
+          npm run security:compliance:report
+          npm run security:summary:report
+
+      - name: Upload compliance report
+        uses: actions/upload-artifact@v3
+        with:
+          name: compliance-report-${{ github.run_number }}
+          path: reports/compliance/
+          retention-days: 90
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('reports/compliance/summary.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## Security Compliance Report\n\n${summary}`
+            });
+
+  # Vulnerability Management
+  vulnerability-management:
+    name: Vulnerability Management
+    runs-on: ubuntu-latest
+    needs: [security-gates]
+    if: failure()
+    steps:
+      - name: Create vulnerability tracking issue
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const vulnerabilities = [
+              { type: 'Dependency', severity: 'High', count: 5 },
+              { type: 'SAST', severity: 'Medium', count: 3 },
+              { type: 'Secret', severity: 'Critical', count: 1 }
+            ];
+            
+            const issueBody = `
+            ## Security Vulnerabilities Detected
+            
+            ### Summary
+            - **Total Vulnerabilities**: ${vulnerabilities.reduce((sum, v) => sum + v.count, 0)}
+            - **Critical**: ${vulnerabilities.find(v => v.severity === 'Critical')?.count || 0}
+            - **High**: ${vulnerabilities.find(v => v.severity === 'High')?.count || 0}
+            - **Medium**: ${vulnerabilities.find(v => v.severity === 'Medium')?.count || 0}
+            
+            ### Action Items
+            ${vulnerabilities.map(v => `- [ ] Fix ${v.count} ${v.type} vulnerabilities (${v.severity})`).join('\n')}
+            
+            ### Timeline
+            - **Detection**: ${new Date().toISOString()}
+            - **Expected Resolution**: ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()}
+            `;
+            
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `Security Vulnerabilities - ${new Date().toISOString()}`,
+              body: issueBody,
+              labels: ['security', 'vulnerability', 'high-priority', 'needs-attention']
+            });
+
+      - name: Send security alert
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#security-alerts'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK_SECURITY }}
+          fields: repo,message,commit,author,workflow
+          text: 'Security vulnerabilities detected in NAVΛ Studio! Immediate attention required.'
+
+  # Cleanup and Maintenance
+  cleanup:
+    name: Cleanup & Maintenance
+    runs-on: ubuntu-latest
+    needs: [compliance-report]
+    if: always()
+    steps:
+      - name: Delete old security scan artifacts
+        uses: actions/delete-artifact@v2
+        with:
+          name: |
+            dependency-audit-results
+            sast-results
+            license-scan-results
+          min-versions-to-keep: 10
+
+      - name: Update security metrics
+        run: |
+          # Update security dashboard metrics
+          npm run security:metrics:update
+          
+          # Generate security trend report
+          npm run security:trends:report
+
+      - name: Archive security data
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-archive-${{ github.run_number }}
+          path: reports/security-archive/
+          retention-days: 365

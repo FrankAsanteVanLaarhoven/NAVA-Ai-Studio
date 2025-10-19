@@ -1,5 +1,5 @@
 [workspace]
-members = ["src-tauri", "wasm-preview"]
+members = ["src-tauri", "wasm-preview", "simulation-platform"]
 resolver = "2"
 
 [workspace.package]

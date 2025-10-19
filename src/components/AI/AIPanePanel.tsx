@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './AIPanePanel.css';
+import { mcpCodeGenerator } from '../../services/mcp-code-generator';
+import { projectScaffolder } from '../../services/project-scaffolder';
 
 interface Message {
   id: string;
@@ -8,7 +10,191 @@ interface Message {
   timestamp: Date;
 }
 
+interface AIModel {
+  id: string;
+  name: string;
+  description: string;
+  contextLength: number;
+}
+
 export const AIPanePanel: React.FC = () => {
+  // Available OpenRouter models (Latest as of Oct 2025)
+  const availableModels: AIModel[] = [
+    // Anthropic Claude Models (Best for Code!)
+    {
+      id: 'anthropic/claude-3.5-sonnet',
+      name: '✨ Claude 3.5 Sonnet',
+      description: '⭐ BEST for coding! Most capable model for code generation',
+      contextLength: 200000,
+    },
+    {
+      id: 'anthropic/claude-3-opus',
+      name: 'Claude 3 Opus',
+      description: 'Most powerful - Best for complex reasoning',
+      contextLength: 200000,
+    },
+    {
+      id: 'anthropic/claude-3-sonnet',
+      name: 'Claude 3 Sonnet',
+      description: 'Balanced performance and speed',
+      contextLength: 200000,
+    },
+    {
+      id: 'anthropic/claude-3-haiku',
+      name: 'Claude 3 Haiku',
+      description: 'Fastest Claude model - Great for simple tasks',
+      contextLength: 200000,
+    },
+    
+    // OpenAI Models (Latest)
+    {
+      id: 'openai/gpt-4-turbo-preview',
+      name: '🚀 GPT-4 Turbo',
+      description: 'Latest GPT-4 with 128K context - Vision capable',
+      contextLength: 128000,
+    },
+    {
+      id: 'openai/gpt-4',
+      name: 'GPT-4',
+      description: 'OpenAI flagship model - Most capable GPT',
+      contextLength: 8192,
+    },
+    {
+      id: 'openai/gpt-4-32k',
+      name: 'GPT-4 32K',
+      description: 'GPT-4 with extended context',
+      contextLength: 32768,
+    },
+    {
+      id: 'openai/gpt-3.5-turbo',
+      name: 'GPT-3.5 Turbo',
+      description: 'Fast and cost-effective',
+      contextLength: 16385,
+    },
+    {
+      id: 'openai/gpt-3.5-turbo-16k',
+      name: 'GPT-3.5 Turbo 16K',
+      description: 'Extended context GPT-3.5',
+      contextLength: 16385,
+    },
+    {
+      id: 'openai/o1-preview',
+      name: '🧠 OpenAI O1 Preview',
+      description: 'Advanced reasoning model - Best for complex problems',
+      contextLength: 128000,
+    },
+    {
+      id: 'openai/o1-mini',
+      name: 'OpenAI O1 Mini',
+      description: 'Faster reasoning model',
+      contextLength: 128000,
+    },
+    
+    // Google Models
+    {
+      id: 'google/gemini-pro',
+      name: 'Gemini Pro',
+      description: 'Google\'s most capable model',
+      contextLength: 32000,
+    },
+    {
+      id: 'google/gemini-pro-vision',
+      name: 'Gemini Pro Vision',
+      description: 'Gemini with image understanding',
+      contextLength: 32000,
+    },
+    {
+      id: 'google/gemini-1.5-pro',
+      name: '⚡ Gemini 1.5 Pro',
+      description: 'Latest Gemini - 1M context window!',
+      contextLength: 1000000,
+    },
+    {
+      id: 'google/gemini-1.5-flash',
+      name: 'Gemini 1.5 Flash',
+      description: 'Fast multimodal model',
+      contextLength: 1000000,
+    },
+    
+    // Meta Llama Models (Open Source)
+    {
+      id: 'meta-llama/llama-3.1-405b-instruct',
+      name: '🦙 Llama 3.1 405B',
+      description: 'Largest open model - Extremely powerful!',
+      contextLength: 128000,
+    },
+    {
+      id: 'meta-llama/llama-3.1-70b-instruct',
+      name: 'Llama 3.1 70B',
+      description: 'High performance open model',
+      contextLength: 128000,
+    },
+    {
+      id: 'meta-llama/llama-3.1-8b-instruct',
+      name: 'Llama 3.1 8B',
+      description: 'Fast and efficient',
+      contextLength: 128000,
+    },
+    {
+      id: 'meta-llama/llama-3-70b-instruct',
+      name: 'Llama 3 70B',
+      description: 'Previous gen - Still powerful',
+      contextLength: 8192,
+    },
+    
+    // Mistral Models (European Excellence)
+    {
+      id: 'mistralai/mistral-large',
+      name: '🇪🇺 Mistral Large',
+      description: 'Top European model - Excellent for code',
+      contextLength: 32000,
+    },
+    {
+      id: 'mistralai/mistral-medium',
+      name: 'Mistral Medium',
+      description: 'Balanced performance',
+      contextLength: 32000,
+    },
+    {
+      id: 'mistralai/mixtral-8x7b-instruct',
+      name: 'Mixtral 8x7B',
+      description: 'MoE model - Fast and powerful',
+      contextLength: 32000,
+    },
+    {
+      id: 'mistralai/mixtral-8x22b',
+      name: 'Mixtral 8x22B',
+      description: 'Largest Mixtral - 141B params total',
+      contextLength: 64000,
+    },
+    
+    // Specialized Models
+    {
+      id: 'deepseek/deepseek-coder-33b-instruct',
+      name: '💻 DeepSeek Coder 33B',
+      description: 'Specialized for code generation',
+      contextLength: 16000,
+    },
+    {
+      id: 'cohere/command-r-plus',
+      name: 'Command R+',
+      description: 'Enterprise-grade model with RAG',
+      contextLength: 128000,
+    },
+    {
+      id: 'perplexity/llama-3.1-sonar-large-128k-online',
+      name: '🔍 Perplexity Sonar',
+      description: 'Online search-enhanced model',
+      contextLength: 128000,
+    },
+    {
+      id: 'anthropic/claude-2.1',
+      name: 'Claude 2.1',
+      description: 'Previous generation Claude',
+      contextLength: 200000,
+    },
+  ];
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -20,6 +206,9 @@ export const AIPanePanel: React.FC = () => {
 
   const [input, setInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
+  const [selectedModel, setSelectedModel] = useState<string>(availableModels[0].id);
+  const [apiKey, setApiKey] = useState<string>(localStorage.getItem('openrouter_api_key') || '');
+  const [showSettings, setShowSettings] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -41,20 +230,102 @@ export const AIPanePanel: React.FC = () => {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const query = input;
     setInput('');
     setIsThinking(true);
 
-    // Simulate AI response
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    try {
+      // Use OpenRouter API if key is provided
+      if (apiKey) {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'HTTP-Referer': window.location.origin,
+            'X-Title': 'NAVΛ Studio IDE',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: selectedModel,
+            messages: [
+              {
+                role: 'system',
+                content: 'You are an expert AI assistant specialized in Van Laarhoven Navigation Calculus (VNC). Help users understand and write VNC code, explain navigation concepts, and provide coding assistance. Use the ⋋ (Van Laarhoven Lambda) symbol when relevant.',
+              },
+              ...messages.slice(-5).map(m => ({
+                role: m.role,
+                content: m.content,
+              })),
+              {
+                role: 'user',
+                content: query,
+              },
+            ],
+          }),
+        });
 
-    const aiResponse: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: generateAIResponse(input),
-      timestamp: new Date(),
-    };
+        if (!response.ok) {
+          throw new Error(`OpenRouter API error: ${response.statusText}`);
+        }
 
-    setMessages(prev => [...prev, aiResponse]);
+        const data = await response.json();
+        const aiContent = data.choices[0]?.message?.content || 'No response received.';
+
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: new Date(),
+        };
+
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        // Use local code generator if no API key
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // Check if user wants to generate a project
+        const lowerQuery = query.toLowerCase();
+        let aiContent = '';
+        
+        if (lowerQuery.includes('generate') || lowerQuery.includes('create') || lowerQuery.includes('build')) {
+          // Use MCP Code Generator
+          try {
+            const project = await mcpCodeGenerator.generateProject({
+              prompt: query,
+              projectName: 'generated-project',
+              includeDeployment: lowerQuery.includes('docker') || lowerQuery.includes('deploy'),
+              includeTests: lowerQuery.includes('test'),
+            });
+            
+            aiContent = `✅ **Project Generated!**\n\n**Name:** ${project.name}\n**Description:** ${project.description}\n\n**Files Created (${project.files.length}):**\n\n${project.files.map(f => `📄 \`${f.path}\` - ${f.description}`).join('\n')}\n\n**Dependencies:**\n${project.dependencies.map(d => `- ${d}`).join('\n')}\n\n---\n\n**First File Preview:**\n\n\`\`\`vnc\n${project.files[0]?.content.substring(0, 500)}...\n\`\`\`\n\n💡 **Next Steps:**\n1. Copy the code above\n2. Create files in your editor\n3. Click "⚙ Compile" to build\n4. Click "▶ Run" to execute\n\n**Would you like me to show you another file or explain the navigation mathematics?**`;
+          } catch (error) {
+            aiContent = `⚠️ Error generating project: ${error}\n\nLet me help you manually. What specific component would you like to start with?`;
+          }
+        } else {
+          // Use template response for other queries
+          aiContent = generateAIResponse(query);
+        }
+
+        const aiResponse: Message = {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: aiContent,
+          timestamp: new Date(),
+        };
+
+        setMessages(prev => [...prev, aiResponse]);
+      }
+    } catch (error) {
+      console.error('Error calling OpenRouter:', error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: `⚠️ Error: ${error instanceof Error ? error.message : 'Failed to get AI response'}. Please check your API key and try again.`,
+        timestamp: new Date(),
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    }
+
     setIsThinking(false);
   };
 
@@ -87,6 +358,15 @@ export const AIPanePanel: React.FC = () => {
     setInput(prev => prev + symbol);
   };
 
+  const saveApiKey = (key: string) => {
+    setApiKey(key);
+    localStorage.setItem('openrouter_api_key', key);
+  };
+
+  const getSelectedModelInfo = () => {
+    return availableModels.find(m => m.id === selectedModel) || availableModels[0];
+  };
+
   return (
     <div className="ai-pane-panel">
       <div className="ai-pane-header">
@@ -94,11 +374,91 @@ export const AIPanePanel: React.FC = () => {
           <span className="ai-icon">🤖</span>
           <span>NAVΛ AI Assistant</span>
         </div>
+        <div className="ai-controls">
+          <select 
+            value={selectedModel} 
+            onChange={(e) => setSelectedModel(e.target.value)}
+            className="model-selector"
+            title={getSelectedModelInfo().description}
+          >
+            {availableModels.map((model) => (
+              <option key={model.id} value={model.id}>
+                {model.name}
+              </option>
+            ))}
+          </select>
+          <button 
+            className="settings-btn"
+            onClick={() => setShowSettings(!showSettings)}
+            title="API Settings"
+          >
+            ⚙️
+          </button>
+        </div>
         <div className="ai-status">
-          <span className={`status-indicator ${isThinking ? 'thinking' : 'ready'}`}></span>
-          <span className="status-text">{isThinking ? 'Thinking...' : 'Ready'}</span>
+          <span className={`status-indicator ${isThinking ? 'thinking' : apiKey ? 'ready' : 'warning'}`}></span>
+          <span className="status-text">{isThinking ? 'Thinking...' : apiKey ? 'Ready' : 'No API Key'}</span>
         </div>
       </div>
+
+      {showSettings && (
+        <div className="ai-settings-panel">
+          <div className="settings-header">
+            <h3>🔑 OpenRouter API Settings</h3>
+            <button onClick={() => setShowSettings(false)} className="close-btn">✕</button>
+          </div>
+          <div className="settings-content">
+            <div style={{ 
+              background: 'rgba(0, 255, 0, 0.1)', 
+              border: '1px solid rgba(0, 255, 0, 0.3)', 
+              borderRadius: '6px', 
+              padding: '12px', 
+              marginBottom: '16px',
+              fontSize: '13px',
+              color: '#00ff00'
+            }}>
+              <strong>💡 Tip:</strong> OpenRouter gives you access to 100+ AI models including Claude 3.5 Sonnet, GPT-4, Gemini, Llama, and more!
+            </div>
+            <label htmlFor="api-key">
+              API Key
+              <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="get-key-link">
+                Get FREE key →
+              </a>
+            </label>
+            <input
+              id="api-key"
+              type="password"
+              value={apiKey}
+              onChange={(e) => saveApiKey(e.target.value)}
+              placeholder="sk-or-v1-..."
+              className="api-key-input"
+            />
+            {apiKey && (
+              <div style={{
+                marginTop: '8px',
+                padding: '8px 12px',
+                background: 'rgba(0, 255, 0, 0.15)',
+                border: '1px solid rgba(0, 255, 0, 0.3)',
+                borderRadius: '4px',
+                fontSize: '12px',
+                color: '#00ff00'
+              }}>
+                ✓ API Key Connected - All models unlocked!
+              </div>
+            )}
+            <div className="model-info">
+              <strong>Selected Model: {getSelectedModelInfo().name}</strong>
+              <p>{getSelectedModelInfo().description}</p>
+              <small>Context Window: {getSelectedModelInfo().contextLength.toLocaleString()} tokens</small>
+            </div>
+            {!apiKey && (
+              <div className="warning-message">
+                ⚠️ Without an API key, you'll get simulated responses. Add your OpenRouter API key above to unlock real AI models.
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="ai-messages">
         {messages.map((message) => (
@@ -143,31 +503,52 @@ export const AIPanePanel: React.FC = () => {
       </div>
 
       <div className="ai-input-area">
-        <div className="symbol-toolbar">
-          <button onClick={() => insertSymbol('⋋')} title="Van Laarhoven Lambda">⋋</button>
-          <button onClick={() => insertSymbol('→')} title="Arrow">→</button>
-          <button onClick={() => insertSymbol('∇')} title="Nabla">∇</button>
-          <button onClick={() => insertSymbol('∫')} title="Integral">∫</button>
-          <button onClick={() => insertSymbol('φ')} title="Phi">φ</button>
+        {/* Symbol Toolbar - Compact */}
+        <div className="symbol-toolbar-compact">
+          <button onClick={() => insertSymbol('⋋')} title="⋋ Van Laarhoven Lambda" className="symbol-btn-sm">⋋</button>
+          <button onClick={() => insertSymbol('→')} title="→ Arrow" className="symbol-btn-sm">→</button>
+          <button onClick={() => insertSymbol('∇')} title="∇ Nabla/Gradient" className="symbol-btn-sm">∇</button>
+          <button onClick={() => insertSymbol('∫')} title="∫ Integral" className="symbol-btn-sm">∫</button>
+          <button onClick={() => insertSymbol('φ')} title="φ Phi" className="symbol-btn-sm">φ</button>
         </div>
-        <div className="input-container">
+
+        {/* Perplexity-Style Input */}
+        <div className="prompt-input-container">
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask me anything about NAVΛ or VNC..."
-            className="ai-input"
-            rows={3}
+            className="prompt-textarea"
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement;
+              target.style.height = 'auto';
+              target.style.height = Math.min(target.scrollHeight, 150) + 'px';
+            }}
           />
           <button 
             onClick={handleSend} 
             disabled={!input.trim() || isThinking}
-            className="send-btn"
-            title="Send (Enter)"
+            className="send-button-modern"
+            title={isThinking ? "Thinking..." : "Send message (Enter)"}
           >
-            {isThinking ? '⏳' : '📤'}
+            {isThinking ? (
+              <span className="spinner-pulse">⏳</span>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+              </svg>
+            )}
           </button>
         </div>
+        
+        {/* Helper Text */}
+        {!apiKey && (
+          <div className="input-helper">
+            💡 Local code generator active • <span onClick={() => setShowSettings(true)} className="link-text">Add API key</span> for full AI
+          </div>
+        )}
       </div>
     </div>
   );

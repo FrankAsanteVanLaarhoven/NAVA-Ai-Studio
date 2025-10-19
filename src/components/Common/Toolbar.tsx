@@ -32,7 +32,10 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   return (
     <div className="toolbar">
       <div className="toolbar-logo">
-        <span className="logo-text">NAV<span className="logo-lambda">Λ</span> Studio</span>
+        <a href="/workspace.html" className="logo-link" title="Back to Workspace">
+          <span className="logo-nav-symbol">⋋</span>
+          <span className="logo-text">NAV<span className="logo-lambda">Λ</span> Studio</span>
+        </a>
       </div>
 
       <div className="toolbar-actions">
@@ -63,9 +66,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button 
             className={`toolbar-btn icon-only ${showSidebar ? 'active' : ''}`} 
             onClick={onToggleSidebar} 
-            title="Toggle Sidebar (Ctrl+B)"
+            title={`${showSidebar ? 'Hide' : 'Show'} Sidebar (Ctrl+B)`}
+            style={{ position: 'relative' }}
           >
             <PanelLeft size={18} />
+            {!showSidebar && (
+              <span style={{ position: 'absolute', top: '2px', right: '2px', width: '4px', height: '4px', background: '#ff4444', borderRadius: '50%' }} />
+            )}
           </button>
         )}
 
@@ -73,9 +80,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button 
             className={`toolbar-btn icon-only ${showPanel ? 'active' : ''}`} 
             onClick={onTogglePanel} 
-            title="Toggle Panel (Ctrl+J)"
+            title={`${showPanel ? 'Hide' : 'Show'} Notebook (Ctrl+J)`}
+            style={{ position: 'relative' }}
           >
             <Book size={18} />
+            {!showPanel && (
+              <span style={{ position: 'absolute', top: '2px', right: '2px', width: '4px', height: '4px', background: '#ff4444', borderRadius: '50%' }} />
+            )}
           </button>
         )}
 
@@ -83,9 +94,13 @@ export const Toolbar: React.FC<ToolbarProps> = ({
           <button 
             className={`toolbar-btn icon-only ${showAIPane ? 'active' : ''}`} 
             onClick={onToggleAIPane} 
-            title="Toggle AI Assistant (Ctrl+K)"
+            title={`${showAIPane ? 'Hide' : 'Show'} AI Assistant (Ctrl+K)`}
+            style={{ position: 'relative' }}
           >
             <Bot size={18} />
+            {!showAIPane && (
+              <span style={{ position: 'absolute', top: '2px', right: '2px', width: '4px', height: '4px', background: '#ff4444', borderRadius: '50%' }} />
+            )}
           </button>
         )}
 

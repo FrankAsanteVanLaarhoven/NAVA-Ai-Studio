@@ -1,0 +1,253 @@
+.project-manager-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.project-manager {
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 800px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.project-manager-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #3e3e42;
+}
+
+.project-manager-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.close-btn:hover {
+  background: #2a2d2e;
+  color: #ffffff;
+}
+
+.project-manager-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}
+
+.project-manager-content::-webkit-scrollbar {
+  width: 10px;
+}
+
+.project-manager-content::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.project-manager-content::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 5px;
+}
+
+.pm-section {
+  margin-bottom: 32px;
+}
+
+.pm-section h3 {
+  margin: 0 0 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #cccccc;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #cccccc;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px 12px;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  color: #ffffff;
+  font-size: 14px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #0e639c;
+}
+
+.primary-btn,
+.secondary-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.primary-btn {
+  background: #0e639c;
+  color: #ffffff;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: #1177bb;
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.secondary-btn {
+  background: #252526;
+  color: #cccccc;
+  border: 1px solid #3e3e42;
+}
+
+.secondary-btn:hover {
+  background: #2a2d2e;
+  border-color: #0e639c;
+}
+
+.recent-files-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recent-file-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.recent-file-item:hover {
+  background: #2a2d2e;
+  border-color: #0e639c;
+}
+
+.recent-file-item .file-icon {
+  font-size: 24px;
+  color: #00ff00;
+}
+
+.file-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  margin-bottom: 4px;
+}
+
+.file-path-small {
+  font-size: 12px;
+  color: #858585;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.quick-start-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.quick-start-card {
+  padding: 20px;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 8px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.quick-start-card:hover {
+  background: #2a2d2e;
+  border-color: #0e639c;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(14, 99, 156, 0.2);
+}
+
+.quick-start-card .card-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.quick-start-card h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.quick-start-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #858585;
+}

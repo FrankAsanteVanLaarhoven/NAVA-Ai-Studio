@@ -1,0 +1,63 @@
+{
+  "world": {
+    "name": "outdoor",
+    "gravity": [0.0, -9.81, 0.0],
+    "ground_plane": {
+      "enabled": true,
+      "height": 0.0,
+      "size": 100.0,
+      "material": "grass"
+    },
+    "obstacles": [
+      {
+        "id": "tree1",
+        "shape": "cylinder",
+        "position": [15.0, 0.0, 10.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [0.8, 5.0, 0.8]
+      },
+      {
+        "id": "tree2",
+        "shape": "cylinder",
+        "position": [-12.0, 0.0, -8.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [0.7, 4.5, 0.7]
+      },
+      {
+        "id": "rock1",
+        "shape": "sphere",
+        "position": [8.0, 0.0, -5.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [1.2, 1.2, 1.2]
+      },
+      {
+        "id": "rock2",
+        "shape": "sphere",
+        "position": [-6.0, 0.0, 12.0],
+        "rotation": [0.0, 0.0, 0.0],
+        "scale": [0.9, 0.9, 0.9]
+      }
+    ],
+    "lighting": {
+      "ambient": 0.6,
+      "directional_lights": [
+        {
+          "direction": [-0.5, -1.0, -0.3],
+          "intensity": 1.0,
+          "color": [1.0, 0.95, 0.8]
+        }
+      ]
+    }
+  },
+  "robots": [
+    {
+      "id": "explorer1",
+      "name": "Outdoor Explorer",
+      "model": "ackermann",
+      "max_linear_velocity": 3.0,
+      "max_angular_velocity": 0.8,
+      "battery_capacity": 150.0
+    }
+  ]
+}
+

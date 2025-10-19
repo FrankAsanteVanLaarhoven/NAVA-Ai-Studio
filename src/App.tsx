@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLambdaMonacoEditor } from './components/Editor/MonacoEditor';
 import { NavigationVisualizer } from './components/Visualizer/NavigationVisualizer';
 import { Toolbar } from './components/Common/Toolbar';
 import { StatusBar } from './components/Common/StatusBar';
+import { ProjectStatusBar } from './components/Common/ProjectStatusBar';
 import { FileExplorer } from './components/Sidebar/FileExplorer';
 import { Outline } from './components/Sidebar/Outline';
 import { Timeline } from './components/Sidebar/Timeline';
@@ -15,9 +16,13 @@ import { SourceControlPanel } from './components/ActivityPanels/SourceControlPan
 import { DebugPanel } from './components/ActivityPanels/DebugPanel';
 import { ExtensionsPanel } from './components/ActivityPanels/ExtensionsPanel';
 import { ChatHistoryPanel } from './components/ActivityPanels/ChatHistoryPanel';
+import { MCPToolkitPanel } from './components/ActivityPanels/MCPToolkitPanel';
 import { CommandPalette } from './components/CommandPalette/CommandPalette';
 import { SettingsPanel } from './components/Settings/SettingsPanel';
 import { VoiceAssistant } from './components/Voice/VoiceAssistant';
+import { ROSLearningCenter } from './components/ROSLearning/ROSLearningCenter';
+import { SimulationPanel } from './components/Simulation/SimulationPanel';
+import { WidgetManager } from './components/Widgets/WidgetManager';
 import { useNavLambdaLsp } from './hooks/useNavLambdaLsp';
 import { useMultiTargetCompilation } from './hooks/useMultiTargetCompilation';
 import { pwaService } from './services/pwa-service';
@@ -53,11 +58,14 @@ function App() {
   const [showVisualizer, setShowVisualizer] = useState(false);
   const [showCollaboration, setShowCollaboration] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
-  const [showPanel, setShowPanel] = useState(false);
+  const [showPanel, setShowPanel] = useState(true); // Show notebook by default
   const [showAIPane, setShowAIPane] = useState(false);
   const [activeActivity, setActiveActivity] = useState<ActivityType | null>('explorer');
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWidgetManager, setShowWidgetManager] = useState(false);
+  const [currentFilePath, setCurrentFilePath] = useState<string>('No file open');
+  const [fileStatus, setFileStatus] = useState<'saved' | 'unsaved' | 'error'>('saved');
 
   const { parseCode, isLoading } = useNavLambdaLsp(code);
   const { compileToTarget, isCompiling } = useMultiTargetCompilation();
@@ -65,6 +73,16 @@ function App() {
   // Initialize PWA
   useEffect(() => {
     pwaService.initialize();
+  }, []);
+
+  // Handle URL parameters for deep linking
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const activity = urlParams.get('activity');
+    if (activity && activity === 'ros-learning') {
+      setActiveActivity('ros-learning');
+      setShowSidebar(true);
+    }
   }, []);
 
   // Keyboard shortcuts
@@ -79,6 +97,11 @@ function App() {
       if ((e.ctrlKey || e.metaKey) && e.key === ',') {
         e.preventDefault();
         setShowSettings(true);
+      }
+      // Widget Manager (Ctrl+Shift+W or Cmd+Shift+W)
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'W') {
+        e.preventDefault();
+        setShowWidgetManager(true);
       }
     };
 
@@ -210,6 +233,10 @@ function App() {
       case 'profiles':
         setShowSettings(true);
         break;
+      case 'widgets':
+      case 'widget-manager':
+        setShowWidgetManager(true);
+        break;
       case 'close-all':
         console.log('Close all editors');
         break;
@@ -239,6 +266,23 @@ function App() {
         return <ExtensionsPanel />;
       case 'chat-history':
         return <ChatHistoryPanel />;
+      case 'ros-learning':
+        return <ROSLearningCenter />;
+      case 'mcp-toolkit':
+        return <MCPToolkitPanel />;
+      case 'simulation':
+        // Simulation now renders in main area, show info in sidebar
+        return (
+          <div className="simulation-sidebar-info" style={{ padding: '20px', color: '#94a3b8' }}>
+            <h3 style={{ color: '#3b82f6', marginBottom: '10px' }}>🎮 Simulation Active</h3>
+            <p style={{ fontSize: '14px', lineHeight: '1.6' }}>
+              Full simulation interface is displayed in the main workspace area.
+            </p>
+            <p style={{ fontSize: '13px', marginTop: '10px', opacity: 0.7 }}>
+              Use the tabs in the main area to switch between Simulation, Robot Control, and World Manager.
+            </p>
+          </div>
+        );
       default:
         return <div className="empty-panel">Select an activity</div>;
     }
@@ -258,6 +302,15 @@ function App() {
         showPanel={showPanel}
         onToggleAIPane={handleToggleAIPane}
         showAIPane={showAIPane}
+      />
+
+      {/* Project Status Bar */}
+      <ProjectStatusBar
+        projectName="NAVΛ STUDIO IDE"
+        currentFile={currentFilePath}
+        fileStatus={fileStatus}
+        totalFiles={12}
+        modifiedFiles={0}
       />
 
       <div className="app-main">
@@ -287,35 +340,48 @@ function App() {
             {renderActivityPanel()}
           </ResizablePanel>
 
-          {/* Main Editor Area */}
-          <div className="editor-container">
-            <div className="editor-panel">
-              <NavLambdaMonacoEditor
-                initialCode={initialCode}
-                onCodeChange={setCode}
-                onCursorPositionChange={handleCursorPositionChange}
-              />
+          {/* Main Editor Area or Full Simulation */}
+          {activeActivity === 'simulation' ? (
+            // Full-screen Simulation Experience
+            <div className="simulation-fullscreen" style={{ flex: 1, width: '100%', height: '100%', overflow: 'hidden' }}>
+              <SimulationPanel />
             </div>
+          ) : (
+            // Normal Editor View
+            <div className="editor-container">
+              <div className="editor-panel">
+                <NavLambdaMonacoEditor
+                  initialCode={initialCode}
+                  onCodeChange={setCode}
+                  onCursorPositionChange={handleCursorPositionChange}
+                />
+              </div>
 
-            {/* Bottom Panel - Resizable (Notebook) */}
+              {/* Bottom Panel - Resizable (Notebook) */}
             {showPanel && (
-              <div className="bottom-panel-wrapper">
+              <div className={`bottom-panel-wrapper ${!showPanel ? 'collapsed' : ''}`}>
                 <div className="panel-resize-handle" />
                 <div className="bottom-panel">
                   <NotebookPanel />
                 </div>
               </div>
             )}
-          </div>
+            </div>
+          )}
 
-          {/* Right Panel - Resizable (Visualizer / AI / Collaboration) */}
-          {(showVisualizer || showAIPane || showCollaboration) && (
+          {/* Right Panel - Resizable (Visualizer / AI / Collaboration) - Hide during simulation */}
+          {activeActivity !== 'simulation' && (showVisualizer || showAIPane || showCollaboration) && (
             <ResizablePanel
               side="right"
               defaultWidth={450}
               minWidth={350}
               maxWidth={800}
-              isCollapsed={false}
+              isCollapsed={!(showVisualizer || showAIPane || showCollaboration)}
+              onToggleCollapse={() => {
+                setShowVisualizer(false);
+                setShowAIPane(false);
+                setShowCollaboration(false);
+              }}
               title="PANELS"
             >
               {showVisualizer && (
@@ -369,6 +435,11 @@ function App() {
           handleExecuteCommand(command.toLowerCase());
         }}
       />
+
+      {/* Widget Manager */}
+      {showWidgetManager && (
+        <WidgetManager onClose={() => setShowWidgetManager(false)} />
+      )}
     </div>
   );
 }

@@ -7,6 +7,13 @@
   border-right: 1px solid #2a2a2a;
   position: relative;
   z-index: 100;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.activity-bar.collapsed {
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .activity-bar-main {
@@ -44,14 +51,16 @@
 }
 
 .activity-item:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+  color: #00ff00;
+  background: rgba(0, 255, 0, 0.1);
+  transform: scale(1.05);
 }
 
 .activity-item.active {
-  color: #ffffff;
-  border-left-color: #007acc;
-  background: rgba(255, 255, 255, 0.15);
+  color: #00ff00;
+  border-left-color: #00ff00;
+  background: rgba(0, 255, 0, 0.15);
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
 }
 
 .activity-item.active::before {
@@ -61,7 +70,8 @@
   top: 0;
   bottom: 0;
   width: 2px;
-  background: #007acc;
+  background: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
 }
 
 /* Activity Menu */

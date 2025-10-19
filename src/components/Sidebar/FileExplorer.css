@@ -9,9 +9,13 @@
 }
 
 .explorer-header {
-  padding: 8px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 12px;
   background: #252526;
-  border-bottom: 1px solid #3c3c3c;
+  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+  min-height: 35px;
 }
 
 .explorer-header h3 {
@@ -21,6 +25,78 @@
   letter-spacing: 0.5px;
   color: #cccccc;
   text-transform: uppercase;
+}
+
+.explorer-toolbar {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+}
+
+.explorer-toolbar-btn {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  min-width: 28px;
+  height: 28px;
+}
+
+.explorer-toolbar-btn:hover {
+  background: rgba(0, 255, 0, 0.15);
+  color: #00ff00;
+  transform: scale(1.05);
+}
+
+.explorer-toolbar-btn:active {
+  transform: scale(0.95);
+}
+
+.explorer-toolbar-btn.active {
+  background: rgba(0, 255, 0, 0.2);
+  color: #00ff00;
+}
+
+.more-actions-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #252526;
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  min-width: 180px;
+  overflow: hidden;
+}
+
+.more-actions-menu button {
+  width: 100%;
+  padding: 10px 16px;
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.15s;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.more-actions-menu button:last-child {
+  border-bottom: none;
+}
+
+.more-actions-menu button:hover {
+  background: rgba(0, 255, 0, 0.15);
+  color: #00ff00;
 }
 
 .explorer-tree {
@@ -38,11 +114,22 @@
   user-select: none;
   font-size: 13px;
   color: #cccccc;
-  transition: background 0.15s;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
 }
 
 .file-node:hover {
   background: #2a2d2e;
+}
+
+.file-node.selected {
+  background: rgba(0, 255, 0, 0.15);
+  color: #00ff00;
+  border-left-color: #00ff00;
+}
+
+.file-node.selected svg {
+  color: #00ff00;
 }
 
 .file-node svg {

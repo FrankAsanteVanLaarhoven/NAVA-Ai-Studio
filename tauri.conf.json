@@ -1,72 +1,64 @@
 {
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
   "build": {
-    "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
+    "beforeDevCommand": "npm run dev",
     "devPath": "http://localhost:5173",
-    "distDir": "../dist",
-    "withGlobalTauri": false
+    "distDir": "../dist"
   },
   "package": {
-    "productName": "NAVΛ Studio",
+    "productName": "nav-studio",
     "version": "1.0.0"
   },
   "tauri": {
     "allowlist": {
-      "all": true,
-      "fs": {
-        "all": true,
-        "scope": ["$APPDATA/**", "$RESOURCE/**", "$APPCONFIG/**", "$APPLOG/**"]
-      },
-      "shell": {
-        "all": false,
-        "open": true
-      },
-      "dialog": {
-        "all": true,
-        "open": true,
-        "save": true
-      },
-      "protocol": {
-        "asset": true,
-        "assetScope": ["$RESOURCE/**"]
-      }
+      "all": true
     },
     "bundle": {
       "active": true,
-      "targets": "all",
-      "identifier": "studio.navlambda.ide",
-      "icon": [
-        "assets/icons/32x32.png",
-        "assets/icons/128x128.png",
-        "assets/icons/128x128@2x.png",
-        "assets/icons/icon.icns",
-        "assets/icons/icon.ico"
-      ],
-      "resources": ["assets/**"],
       "category": "DeveloperTool",
-      "copyright": "Copyright (c) 2025 Frank Van Laarhoven",
-      "shortDescription": "Revolutionary IDE for Van Laarhoven Navigation Calculus",
-      "longDescription": "NAVΛ Studio IDE is the world's first development environment designed specifically for Van Laarhoven Navigation Calculus (VNC) programming, featuring native ⋋ symbol support, 3D navigation visualization, multi-target compilation, and revolutionary mathematical programming capabilities."
+      "copyright": "",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/icon.png"
+      ],
+      "identifier": "com.navlambda.studio",
+      "longDescription": "",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
     },
     "security": {
       "csp": null
     },
+    "updater": {
+      "active": false
+    },
     "windows": [
       {
         "fullscreen": false,
+        "height": 1080,
         "resizable": true,
         "title": "NAVΛ Studio",
-        "width": 1920,
-        "height": 1080,
-        "minWidth": 1280,
-        "minHeight": 720
+        "width": 1920
       }
-    ],
-    "systemTray": {
-      "iconPath": "assets/icons/icon.png",
-      "iconAsTemplate": true,
-      "menuOnLeftClick": false
-    }
+    ]
   }
 }
-

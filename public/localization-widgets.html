@@ -1,0 +1,185 @@
+<!-- 
+  NAVΛ Studio Localization Widgets
+  Add this HTML to workspace.html before the closing </body> tag
+  
+  Features included:
+  - Weather Widget with 7-day forecast
+  - Currency Converter with 10+ currencies
+  - Language Selector Modal with 9 languages
+  - Enhanced Time Display with seconds and timezone
+-->
+
+<!-- Weather Widget -->
+<div class="weather-widget" id="weatherWidget">
+    <div class="weather-header">
+        <div class="weather-title">🌤️ <span id="weatherCity">Loading...</span></div>
+        <button class="weather-close" onclick="toggleWeatherWidget()">✕</button>
+    </div>
+    
+    <div class="weather-current">
+        <div class="weather-icon-large" id="weatherEmoji">☀️</div>
+        <div>
+            <div class="weather-temp" id="weatherTemp">--°C</div>
+            <div class="weather-condition" id="weatherCondition">Loading...</div>
+        </div>
+    </div>
+    
+    <div class="weather-details">
+        <div class="weather-detail-item">
+            <span>💧</span>
+            <span>Humidity: <span id="weatherHumidity">--%</span></span>
+        </div>
+        <div class="weather-detail-item">
+            <span>💨</span>
+            <span>Wind: <span id="weatherWind">-- km/h</span></span>
+        </div>
+        <div class="weather-detail-item">
+            <span>🌡️</span>
+            <span>Feels like: <span id="weatherFeels">--°C</span></span>
+        </div>
+    </div>
+    
+    <div class="weather-forecast" id="weatherForecast">
+        <!-- Forecast days will be populated by JavaScript -->
+    </div>
+</div>
+
+<!-- Currency Converter Widget -->
+<div class="currency-widget" id="currencyWidget">
+    <div class="currency-header">
+        <div class="currency-title">💱 Currency Converter</div>
+        <button class="currency-close" onclick="toggleCurrencyWidget()">✕</button>
+    </div>
+    
+    <div class="currency-converter">
+        <div class="currency-input-group">
+            <label class="currency-label">From</label>
+            <div class="currency-input-row">
+                <input type="number" class="currency-amount" id="currencyAmount" value="100" min="0" step="0.01">
+                <select class="currency-select" id="currencyFrom">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+        
+        <button class="currency-swap" onclick="swapCurrencies()" title="Swap currencies">⇅</button>
+        
+        <div class="currency-input-group">
+            <label class="currency-label">To</label>
+            <div class="currency-input-row">
+                <select class="currency-select" id="currencyTo">
+                    <!-- Options populated by JavaScript -->
+                </select>
+            </div>
+        </div>
+        
+        <div class="currency-result">
+            <div class="currency-result-amount" id="currencyResult">€92.00 EUR</div>
+            <div class="currency-result-rate" id="currencyRate">1 USD = 0.9200 EUR</div>
+        </div>
+    </div>
+</div>
+
+<!-- Language Selector Modal -->
+<div class="language-modal" id="languageModal" onclick="if(event.target === this) closeLanguageModal()">
+    <div class="language-panel">
+        <div class="language-panel-header">
+            <div class="language-panel-title">🌍 Select Language</div>
+            <button class="language-panel-close" onclick="closeLanguageModal()">✕</button>
+        </div>
+        
+        <div class="language-list">
+            <div class="language-item active" onclick="selectLanguage('en')">
+                <div class="language-flag">🇬🇧</div>
+                <div class="language-name">English</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('es')">
+                <div class="language-flag">🇪🇸</div>
+                <div class="language-name">Español</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('fr')">
+                <div class="language-flag">🇫🇷</div>
+                <div class="language-name">Français</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('de')">
+                <div class="language-flag">🇩🇪</div>
+                <div class="language-name">Deutsch</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('zh')">
+                <div class="language-flag">🇨🇳</div>
+                <div class="language-name">中文 (Chinese)</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('ja')">
+                <div class="language-flag">🇯🇵</div>
+                <div class="language-name">日本語 (Japanese)</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('ar')">
+                <div class="language-flag">🇸🇦</div>
+                <div class="language-name">العربية (Arabic)</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('pt')">
+                <div class="language-flag">🇵🇹</div>
+                <div class="language-name">Português</div>
+                <div class="language-check">✓</div>
+            </div>
+            
+            <div class="language-item" onclick="selectLanguage('ru')">
+                <div class="language-flag">🇷🇺</div>
+                <div class="language-name">Русский (Russian)</div>
+                <div class="language-check">✓</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 
+  MODIFICATIONS NEEDED IN EXISTING HTML:
+  
+  1. Update the time display section (around line 885-888):
+     Replace:
+     <div>
+         <div class="time-display" id="time">02:19</div>
+         <div class="date-display" id="date">10/13/2025</div>
+     </div>
+     
+     With:
+     <div class="time-container">
+         <div class="time-display" id="time">02:19:45</div>
+         <div class="date-display" id="date">10/13/2025</div>
+         <div class="timezone-display" id="timezone">GMT+00:00</div>
+     </div>
+  
+  2. Update the language button (around line 889):
+     Replace:
+     <div class="info-icon" onclick="showLanguageModal()" title="Language" style="cursor: pointer;">🇬🇧 EN</div>
+     
+     With:
+     <div class="info-icon" id="languageBtn" onclick="showLanguageModal()" title="Language" style="cursor: pointer;">🇬🇧 EN</div>
+  
+  3. Add weather and currency buttons to bottom-icon-bar (after line 880):
+     <div class="bottom-icon widget-toggle" onclick="toggleWeatherWidget()" title="Weather Forecast">
+         🌤️
+         <div class="widget-badge"></div>
+     </div>
+     <div class="bottom-icon widget-toggle" onclick="toggleCurrencyWidget()" title="Currency Converter">
+         💱
+         <div class="widget-badge"></div>
+     </div>
+  
+  4. Add the localization.js script before closing </body> tag:
+     <script src="/localization.js"></script>
+-->

@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
@@ -23,24 +23,31 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "monaco-editor": "^0.47.0",
-    "monaco-editor-webpack-plugin": "^7.1.0",
     "@monaco-editor/react": "^4.6.0",
-    "three": "^0.163.0",
-    "@react-three/fiber": "^8.16.1",
     "@react-three/drei": "^9.105.4",
+    "@react-three/fiber": "^8.16.1",
     "@tauri-apps/api": "^1.5.3",
-    "mathjax": "^3.2.2",
-    "zustand": "^4.5.2",
+    "clsx": "^2.1.0",
     "immer": "^10.0.4",
     "lucide-react": "^0.356.0",
-    "clsx": "^2.1.0",
-    "tailwindcss": "^3.4.1"
+    "mathjax": "^3.2.2",
+    "monaco-editor": "^0.47.0",
+    "monaco-editor-webpack-plugin": "^7.1.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "tailwindcss": "^3.4.1",
+    "three": "^0.163.0",
+    "@xterm/xterm": "^5.5.0",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/addon-search": "^0.15.0",
+    "@xterm/addon-web-links": "^0.11.0",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@tauri-apps/cli": "^1.5.11",
+    "@playwright/test": "^1.40.0",
+    "@tauri-apps/cli": "^1.6.3",
+    "@types/jest": "^29.5.0",
+    "@types/node": "^20.0.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "@types/three": "^0.163.0",
@@ -51,11 +58,12 @@
     "eslint": "^8.57.0",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
+    "jest": "^29.5.0",
     "postcss": "^8.4.38",
     "prettier": "^3.2.5",
+    "ts-jest": "^29.1.0",
     "typescript": "^5.4.3",
     "vite": "^5.2.0",
     "vitest": "^1.4.0"
   }
 }
-

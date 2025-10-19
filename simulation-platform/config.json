@@ -1,0 +1,64 @@
+{
+  "simulation": {
+    "max_time": 300.0,
+    "time_step": 0.01,
+    "real_time": true,
+    "target_fps": 60.0
+  },
+  "physics": {
+    "gravity": [0.0, -9.81, 0.0],
+    "solver_iterations": 4,
+    "velocity_iterations": 1
+  },
+  "rendering": {
+    "width": 1920,
+    "height": 1080,
+    "antialiasing": true,
+    "shadows": true,
+    "post_processing": true
+  },
+  "robotics": {
+    "robots": [
+      {
+        "id": "robot1",
+        "name": "Differential Drive Robot",
+        "model": "DifferentialDrive",
+        "max_linear_velocity": 1.0,
+        "max_angular_velocity": 1.0,
+        "battery_capacity": 100.0,
+        "sensors": [
+          {
+            "type": "Lidar",
+            "update_rate": 30.0,
+            "noise": 0.01,
+            "range": 10.0
+          },
+          {
+            "type": "Camera",
+            "update_rate": 30.0,
+            "noise": 0.01,
+            "range": 0.0
+          }
+        ],
+        "actuators": [
+          {
+            "type": "Wheel",
+            "max_effort": 10.0,
+            "max_velocity": 1.0,
+            "control_type": "Velocity"
+          }
+        ]
+      }
+    ]
+  },
+  "ros2": {
+    "node_name": "navlambda_sim",
+    "namespace": "",
+    "use_sim_time": true,
+    "topics": {
+      "robot_states": "/robot_states",
+      "sensor_data": "/sensor_data",
+      "control_commands": "/control_commands"
+    }
+  }
+}
