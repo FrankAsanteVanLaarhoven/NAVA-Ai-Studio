@@ -4917,6 +4917,22 @@ How can I assist you today?</div>
                 button.classList.add('collapsed');
                 button.textContent = '▶';
             }
+            
+            // Save widget state to localStorage
+            saveWidgetStates();
+        }
+        
+        // Save all widget states to localStorage
+        function saveWidgetStates() {
+            const widgetIds = ['weatherWidget', 'clockWidget', 'newsWidget', 'currencyWidget', 'stockWidget'];
+            const states = {};
+            
+            widgetIds.forEach(widgetId => {
+                const widget = document.getElementById(widgetId);
+                states[widgetId] = widget.classList.contains('collapsed') ? 'collapsed' : 'expanded';
+            });
+            
+            localStorage.setItem('widgetsState', JSON.stringify(states));
         }
 
         // Update clock every second
@@ -7190,6 +7206,43 @@ How can I assist you today?</div>
             updateWeather();
             updateTimeDate();
             updatePowerButton();
+            
+            // ========== COLLAPSE ALL WIDGETS BY DEFAULT FOR CLEAN START ==========
+            // Check if this is first visit or user wants default collapsed state
+            const widgetIds = ['weatherWidget', 'clockWidget', 'newsWidget', 'currencyWidget', 'stockWidget'];
+            const widgetsState = localStorage.getItem('widgetsState');
+            
+            if (!widgetsState) {
+                // First visit - collapse all widgets for clean look
+                widgetIds.forEach(widgetId => {
+                    const widget = document.getElementById(widgetId);
+                    const button = widget.querySelector('.widget-collapse-btn');
+                    if (widget && !widget.classList.contains('collapsed')) {
+                        widget.classList.add('collapsed');
+                        button.classList.add('collapsed');
+                        button.textContent = '▶';
+                    }
+                });
+                console.log('🎨 Clean start: All widgets collapsed');
+            } else {
+                // Restore previous state
+                try {
+                    const savedState = JSON.parse(widgetsState);
+                    widgetIds.forEach(widgetId => {
+                        if (savedState[widgetId] === 'collapsed') {
+                            const widget = document.getElementById(widgetId);
+                            const button = widget.querySelector('.widget-collapse-btn');
+                            if (widget && !widget.classList.contains('collapsed')) {
+                                widget.classList.add('collapsed');
+                                button.classList.add('collapsed');
+                                button.textContent = '▶';
+                            }
+                        }
+                    });
+                } catch(e) {
+                    console.error('Error restoring widget state:', e);
+                }
+            }
             
             // Initialize all draggable elements
             initAllDraggables();
