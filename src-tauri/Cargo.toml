@@ -23,9 +23,19 @@ anyhow = "1.0"
 thiserror = "1.0"
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-rayon = "1.7"
 parking_lot = "0.12"
+rapier3d = "0.18"
+nalgebra = "0.32"
+prost = "0.12"
+tokio-stream = "0.1"
+futures-channel = "0.3"
+rdkafka = "0.36"
 
-[features]
-default = ["custom-protocol"]
+[dependencies.pyo3]
+version = "0.20"
+features = ["auto-initialize"]
+
+[dependencies.tch]
+version = "0.13"
+features = ["download-libtorch"]
 custom-protocol = ["tauri/custom-protocol"]

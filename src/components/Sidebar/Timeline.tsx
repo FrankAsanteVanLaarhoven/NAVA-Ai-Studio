@@ -8,6 +8,10 @@ interface TimelineEvent {
   file?: string;
 }
 
+interface TimelineProps {
+  hideHeader?: boolean;
+}
+
 const TIMELINE_EVENTS: TimelineEvent[] = [
   { time: '8:05 PM', action: 'File opened', file: 'consciousness-integration.vnc' },
   { time: '8:04 PM', action: 'Server restarted', file: 'vite.config.ts' },
@@ -16,13 +20,15 @@ const TIMELINE_EVENTS: TimelineEvent[] = [
   { time: '8:00 PM', action: 'Server started' },
 ];
 
-export const Timeline: React.FC = () => {
+export const Timeline: React.FC<TimelineProps> = ({ hideHeader = false }) => {
   return (
     <div className="timeline-panel">
-      <div className="timeline-header">
-        <Clock size={16} />
-        <h3>TIMELINE</h3>
-      </div>
+      {!hideHeader && (
+        <div className="timeline-header">
+          <Clock size={16} />
+          <h3>TIMELINE</h3>
+        </div>
+      )}
       <div className="timeline-list">
         {TIMELINE_EVENTS.map((event, index) => (
           <div key={index} className="timeline-event">

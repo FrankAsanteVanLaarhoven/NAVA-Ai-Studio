@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>NAVΛ Studio Documentation</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #0a1735 0%, #1a2744 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+        }
+
+        h1 {
+            font-size: 48px;
+            color: #00ff00;
+            margin-bottom: 16px;
+            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .subtitle {
+            font-size: 20px;
+            color: #b0b0b0;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 32px 0;
+        }
+
+        .nav-btn {
+            padding: 12px 24px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            border-radius: 8px;
+            color: #00ff00;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: rgba(0, 255, 0, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .docs-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 24px;
+            margin-top: 40px;
+        }
+
+        .doc-card {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 12px;
+            padding: 32px;
+            transition: all 0.3s;
+        }
+
+        .doc-card:hover {
+            border-color: rgba(0, 255, 0, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 255, 0, 0.2);
+        }
+
+        .doc-card h2 {
+            color: #00ff00;
+            font-size: 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .doc-card .icon {
+            font-size: 32px;
+        }
+
+        .doc-card p {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+        }
+
+        .doc-card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .doc-card li {
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .doc-card li:last-child {
+            border-bottom: none;
+        }
+
+        .doc-card a {
+            color: #3b82f6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .doc-card a:hover {
+            color: #60a5fa;
+        }
+
+        .section {
+            margin: 60px 0;
+        }
+
+        .section h2 {
+            font-size: 32px;
+            color: #00ff00;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .code-block {
+            background: #1a1a1a;
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        .code-block code {
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            margin-top: 60px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>⋋ NAVΛ Studio Documentation</h1>
+            <p class="subtitle">The World's First IDE for Van Laarhoven Navigation Calculus</p>
+            
+            <div class="nav-buttons">
+                <a href="/workspace.html" class="nav-btn">🏠 Back to Workspace</a>
+                <a href="#getting-started" class="nav-btn">🚀 Getting Started</a>
+                <a href="#api" class="nav-btn">🔧 API Reference</a>
+                <a href="#tutorials" class="nav-btn">📚 Tutorials</a>
+            </div>
+        </header>
+
+        <div class="docs-grid">
+            <div class="doc-card">
+                <h2><span class="icon">🚀</span> Quick Start</h2>
+                <p>Get up and running with NAVΛ Studio in minutes</p>
+                <ul>
+                    <li><a href="#install">Installation Guide</a></li>
+                    <li><a href="#first-project">Your First Project</a></li>
+                    <li><a href="#keyboard-shortcuts">Keyboard Shortcuts</a></li>
+                    <li><a href="#workspace-tour">Workspace Tour</a></li>
+                </ul>
+            </div>
+
+            <div class="doc-card">
+                <h2><span class="icon">⋋</span> VNC Language</h2>
+                <p>Learn Van Laarhoven Navigation Calculus</p>
+                <ul>
+                    <li><a href="#vnc-basics">VNC Basics</a></li>
+                    <li><a href="#symbols">Navigation Symbols</a></li>
+                    <li><a href="#operators">Operators & Functions</a></li>
+                    <li><a href="#examples">Code Examples</a></li>
+                </ul>
+            </div>
+
+            <div class="doc-card">
+                <h2><span class="icon">🎨</span> Features</h2>
+                <p>Explore NAVΛ Studio's powerful features</p>
+                <ul>
+                    <li><a href="#editor">Monaco Editor Integration</a></li>
+                    <li><a href="#terminal">Integrated Terminal</a></li>
+                    <li><a href="#visualization">3D Visualization</a></li>
+                    <li><a href="#compilation">Multi-Target Compilation</a></li>
+                </ul>
+            </div>
+
+            <div class="doc-card">
+                <h2><span class="icon">🤖</span> ROS Integration</h2>
+                <p>Robot Operating System learning & development</p>
+                <ul>
+                    <li><a href="#ros-courses">Free ROS Courses</a></li>
+                    <li><a href="#ros-terminal">ROS Terminal Commands</a></li>
+                    <li><a href="#ros-projects">ROSjects & Practice</a></li>
+                    <li><a href="#gazebo">Gazebo Simulation</a></li>
+                </ul>
+            </div>
+
+            <div class="doc-card">
+                <h2><span class="icon">🔧</span> API Reference</h2>
+                <p>Complete API documentation</p>
+                <ul>
+                    <li><a href="#dataset-api">Dataset Integration API</a></li>
+                    <li><a href="#simulation-api">Simulation Control API</a></li>
+                    <li><a href="#ros-api">ROS2 Middleware API</a></li>
+                    <li><a href="#terminal-api">Terminal API</a></li>
+                </ul>
+            </div>
+
+            <div class="doc-card">
+                <h2><span class="icon">🏗️</span> Architecture</h2>
+                <p>Understanding NAVΛ Studio's design</p>
+                <ul>
+                    <li><a href="#system-arch">System Architecture</a></li>
+                    <li><a href="#rust-backend">Rust Backend</a></li>
+                    <li><a href="#react-frontend">React Frontend</a></li>
+                    <li><a href="#plugin-system">Plugin System</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <section class="section" id="getting-started">
+            <h2>🚀 Getting Started</h2>
+            
+            <div class="doc-card">
+                <h2>Installation</h2>
+                <p>Start the NAVΛ Studio development server:</p>
+                <div class="code-block">
+                    <code># Clone the repository
+git clone https://github.com/frankvanlaarhoven/navlambda-studio.git
+cd navlambda-studio
+
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# The IDE will open at http://localhost:5173/</code>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>Your First NAVΛ Program</h2>
+                <div class="code-block">
+                    <code>// Define a navigation operator
+nav pathfinder(start: State, goal: State) -> Navigation {
+  let distance = ∇⋋(start, goal)
+  let path = 𝒩ℐ(distance)
+  
+  compose(
+    tensor(start ⊗⋋ path),
+    evolution(ℰ(path)),
+    feedback(goal)
+  )
+}
+
+// Use the operator
+nav main() {
+  let start = State::new(0, 0)
+  let goal = State::new(10, 10)
+  
+  let result = pathfinder(start, goal)
+  result.execute()
+}</code>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>Keyboard Shortcuts</h2>
+                <ul>
+                    <li><code>Alt+L</code> - Insert ⋋ (Lambda Navigation)</li>
+                    <li><code>Alt+Shift+T</code> - Insert ⊗⋋ (Tensor Product)</li>
+                    <li><code>Alt+Shift+S</code> - Insert ⊕⋋ (Navigation Sum)</li>
+                    <li><code>Alt+Shift+M</code> - Insert 𝒩ℐ (Master Operator)</li>
+                    <li><code>Alt+Shift+E</code> - Insert ℰ (Evolution Operator)</li>
+                    <li><code>Ctrl/Cmd+S</code> - Save file</li>
+                    <li><code>Ctrl/Cmd+N</code> - New file</li>
+                    <li><code>F5</code> - Run program</li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="section" id="api">
+            <h2>🔧 API Reference</h2>
+            
+            <div class="doc-card">
+                <h2>Dataset Integration API</h2>
+                <p>Initialize and manage datasets (Waymo, KITTI, RT-X)</p>
+                <div class="code-block">
+                    <code>import { invoke } from '@tauri-apps/api/tauri';
+
+// Initialize dataset integration
+const result = await invoke('initialize_dataset_integration');
+console.log(result); // "Dataset Integration System Initialized"</code>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>Simulation Control API</h2>
+                <div class="code-block">
+                    <code>// Start simulation
+await invoke('start_simulation');
+
+// Stop simulation
+await invoke('stop_simulation');</code>
+                </div>
+            </div>
+
+            <div class="doc-card">
+                <h2>ROS2 Middleware API</h2>
+                <div class="code-block">
+                    <code>// Publish to ROS2 topic
+await invoke('ros2_publish', {
+  topic: '/cmd_vel',
+  message: { 
+    linear: { x: 0.5 }, 
+    angular: { z: 0.0 } 
+  }
+});</code>
+                </div>
+            </div>
+        </section>
+
+        <section class="section" id="resources">
+            <h2>📚 Additional Resources</h2>
+            
+            <div class="docs-grid">
+                <div class="doc-card">
+                    <h2>Documentation Files</h2>
+                    <ul>
+                        <li><a href="README.md">README.md</a> - Project overview</li>
+                        <li><a href="GETTING_STARTED.md">GETTING_STARTED.md</a> - Getting started guide</li>
+                        <li><a href="API_DOCUMENTATION.md">API_DOCUMENTATION.md</a> - Complete API docs</li>
+                        <li><a href="ARCHITECTURE.md">ARCHITECTURE.md</a> - System architecture</li>
+                        <li><a href="ROS_LEARNING_SYSTEM.md">ROS_LEARNING_SYSTEM.md</a> - ROS documentation</li>
+                    </ul>
+                </div>
+
+                <div class="doc-card">
+                    <h2>Community</h2>
+                    <ul>
+                        <li><a href="https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio" target="_blank">GitHub Repository</a></li>
+                        <li><a href="https://discord.gg/navlambda" target="_blank">Discord Community</a></li>
+                        <li><a href="https://twitter.com/navlambda_studio" target="_blank">Twitter</a></li>
+                        <li><a href="mailto:support@navlambda.studio">Email Support</a></li>
+                    </ul>
+                </div>
+
+                <div class="doc-card">
+                    <h2>Development</h2>
+                    <ul>
+                        <li><a href="CONTRIBUTING.md">Contributing Guide</a></li>
+                        <li><a href="BUILD_INSTRUCTIONS.md">Build Instructions</a></li>
+                        <li><a href="DEPLOYMENT_CONFIG.md">Deployment Config</a></li>
+                        <li><a href="DEVELOPER_QUICK_START.md">Developer Quick Start</a></li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p>NAVΛ Studio IDE - Created by Frank Van Laarhoven</p>
+            <p>© 2025 NAVΛ Studio. Licensed under MIT OR Apache-2.0</p>
+        </footer>
+    </div>
+
+    <script>
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

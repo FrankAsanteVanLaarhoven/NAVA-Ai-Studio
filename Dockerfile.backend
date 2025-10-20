@@ -1,0 +1,79 @@
+# NAVΛ Studio Backend Dockerfile
+FROM rust:1.75-slim as builder
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    pkg-config \
+    libssl-dev \
+    libgtk-3-dev \
+    libwebkit2gtk-4.0-dev \
+    libappindicator3-dev \
+    librsvg2-dev \
+    patchelf \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install PyTorch dependencies
+RUN curl -L https://download.pytorch.org/libtorch/cu118/libtorch-cxx11-abi-shared-with-deps-2.0.1%2Bcu118.zip -o libtorch.zip \
+    && unzip libtorch.zip \
+    && rm libtorch.zip
+
+# Set PyTorch environment variables
+ENV LIBTORCH=/libtorch
+ENV LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
+
+# Create app directory
+WORKDIR /app
+
+# Copy Cargo files
+COPY src-tauri/Cargo.toml src-tauri/Cargo.lock ./
+
+# Copy source code
+COPY src-tauri/src ./src
+
+# Build the application
+RUN cargo build --release
+
+# Runtime stage
+FROM debian:bookworm-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    libssl3 \
+    libgtk-3-0 \
+    libwebkit2gtk-4.0-37 \
+    libappindicator3-1 \
+    librsvg2-2 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy PyTorch libraries
+COPY --from=builder /libtorch /libtorch
+ENV LIBTORCH=/libtorch
+ENV LD_LIBRARY_PATH=${LIBTORCH}/lib:$LD_LIBRARY_PATH
+
+# Create app user
+RUN useradd -r -s /bin/false navlambda
+
+# Create app directory
+WORKDIR /app
+
+# Copy the built binary
+COPY --from=builder /app/target/release/navlambda-studio .
+
+# Change ownership
+RUN chown navlambda:navlambda /app/navlambda-studio
+
+# Switch to non-root user
+USER navlambda
+
+# Expose port
+EXPOSE 8080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8080/health || exit 1
+
+# Run the application
+CMD ["./navlambda-studio"]

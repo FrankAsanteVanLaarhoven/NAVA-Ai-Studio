@@ -7,6 +7,12 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>NAVΛ Studio - Navigation Calculus Institute</title>
     
+    <!-- Xterm.js for Terminal -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/css/xterm.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.8.0/lib/addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.9.0/lib/addon-web-links.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -3265,6 +3271,640 @@
             font-size: 12px;
         }
 
+        /* Documentation Modal Styles */
+        .docs-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .docs-modal.active {
+            display: flex;
+        }
+
+        .docs-panel {
+            background: #1a1a1a;
+            width: 95%;
+            max-width: 1200px;
+            height: 90vh;
+            border-radius: 16px;
+            border: 2px solid rgba(59, 130, 246, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5);
+        }
+
+        .docs-header {
+            background: #252526;
+            border-bottom: 1px solid #3c3c3c;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .docs-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 18px;
+            color: #cccccc;
+        }
+
+        .docs-nav {
+            background: #2d2d30;
+            border-bottom: 1px solid #3c3c3c;
+            padding: 8px 12px;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            flex-wrap: wrap;
+        }
+
+        .docs-tab {
+            padding: 8px 16px;
+            background: transparent;
+            color: #cccccc;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .docs-tab:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .docs-tab.active {
+            background: #007acc;
+            color: white;
+        }
+
+        .docs-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 32px;
+            color: #cccccc;
+            line-height: 1.7;
+        }
+
+        .docs-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .docs-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .docs-content h1 {
+            color: #4fc1ff;
+            font-size: 32px;
+            margin-bottom: 16px;
+            font-weight: 700;
+        }
+
+        .docs-content h2 {
+            color: #569cd6;
+            font-size: 24px;
+            margin-top: 32px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+
+        .docs-content h3 {
+            color: #4ec9b0;
+            font-size: 18px;
+            margin-top: 24px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .docs-content h4 {
+            color: #dcdcaa;
+            font-size: 16px;
+            margin-top: 16px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+
+        .docs-content p {
+            margin-bottom: 16px;
+        }
+
+        .docs-content .lead {
+            font-size: 18px;
+            color: #b0b0b0;
+            margin-bottom: 32px;
+        }
+
+        .docs-content ul, .docs-content ol {
+            margin-bottom: 16px;
+            padding-left: 24px;
+        }
+
+        .docs-content li {
+            margin-bottom: 8px;
+        }
+
+        .docs-content code {
+            background: #2d2d30;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #ce9178;
+        }
+
+        .docs-content kbd {
+            background: #2d2d30;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #dcdcaa;
+            border: 1px solid #3c3c3c;
+            box-shadow: 0 2px 0 #1a1a1a;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #d4d4d4;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin: 32px 0;
+        }
+
+        .feature-card {
+            background: #252526;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #3c3c3c;
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            border-color: #007acc;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 122, 204, 0.2);
+        }
+
+        .feature-icon {
+            font-size: 40px;
+            margin-bottom: 16px;
+        }
+
+        .feature-card h3 {
+            margin: 0 0 12px 0;
+        }
+
+        .feature-card p {
+            margin: 0;
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        .info-box {
+            background: rgba(0, 122, 204, 0.1);
+            border-left: 4px solid #007acc;
+            padding: 20px;
+            margin: 24px 0;
+            border-radius: 8px;
+        }
+
+        .info-box.success {
+            background: rgba(78, 201, 176, 0.1);
+            border-left-color: #4ec9b0;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+        }
+
+        .info-box ul {
+            margin-bottom: 0;
+        }
+
+        .step-card {
+            display: flex;
+            gap: 20px;
+            background: #252526;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #3c3c3c;
+            margin-bottom: 20px;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: #007acc;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-content h3 {
+            margin-top: 0;
+        }
+
+        .step-content ol {
+            margin-bottom: 0;
+        }
+
+        .feature-detail {
+            margin: 32px 0;
+        }
+
+        .symbol-table {
+            background: #252526;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 16px 0;
+        }
+
+        .symbol-row {
+            display: grid;
+            grid-template-columns: 80px 1fr 150px;
+            gap: 16px;
+            padding: 16px;
+            border-bottom: 1px solid #3c3c3c;
+            align-items: center;
+        }
+
+        .symbol-row:last-child {
+            border-bottom: none;
+        }
+
+        .symbol-cell {
+            font-size: 28px;
+            text-align: center;
+        }
+
+        .symbol-name {
+            color: #cccccc;
+        }
+
+        .symbol-usage {
+            text-align: right;
+        }
+
+        .shortcut-category {
+            margin: 32px 0;
+        }
+
+        .shortcut-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 16px 0;
+        }
+
+        .shortcut-table tr {
+            border-bottom: 1px solid #3c3c3c;
+        }
+
+        .shortcut-table td {
+            padding: 12px;
+        }
+
+        .shortcut-table td:first-child {
+            font-weight: 600;
+            width: 40%;
+        }
+
+        .ros-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+
+        .ros-feature {
+            display: flex;
+            gap: 12px;
+            align-items: start;
+            background: #252526;
+            padding: 16px;
+            border-radius: 8px;
+            border: 1px solid #3c3c3c;
+        }
+
+        .ros-icon {
+            font-size: 24px;
+        }
+
+        .ros-feature strong {
+            display: block;
+            color: #4fc1ff;
+            margin-bottom: 4px;
+        }
+
+        .ros-feature p {
+            margin: 0;
+            font-size: 13px;
+            color: #b0b0b0;
+        }
+
+        .course-card {
+            background: #252526;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #3c3c3c;
+            margin-bottom: 20px;
+        }
+
+        .course-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .course-header h3 {
+            margin: 0;
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .course-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .course-badge.beginner {
+            background: rgba(34, 197, 94, 0.2);
+            color: #22c55e;
+        }
+
+        .course-badge.intermediate {
+            background: rgba(251, 191, 36, 0.2);
+            color: #fbbf24;
+        }
+
+        .course-badge.free {
+            background: rgba(59, 130, 246, 0.2);
+            color: #3b82f6;
+        }
+
+        .command-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .command-grid code {
+            display: block;
+            text-align: center;
+            padding: 12px;
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 6px;
+        }
+
+        .api-category {
+            margin: 32px 0;
+        }
+
+        .api-method {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #3c3c3c;
+            margin: 16px 0;
+        }
+
+        .api-signature {
+            margin-bottom: 12px;
+        }
+
+        .api-command {
+            color: #dcdcaa;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .api-params {
+            color: #9cdcfe;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .support-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 24px;
+            margin: 32px 0;
+        }
+
+        .support-card {
+            background: #252526;
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid #3c3c3c;
+        }
+
+        .support-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .support-card h3 {
+            margin: 0 0 12px 0;
+        }
+
+        .support-card p {
+            margin-bottom: 16px;
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        .support-links {
+            list-style: none;
+            padding: 0;
+        }
+
+        .support-links li {
+            margin-bottom: 8px;
+        }
+
+        .support-links a {
+            color: #007acc;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .support-links a:hover {
+            color: #4fc1ff;
+        }
+
+        .doc-files {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .doc-file {
+            background: #1e1e1e;
+            padding: 12px;
+            border-radius: 6px;
+            border-left: 3px solid #007acc;
+            font-size: 13px;
+        }
+
+        .doc-file strong {
+            color: #4fc1ff;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .troubleshoot-item {
+            background: #252526;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #3c3c3c;
+            margin-bottom: 16px;
+        }
+
+        .troubleshoot-item h4 {
+            margin-top: 0;
+        }
+
+        /* Terminal Modal Styles */
+        .terminal-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 200;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .terminal-modal.active {
+            display: flex;
+        }
+
+        .terminal-panel {
+            background: #0a0f1e;
+            width: 95%;
+            max-width: 1400px;
+            height: 85vh;
+            border-radius: 12px;
+            border: 2px solid rgba(0, 255, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 80px rgba(0, 255, 0, 0.3);
+        }
+
+        .terminal-header {
+            background: #0d1321;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .terminal-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #00ff00;
+        }
+
+        .terminal-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-control-btn {
+            padding: 6px 12px;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .terminal-control-btn:hover {
+            background: rgba(0, 255, 0, 0.2);
+            border-color: rgba(0, 255, 0, 0.5);
+        }
+
+        .terminal-content {
+            flex: 1;
+            overflow: hidden;
+            padding: 10px;
+        }
+
+        /* Override xterm.js styles for our theme */
+        .terminal-content .xterm {
+            height: 100%;
+        }
+
+        .terminal-content .xterm-viewport {
+            background-color: transparent !important;
+        }
+
+        .terminal-content .xterm-screen {
+            background-color: transparent !important;
+        }
+
         /* Top Right Widgets Container */
         .top-right-widgets {
             position: fixed;
@@ -4179,7 +4819,8 @@
         <div class="bottom-icon" onclick="window.location.href='/app.html?activity=ros-learning'" title="🤖 ROS Learning Center - Free Courses">🦾</div>
         <div class="bottom-icon vnc-icon" onclick="window.location.href='/app.html'" title="Full IDE Application" style="color: #00ff00; text-shadow: 0 0 10px rgba(0, 255, 0, 0.8);">⋋</div>
         <div class="bottom-icon" onclick="window.location.href='/download.html'" title="Downloads & SDK">📥</div>
-        <div class="bottom-icon" onclick="window.open('https://docs.navlambda.studio', '_blank')" title="Documentation">📚</div>
+        <div class="bottom-icon" onclick="window.location.href='/docs.html'" title="Documentation">📚</div>
+        <div class="bottom-icon" onclick="toggleTerminalModal()" title="Terminal">💻</div>
         <div class="bottom-icon" onclick="toggleAIModal()" title="AI Assistant">🤖</div>
         
         <!-- Divider -->
@@ -4324,6 +4965,638 @@ How can I assist you today?</div>
         </div>
     </div>
 
+    <!-- Documentation Modal -->
+    <div class="docs-modal" id="docsModal" onclick="closeDocsModalOnBackdrop(event)">
+        <div class="docs-panel">
+            <div class="docs-header">
+                <div class="docs-title">
+                    <span>📚</span>
+                    <span>NAVΛ Studio Documentation</span>
+                </div>
+                <button class="close-btn" onclick="toggleDocsModal()">✕</button>
+            </div>
+
+            <div class="docs-nav">
+                <button class="docs-tab active" onclick="switchDocsTab('overview')">🏠 Overview</button>
+                <button class="docs-tab" onclick="switchDocsTab('quickstart')">🚀 Quick Start</button>
+                <button class="docs-tab" onclick="switchDocsTab('features')">⚡ Features</button>
+                <button class="docs-tab" onclick="switchDocsTab('keyboard')">⌨️ Shortcuts</button>
+                <button class="docs-tab" onclick="switchDocsTab('ros')">🤖 ROS Learning</button>
+                <button class="docs-tab" onclick="switchDocsTab('api')">🔧 API Reference</button>
+                <button class="docs-tab" onclick="switchDocsTab('support')">🆘 Support</button>
+            </div>
+
+            <div class="docs-content" id="docsContent">
+                <!-- Overview Tab -->
+                <div class="docs-section active" id="overview-section">
+                    <h1>Welcome to NAVΛ Studio IDE</h1>
+                    <p class="lead">The World's First IDE for Van Laarhoven Navigation Calculus Programming</p>
+                    
+                    <div class="feature-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">⋋</div>
+                            <h3>Native VNC Support</h3>
+                            <p>First-class support for Van Laarhoven Navigation Calculus symbols and operators</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🎨</div>
+                            <h3>3D Visualization</h3>
+                            <p>Real-time GPU-accelerated navigation path and energy landscape rendering</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">⚡</div>
+                            <h3>Multi-Target Compilation</h3>
+                            <p>Compile to C++, Python, WebAssembly, GLSL, and more</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🤖</div>
+                            <h3>Free ROS Learning</h3>
+                            <p>Comprehensive Robot Operating System courses with live terminal</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">☁️</div>
+                            <h3>Cloud Integration</h3>
+                            <p>One-click deployment to Docker, Kubernetes, and cloud platforms</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">🔥</div>
+                            <h3>Live Preview</h3>
+                            <p>WebAssembly-powered real-time code execution and visualization</p>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>🌟 Revolutionary Features</h3>
+                        <ul>
+                            <li><strong>⚡ Rust Performance</strong> - Native speed with memory safety, faster than Electron-based IDEs</li>
+                            <li><strong>🎯 Navigation Debugging</strong> - Advanced path tracing and energy optimization debugging</li>
+                            <li><strong>🧩 Plugin Architecture</strong> - Extensible system for domain-specific tools</li>
+                            <li><strong>💻 Integrated Terminal</strong> - Execute ROS2 commands with 17+ supported commands</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Quick Start Tab -->
+                <div class="docs-section" id="quickstart-section">
+                    <h1>🚀 Quick Start Guide</h1>
+                    
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>Start the Development Server</h3>
+                            <pre class="code-block">npm run dev</pre>
+                            <p>The Vite development server will start at <code>http://localhost:5173/</code></p>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>Open in Browser</h3>
+                            <p>Navigate to <code>http://localhost:5173/</code> to access the IDE</p>
+                        </div>
+                    </div>
+
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>Create Your First Project</h3>
+                            <ol>
+                                <li>Click the <strong>"Project Manager"</strong> button</li>
+                                <li>Enter a project name (e.g., <code>my-navλ-project</code>)</li>
+                                <li>Click <strong>"Create Project"</strong></li>
+                                <li>Start coding with NAVΛ!</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>📦 Desktop Installation</h3>
+                        <p>Want to run NAVΛ Studio as a native desktop application?</p>
+                        <pre class="code-block"># Development mode (with hot reload)
+npm run tauri:dev
+
+# Production build
+npm run tauri:build</pre>
+                    </div>
+
+                    <div class="info-box success">
+                        <h3>✅ Your First NAVΛ Program</h3>
+                        <pre class="code-block">// Define a navigation operator
+nav pathfinder(start: State, goal: State) -> Navigation {
+  let distance = ∇⋋(start, goal)
+  let path = 𝒩ℐ(distance)
+  
+  compose(
+    tensor(start ⊗⋋ path),
+    evolution(ℰ(path)),
+    feedback(goal)
+  )
+}
+
+// Use the operator
+nav main() {
+  let start = State::new(0, 0)
+  let goal = State::new(10, 10)
+  
+  let result = pathfinder(start, goal)
+  result.execute()
+}</pre>
+                    </div>
+                </div>
+
+                <!-- Features Tab -->
+                <div class="docs-section" id="features-section">
+                    <h1>⚡ Key Features</h1>
+                    
+                    <div class="feature-detail">
+                        <h2>⋋ Native VNC Symbol Support</h2>
+                        <p>NAVΛ Studio has first-class support for all Van Laarhoven Navigation Calculus symbols:</p>
+                        <div class="symbol-table">
+                            <div class="symbol-row">
+                                <span class="symbol-cell">⋋</span>
+                                <span class="symbol-name">Lambda Navigation</span>
+                                <span class="symbol-usage"><code>Alt+L</code></span>
+                            </div>
+                            <div class="symbol-row">
+                                <span class="symbol-cell">⊗⋋</span>
+                                <span class="symbol-name">Navigation Tensor Product</span>
+                                <span class="symbol-usage"><code>Alt+Shift+T</code></span>
+                            </div>
+                            <div class="symbol-row">
+                                <span class="symbol-cell">⊕⋋</span>
+                                <span class="symbol-name">Navigation Sum</span>
+                                <span class="symbol-usage"><code>Alt+Shift+S</code></span>
+                            </div>
+                            <div class="symbol-row">
+                                <span class="symbol-cell">𝒩ℐ</span>
+                                <span class="symbol-name">Master Navigation Operator</span>
+                                <span class="symbol-usage"><code>Alt+Shift+M</code></span>
+                            </div>
+                            <div class="symbol-row">
+                                <span class="symbol-cell">ℰ</span>
+                                <span class="symbol-name">Evolution Operator</span>
+                                <span class="symbol-usage"><code>Alt+Shift+E</code></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h2>🎨 3D Navigation Visualization</h2>
+                        <ul>
+                            <li>Real-time GPU-accelerated rendering</li>
+                            <li>Navigation path optimization visualization</li>
+                            <li>Energy landscape surfaces</li>
+                            <li>Multi-dimensional navigation spaces</li>
+                            <li>Interactive path exploration</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h2>⚡ Multi-Target Compilation</h2>
+                        <p>Write once, compile to multiple targets:</p>
+                        <ul>
+                            <li><strong>C++17</strong> - High-performance native applications</li>
+                            <li><strong>Python 3.12</strong> - Data science and prototyping</li>
+                            <li><strong>WebAssembly</strong> - Browser and web applications</li>
+                            <li><strong>GLSL 4.5</strong> - GPU shaders and compute</li>
+                            <li><strong>WGSL</strong> - WebGPU shaders</li>
+                            <li><strong>Dockerfile</strong> - Container packaging</li>
+                        </ul>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h2>☁️ Cloud Deployment</h2>
+                        <p>One-click deployment to:</p>
+                        <ul>
+                            <li>Docker containers</li>
+                            <li>Kubernetes clusters (with Helm charts)</li>
+                            <li>AWS, Google Cloud, Azure</li>
+                            <li>Edge computing platforms</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Keyboard Shortcuts Tab -->
+                <div class="docs-section" id="keyboard-section">
+                    <h1>⌨️ Keyboard Shortcuts</h1>
+                    
+                    <div class="shortcut-category">
+                        <h2>General Shortcuts</h2>
+                        <table class="shortcut-table">
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>S</kbd></td>
+                                <td>Save file</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>N</kbd></td>
+                                <td>New file</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>O</kbd></td>
+                                <td>Open file</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>P</kbd></td>
+                                <td>Project Manager</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>F5</kbd></td>
+                                <td>Run program</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>B</kbd></td>
+                                <td>Compile</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="shortcut-category">
+                        <h2>VNC Symbol Shortcuts</h2>
+                        <table class="shortcut-table">
+                            <tr>
+                                <td><kbd>Alt</kbd> + <kbd>L</kbd></td>
+                                <td>Insert ⋋ (Lambda Navigation)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd></td>
+                                <td>Insert ⊗⋋ (Tensor Product)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd></td>
+                                <td>Insert ⊕⋋ (Navigation Sum)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>M</kbd></td>
+                                <td>Insert 𝒩ℐ (Master Operator)</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>E</kbd></td>
+                                <td>Insert ℰ (Evolution Operator)</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="shortcut-category">
+                        <h2>Editor Shortcuts</h2>
+                        <table class="shortcut-table">
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>Space</kbd></td>
+                                <td>Code completion</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>/</kbd></td>
+                                <td>Toggle comment</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>F</kbd></td>
+                                <td>Find</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>H</kbd></td>
+                                <td>Replace</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>D</kbd></td>
+                                <td>Duplicate line</td>
+                            </tr>
+                            <tr>
+                                <td><kbd>Ctrl/Cmd</kbd> + <kbd>Shift</kbd> + <kbd>K</kbd></td>
+                                <td>Delete line</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- ROS Learning Tab -->
+                <div class="docs-section" id="ros-section">
+                    <h1>🤖 ROS Learning Center</h1>
+                    
+                    <div class="info-box success">
+                        <h3>✨ NEW: Free ROS Courses + Live Terminal!</h3>
+                        <p>NAVΛ Studio now includes comprehensive, free Robot Operating System education with a fully functional terminal!</p>
+                    </div>
+
+                    <div class="ros-features">
+                        <div class="ros-feature">
+                            <span class="ros-icon">📚</span>
+                            <div>
+                                <strong>3 Free Courses</strong>
+                                <p>ROS2 Basics, Advanced Navigation, Gazebo Simulation</p>
+                            </div>
+                        </div>
+                        <div class="ros-feature">
+                            <span class="ros-icon">💻</span>
+                            <div>
+                                <strong>Live Terminal</strong>
+                                <p>Execute real ROS2 commands in-browser</p>
+                            </div>
+                        </div>
+                        <div class="ros-feature">
+                            <span class="ros-icon">⚡</span>
+                            <div>
+                                <strong>17+ Commands</strong>
+                                <p>ros2 run, launch, topic, node, pkg, and more</p>
+                            </div>
+                        </div>
+                        <div class="ros-feature">
+                            <span class="ros-icon">🎓</span>
+                            <div>
+                                <strong>Certification</strong>
+                                <p>Earn certificates on course completion</p>
+                            </div>
+                        </div>
+                        <div class="ros-feature">
+                            <span class="ros-icon">🔒</span>
+                            <div>
+                                <strong>Safe Learning</strong>
+                                <p>Simulated environment, no installation needed</p>
+                            </div>
+                        </div>
+                        <div class="ros-feature">
+                            <span class="ros-icon">♾️</span>
+                            <div>
+                                <strong>100% Free Forever</strong>
+                                <p>No paywalls, no subscriptions</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h2>Available Courses</h2>
+                        
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h3>ROS2 Navigation Basics</h3>
+                                <span class="course-badge beginner">Beginner</span>
+                                <span class="course-badge free">FREE</span>
+                            </div>
+                            <p><strong>Duration:</strong> 6 weeks | <strong>Modules:</strong> 2 | <strong>Certificate:</strong> ✅</p>
+                            <p><strong>What you'll learn:</strong></p>
+                            <ul>
+                                <li>ROS2 architecture and fundamentals</li>
+                                <li>Creating and managing ROS2 packages</li>
+                                <li>Topics, services, and actions</li>
+                                <li>Basic navigation stack usage</li>
+                            </ul>
+                        </div>
+
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h3>Advanced ROS2 Navigation</h3>
+                                <span class="course-badge intermediate">Intermediate</span>
+                                <span class="course-badge free">FREE</span>
+                            </div>
+                            <p><strong>Duration:</strong> 8 weeks | <strong>Modules:</strong> 3 | <strong>Certificate:</strong> ✅</p>
+                            <p><strong>What you'll learn:</strong></p>
+                            <ul>
+                                <li>Complex navigation scenarios</li>
+                                <li>Custom controller development</li>
+                                <li>Integration with VNC algorithms</li>
+                                <li>Performance optimization</li>
+                            </ul>
+                        </div>
+
+                        <div class="course-card">
+                            <div class="course-header">
+                                <h3>Gazebo Robot Simulation</h3>
+                                <span class="course-badge intermediate">Intermediate</span>
+                                <span class="course-badge free">FREE</span>
+                            </div>
+                            <p><strong>Duration:</strong> 4 weeks | <strong>Modules:</strong> 2 | <strong>Certificate:</strong> ✅</p>
+                            <p><strong>What you'll learn:</strong></p>
+                            <ul>
+                                <li>Setting up Gazebo simulations</li>
+                                <li>Creating robot models (URDF/SDF)</li>
+                                <li>Sensor simulation and integration</li>
+                                <li>Testing navigation algorithms</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>💻 Supported ROS2 Commands</h3>
+                        <div class="command-grid">
+                            <code>ros2 run</code>
+                            <code>ros2 launch</code>
+                            <code>ros2 topic</code>
+                            <code>ros2 node</code>
+                            <code>ros2 pkg</code>
+                            <code>ros2 service</code>
+                            <code>ros2 param</code>
+                            <code>ros2 action</code>
+                            <code>ros2 bag</code>
+                            <code>ros2 interface</code>
+                            <code>ros2 doctor</code>
+                            <code>ros2 wtf</code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- API Reference Tab -->
+                <div class="docs-section" id="api-section">
+                    <h1>🔧 API Reference</h1>
+                    
+                    <div class="api-category">
+                        <h2>Dataset Integration APIs</h2>
+                        <div class="api-method">
+                            <div class="api-signature">
+                                <span class="api-command">initialize_dataset_integration</span>
+                            </div>
+                            <p>Initializes the dataset integration system and loads metadata for Waymo, KITTI, and RT-X datasets.</p>
+                            <pre class="code-block">import { invoke } from '@tauri-apps/api/tauri';
+
+async function initializeDatasets() {
+  const result = await invoke('initialize_dataset_integration');
+  console.log(result); // "Dataset Integration System Initialized"
+}</pre>
+                            <p><strong>Response:</strong> <code>string</code> - Success or error message</p>
+                        </div>
+                    </div>
+
+                    <div class="api-category">
+                        <h2>Simulation Control APIs</h2>
+                        <div class="api-method">
+                            <div class="api-signature">
+                                <span class="api-command">start_simulation</span>
+                            </div>
+                            <p>Starts the real-time simulation engine.</p>
+                            <pre class="code-block">async function startSimulation() {
+  const result = await invoke('start_simulation');
+  console.log(result); // "Simulation Started"
+}</pre>
+                        </div>
+
+                        <div class="api-method">
+                            <div class="api-signature">
+                                <span class="api-command">stop_simulation</span>
+                            </div>
+                            <p>Stops the currently running simulation.</p>
+                            <pre class="code-block">async function stopSimulation() {
+  const result = await invoke('stop_simulation');
+  console.log(result); // "Simulation Stopped"
+}</pre>
+                        </div>
+                    </div>
+
+                    <div class="api-category">
+                        <h2>ROS2 Middleware APIs</h2>
+                        <div class="api-method">
+                            <div class="api-signature">
+                                <span class="api-command">ros2_publish</span>
+                                <span class="api-params">(topic: string, message: any)</span>
+                            </div>
+                            <p>Publishes a message to a ROS2 topic.</p>
+                            <pre class="code-block">await invoke('ros2_publish', {
+  topic: '/cmd_vel',
+  message: { linear: { x: 0.5 }, angular: { z: 0.0 } }
+});</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <p>📚 For complete API documentation, see <code>API_DOCUMENTATION.md</code> in the project root.</p>
+                    </div>
+                </div>
+
+                <!-- Support Tab -->
+                <div class="docs-section" id="support-section">
+                    <h1>🆘 Support & Resources</h1>
+                    
+                    <div class="support-grid">
+                        <div class="support-card">
+                            <div class="support-icon">📖</div>
+                            <h3>Documentation</h3>
+                            <p>Comprehensive guides and references</p>
+                            <ul class="support-links">
+                                <li><a href="#" onclick="switchDocsTab('quickstart'); return false;">Quick Start Guide</a></li>
+                                <li><a href="#" onclick="switchDocsTab('features'); return false;">Feature Documentation</a></li>
+                                <li><a href="#" onclick="switchDocsTab('keyboard'); return false;">Keyboard Shortcuts</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon">💬</div>
+                            <h3>Community</h3>
+                            <p>Connect with other NAVΛ developers</p>
+                            <ul class="support-links">
+                                <li><a href="https://discord.gg/navlambda" target="_blank">Discord Server</a></li>
+                                <li><a href="https://twitter.com/navlambda_studio" target="_blank">Twitter</a></li>
+                                <li><a href="https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/discussions" target="_blank">GitHub Discussions</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon">🐛</div>
+                            <h3>Bug Reports</h3>
+                            <p>Found an issue? Let us know!</p>
+                            <ul class="support-links">
+                                <li><a href="https://github.com/FrankAsanteVanLaarhoven/NAVA-Ai-Studio/issues" target="_blank">GitHub Issues</a></li>
+                                <li><a href="mailto:support@navlambda.studio">Email Support</a></li>
+                            </ul>
+                        </div>
+
+                        <div class="support-card">
+                            <div class="support-icon">🎓</div>
+                            <h3>Learning Resources</h3>
+                            <p>Expand your knowledge</p>
+                            <ul class="support-links">
+                                <li><a href="#" onclick="switchDocsTab('ros'); return false;">ROS Learning Center</a></li>
+                                <li>Video Tutorials (Coming Soon)</li>
+                                <li>Example Projects</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="info-box">
+                        <h3>📚 Additional Documentation Files</h3>
+                        <div class="doc-files">
+                            <div class="doc-file">
+                                <strong>README.md</strong> - Project overview and installation
+                            </div>
+                            <div class="doc-file">
+                                <strong>GETTING_STARTED.md</strong> - Detailed getting started guide
+                            </div>
+                            <div class="doc-file">
+                                <strong>API_DOCUMENTATION.md</strong> - Complete API reference
+                            </div>
+                            <div class="doc-file">
+                                <strong>ARCHITECTURE.md</strong> - System architecture details
+                            </div>
+                            <div class="doc-file">
+                                <strong>ROS_LEARNING_SYSTEM.md</strong> - ROS learning documentation
+                            </div>
+                            <div class="doc-file">
+                                <strong>BUILD_INSTRUCTIONS.md</strong> - Building from source
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="feature-detail">
+                        <h2>🔧 Troubleshooting</h2>
+                        
+                        <div class="troubleshoot-item">
+                            <h4>Port Already in Use</h4>
+                            <p>If you see "Port 5173 is already in use":</p>
+                            <pre class="code-block"># On macOS/Linux
+lsof -ti:5173 | xargs kill -9
+
+# Or use a different port
+npm run dev -- --port 3000</pre>
+                        </div>
+
+                        <div class="troubleshoot-item">
+                            <h4>Module Not Found</h4>
+                            <p>If you see module errors:</p>
+                            <pre class="code-block"># Clean install
+rm -rf node_modules package-lock.json
+npm install</pre>
+                        </div>
+
+                        <div class="troubleshoot-item">
+                            <h4>Tauri Build Issues</h4>
+                            <p>If Tauri build fails:</p>
+                            <pre class="code-block"># Update Rust
+rustup update
+
+# Try building again
+npm run tauri:build</pre>
+                        </div>
+                    </div>
+
+                    <div class="info-box success">
+                        <h3>✨ Pro Tips</h3>
+                        <ul>
+                            <li><strong>Use keyboard shortcuts</strong> - Much faster than clicking!</li>
+                            <li><strong>Split view</strong> - Toggle visualization panel for side-by-side editing</li>
+                            <li><strong>Live preview</strong> - Leave preview on for instant feedback</li>
+                            <li><strong>Documentation on hover</strong> - Hover over any VNC symbol for docs</li>
+                            <li><strong>Examples as templates</strong> - Copy examples and modify for your needs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Modal -->
+    <div class="terminal-modal" id="terminalModal" onclick="closeTerminalModalOnBackdrop(event)">
+        <div class="terminal-panel">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <span>💻</span>
+                    <span>NAVΛ Studio Terminal</span>
+                </div>
+                <div class="terminal-controls">
+                    <button class="terminal-control-btn" onclick="clearTerminal()" title="Clear Terminal">🗑️ Clear</button>
+                    <button class="terminal-control-btn" onclick="resetTerminal()" title="Reset Terminal">🔄 Reset</button>
+                    <button class="close-btn" onclick="toggleTerminalModal()">✕</button>
+                </div>
+            </div>
+            <div class="terminal-content" id="terminalContainer"></div>
+        </div>
+    </div>
+
     <script>
         // Update time
         function updateTime() {
@@ -4423,6 +5696,416 @@ How can I assist you today?</div>
         function closeModalOnBackdrop(event) {
             if (event.target.id === 'aiModal') {
                 toggleAIModal();
+            }
+        }
+
+        // Documentation Modal Functions
+        function toggleDocsModal() {
+            const modal = document.getElementById('docsModal');
+            modal.classList.toggle('active');
+        }
+
+        function closeDocsModalOnBackdrop(event) {
+            if (event.target.id === 'docsModal') {
+                toggleDocsModal();
+            }
+        }
+
+        function switchDocsTab(tabName) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.docs-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all sections
+            document.querySelectorAll('.docs-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Show corresponding section
+            const sectionId = tabName + '-section';
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Scroll to top of content
+            document.getElementById('docsContent').scrollTop = 0;
+        }
+
+        // Terminal Functions
+        let term = null;
+        let fitAddon = null;
+        let currentDirectory = '~/workspace';
+        let currentInput = '';
+        let cursorPosition = 0;
+        let commandHistory = [];
+        let historyIndex = -1;
+
+        function initializeTerminal() {
+            if (term) return; // Already initialized
+
+            // Create terminal instance
+            term = new Terminal({
+                cursorBlink: true,
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                theme: {
+                    background: '#0a0f1e',
+                    foreground: '#e0e0e0',
+                    cursor: '#00ff00',
+                    cursorAccent: '#000000',
+                    selection: 'rgba(0, 255, 0, 0.3)',
+                    black: '#000000',
+                    red: '#ef4444',
+                    green: '#00ff00',
+                    yellow: '#fbbf24',
+                    blue: '#3b82f6',
+                    magenta: '#a855f7',
+                    cyan: '#06b6d4',
+                    white: '#ffffff',
+                    brightBlack: '#4b5563',
+                    brightRed: '#f87171',
+                    brightGreen: '#22c55e',
+                    brightYellow: '#fde047',
+                    brightBlue: '#60a5fa',
+                    brightMagenta: '#c084fc',
+                    brightCyan: '#22d3ee',
+                    brightWhite: '#f9fafb',
+                },
+                allowProposedApi: true,
+            });
+
+            // Load addons
+            fitAddon = new FitAddon.FitAddon();
+            const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+            
+            term.loadAddon(fitAddon);
+            term.loadAddon(webLinksAddon);
+
+            // Open terminal
+            const container = document.getElementById('terminalContainer');
+            term.open(container);
+            fitAddon.fit();
+
+            // Welcome message
+            term.writeln('\x1b[32m╔══════════════════════════════════════════════════════════════╗\x1b[0m');
+            term.writeln('\x1b[32m║         NAVΛ Studio IDE - Integrated Terminal              ║\x1b[0m');
+            term.writeln('\x1b[32m║    Van Laarhoven Navigation Calculus Development           ║\x1b[0m');
+            term.writeln('\x1b[32m╚══════════════════════════════════════════════════════════════╝\x1b[0m');
+            term.writeln('');
+            term.writeln('\x1b[36m⋋ Welcome to the NAVΛ Terminal!\x1b[0m');
+            term.writeln('\x1b[90mType \x1b[33mhelp\x1b[90m for available commands\x1b[0m');
+            term.writeln('\x1b[90mType \x1b[33mnav-help\x1b[90m for NAVΛ navigation commands\x1b[0m');
+            term.writeln('');
+
+            writePrompt();
+
+            // Handle input
+            term.onKey(({ key, domEvent }) => {
+                const printable = !domEvent.altKey && !domEvent.ctrlKey && !domEvent.metaKey;
+
+                if (domEvent.keyCode === 13) {
+                    // Enter
+                    term.write('\r\n');
+                    if (currentInput.trim()) {
+                        commandHistory.push(currentInput);
+                        historyIndex = commandHistory.length;
+                        executeCommand(currentInput.trim());
+                    } else {
+                        writePrompt();
+                    }
+                    currentInput = '';
+                    cursorPosition = 0;
+                } else if (domEvent.keyCode === 8) {
+                    // Backspace
+                    if (cursorPosition > 0) {
+                        currentInput = currentInput.slice(0, cursorPosition - 1) + currentInput.slice(cursorPosition);
+                        cursorPosition--;
+                        term.write('\b \b');
+                        if (cursorPosition < currentInput.length) {
+                            term.write(currentInput.slice(cursorPosition) + ' \b');
+                            for (let i = 0; i < currentInput.length - cursorPosition + 1; i++) {
+                                term.write('\b');
+                            }
+                        }
+                    }
+                } else if (domEvent.keyCode === 38) {
+                    // Arrow Up - History
+                    if (historyIndex > 0) {
+                        historyIndex--;
+                        // Clear current line
+                        term.write('\r\x1b[K');
+                        writePrompt();
+                        currentInput = commandHistory[historyIndex];
+                        cursorPosition = currentInput.length;
+                        term.write(currentInput);
+                    }
+                } else if (domEvent.keyCode === 40) {
+                    // Arrow Down - History
+                    if (historyIndex < commandHistory.length - 1) {
+                        historyIndex++;
+                        term.write('\r\x1b[K');
+                        writePrompt();
+                        currentInput = commandHistory[historyIndex];
+                        cursorPosition = currentInput.length;
+                        term.write(currentInput);
+                    } else if (historyIndex === commandHistory.length - 1) {
+                        historyIndex = commandHistory.length;
+                        term.write('\r\x1b[K');
+                        writePrompt();
+                        currentInput = '';
+                        cursorPosition = 0;
+                    }
+                } else if (domEvent.keyCode === 37) {
+                    // Arrow Left
+                    if (cursorPosition > 0) {
+                        cursorPosition--;
+                        term.write('\x1b[D');
+                    }
+                } else if (domEvent.keyCode === 39) {
+                    // Arrow Right
+                    if (cursorPosition < currentInput.length) {
+                        cursorPosition++;
+                        term.write('\x1b[C');
+                    }
+                } else if (domEvent.keyCode === 67 && domEvent.ctrlKey) {
+                    // Ctrl+C
+                    term.write('^C\r\n');
+                    writePrompt();
+                    currentInput = '';
+                    cursorPosition = 0;
+                } else if (domEvent.keyCode === 76 && domEvent.ctrlKey) {
+                    // Ctrl+L - Clear screen
+                    term.clear();
+                    writePrompt();
+                    currentInput = '';
+                    cursorPosition = 0;
+                } else if (printable) {
+                    currentInput = currentInput.slice(0, cursorPosition) + key + currentInput.slice(cursorPosition);
+                    cursorPosition++;
+                    term.write(key);
+                    if (cursorPosition < currentInput.length) {
+                        term.write(currentInput.slice(cursorPosition));
+                        for (let i = 0; i < currentInput.length - cursorPosition; i++) {
+                            term.write('\b');
+                        }
+                    }
+                }
+            });
+
+            // Handle resize
+            window.addEventListener('resize', () => {
+                if (fitAddon && document.getElementById('terminalModal').classList.contains('active')) {
+                    fitAddon.fit();
+                }
+            });
+        }
+
+        function writePrompt() {
+            term.write('\r\n\x1b[32m⋋\x1b[0m \x1b[36m' + currentDirectory + '\x1b[0m \x1b[33m$\x1b[0m ');
+        }
+
+        function executeCommand(command) {
+            const parts = command.trim().split(/\s+/);
+            const cmd = parts[0];
+            const args = parts.slice(1);
+
+            switch(cmd) {
+                case 'help':
+                    term.writeln('\x1b[36mAvailable Commands:\x1b[0m');
+                    term.writeln('');
+                    term.writeln('  \x1b[33mhelp\x1b[0m          - Show this help message');
+                    term.writeln('  \x1b[33mnav-help\x1b[0m      - Show NAVΛ navigation commands');
+                    term.writeln('  \x1b[33mls\x1b[0m            - List directory contents');
+                    term.writeln('  \x1b[33mpwd\x1b[0m           - Print working directory');
+                    term.writeln('  \x1b[33mcd <dir>\x1b[0m      - Change directory');
+                    term.writeln('  \x1b[33mclear\x1b[0m         - Clear the terminal');
+                    term.writeln('  \x1b[33mecho <text>\x1b[0m   - Echo text to terminal');
+                    term.writeln('  \x1b[33mdate\x1b[0m          - Display current date/time');
+                    term.writeln('  \x1b[33mwhoami\x1b[0m        - Display current user');
+                    term.writeln('  \x1b[33msystem-info\x1b[0m   - Show system information');
+                    term.writeln('  \x1b[33mnpm <cmd>\x1b[0m     - Run npm commands');
+                    term.writeln('  \x1b[33mgit <cmd>\x1b[0m     - Run git commands');
+                    term.writeln('');
+                    term.writeln('\x1b[90mKeyboard Shortcuts:\x1b[0m');
+                    term.writeln('  \x1b[33mCtrl+C\x1b[0m        - Cancel current command');
+                    term.writeln('  \x1b[33mCtrl+L\x1b[0m        - Clear screen');
+                    term.writeln('  \x1b[33mUp/Down\x1b[0m       - Navigate command history');
+                    term.writeln('');
+                    break;
+
+                case 'nav-help':
+                    term.writeln('\x1b[36m⋋ NAVΛ Navigation Commands:\x1b[0m');
+                    term.writeln('');
+                    term.writeln('  \x1b[33mnavλ compile <file>\x1b[0m   - Compile NAVΛ source');
+                    term.writeln('  \x1b[33mnavλ run <file>\x1b[0m       - Run NAVΛ program');
+                    term.writeln('  \x1b[33mnavλ visualize <file>\x1b[0m - Visualize navigation');
+                    term.writeln('  \x1b[33mnavλ optimize <file>\x1b[0m  - Optimize navigation path');
+                    term.writeln('  \x1b[33mnavλ symbols\x1b[0m          - Show navigation symbols');
+                    term.writeln('  \x1b[33mnavλ version\x1b[0m          - Show NAVΛ version');
+                    term.writeln('');
+                    term.writeln('\x1b[90mNavigation Symbols:\x1b[0m');
+                    term.writeln('  \x1b[32m⋋\x1b[0m  - Lambda Navigation');
+                    term.writeln('  \x1b[32m⊗⋋\x1b[0m - Tensor Product');
+                    term.writeln('  \x1b[32m⊕⋋\x1b[0m - Navigation Sum');
+                    term.writeln('  \x1b[32m𝒩ℐ\x1b[0m - Master Operator');
+                    term.writeln('  \x1b[32mℰ\x1b[0m  - Evolution Operator');
+                    term.writeln('');
+                    break;
+
+                case 'clear':
+                    term.clear();
+                    break;
+
+                case 'ls':
+                    term.writeln('\x1b[36mprojects/\x1b[0m     \x1b[90msrc/\x1b[0m         \x1b[32mREADME.md\x1b[0m');
+                    term.writeln('\x1b[36mnode_modules/\x1b[0m \x1b[90mdist/\x1b[0m        \x1b[32mpackage.json\x1b[0m');
+                    break;
+
+                case 'pwd':
+                    term.writeln(currentDirectory);
+                    break;
+
+                case 'cd':
+                    if (args.length === 0 || args[0] === '~') {
+                        currentDirectory = '~/workspace';
+                    } else if (args[0] === '..') {
+                        const parts = currentDirectory.split('/');
+                        if (parts.length > 2) {
+                            parts.pop();
+                            currentDirectory = parts.join('/');
+                        }
+                    } else {
+                        currentDirectory = currentDirectory + '/' + args[0];
+                    }
+                    break;
+
+                case 'echo':
+                    term.writeln(args.join(' '));
+                    break;
+
+                case 'date':
+                    term.writeln(new Date().toString());
+                    break;
+
+                case 'whoami':
+                    term.writeln('navλ-developer');
+                    break;
+
+                case 'system-info':
+                    term.writeln('\x1b[36mSystem Information:\x1b[0m');
+                    term.writeln('');
+                    term.writeln(`  OS: ${navigator.platform}`);
+                    term.writeln(`  Browser: ${navigator.userAgent.split(' ').slice(-2).join(' ')}`);
+                    term.writeln(`  Cores: ${navigator.hardwareConcurrency}`);
+                    term.writeln(`  Screen: ${window.screen.width}x${window.screen.height}`);
+                    term.writeln('');
+                    break;
+
+                case 'npm':
+                    term.writeln(`\x1b[90m$ npm ${args.join(' ')}\x1b[0m`);
+                    term.writeln('\x1b[33mSimulating npm command...\x1b[0m');
+                    setTimeout(() => {
+                        term.writeln('\x1b[32m✓ npm command completed\x1b[0m');
+                        writePrompt();
+                    }, 1000);
+                    return;
+
+                case 'git':
+                    term.writeln(`\x1b[90m$ git ${args.join(' ')}\x1b[0m`);
+                    term.writeln('\x1b[33mSimulating git command...\x1b[0m');
+                    setTimeout(() => {
+                        term.writeln('\x1b[32m✓ git command completed\x1b[0m');
+                        writePrompt();
+                    }, 800);
+                    return;
+
+                case 'navλ':
+                case 'navlambda':
+                    if (args[0] === 'version') {
+                        term.writeln('\x1b[32mNAVΛ Studio IDE v1.0.0\x1b[0m');
+                        term.writeln('\x1b[90mVan Laarhoven Navigation Calculus Compiler\x1b[0m');
+                    } else if (args[0] === 'symbols') {
+                        term.writeln('\x1b[36m⋋ Navigation Symbols:\x1b[0m');
+                        term.writeln('');
+                        term.writeln('  \x1b[32m⋋\x1b[0m  - Lambda Navigation (Alt+L)');
+                        term.writeln('  \x1b[32m⊗⋋\x1b[0m - Tensor Product (Alt+Shift+T)');
+                        term.writeln('  \x1b[32m⊕⋋\x1b[0m - Navigation Sum (Alt+Shift+S)');
+                        term.writeln('  \x1b[32m∪⋋\x1b[0m - Union Operation');
+                        term.writeln('  \x1b[32m∩⋋\x1b[0m - Intersection Operation');
+                        term.writeln('  \x1b[32m𝒩ℐ\x1b[0m - Master Operator (Alt+Shift+M)');
+                        term.writeln('  \x1b[32mℰ\x1b[0m  - Evolution Operator (Alt+Shift+E)');
+                        term.writeln('');
+                    } else {
+                        term.writeln('\x1b[33mUse: navλ compile|run|visualize|optimize <file>\x1b[0m');
+                        term.writeln('\x1b[90mOr type \x1b[33mnav-help\x1b[90m for more information\x1b[0m');
+                    }
+                    break;
+
+                default:
+                    term.writeln(`\x1b[31mbash: ${cmd}: command not found\x1b[0m`);
+                    term.writeln('\x1b[90mType \x1b[33mhelp\x1b[90m for available commands\x1b[0m');
+                    break;
+            }
+
+            writePrompt();
+        }
+
+        function toggleTerminalModal() {
+            const modal = document.getElementById('terminalModal');
+            const isOpening = !modal.classList.contains('active');
+            
+            modal.classList.toggle('active');
+            
+            if (isOpening) {
+                if (!term) {
+                    setTimeout(() => {
+                        initializeTerminal();
+                    }, 100);
+                } else {
+                    setTimeout(() => {
+                        if (fitAddon) {
+                            fitAddon.fit();
+                        }
+                    }, 100);
+                }
+            }
+        }
+
+        function closeTerminalModalOnBackdrop(event) {
+            if (event.target.id === 'terminalModal') {
+                toggleTerminalModal();
+            }
+        }
+
+        function clearTerminal() {
+            if (term) {
+                term.clear();
+                writePrompt();
+            }
+        }
+
+        function resetTerminal() {
+            if (term) {
+                term.reset();
+                currentDirectory = '~/workspace';
+                currentInput = '';
+                cursorPosition = 0;
+                commandHistory = [];
+                historyIndex = -1;
+                
+                // Re-show welcome message
+                term.writeln('\x1b[32m╔══════════════════════════════════════════════════════════════╗\x1b[0m');
+                term.writeln('\x1b[32m║         NAVΛ Studio IDE - Integrated Terminal              ║\x1b[0m');
+                term.writeln('\x1b[32m║    Van Laarhoven Navigation Calculus Development           ║\x1b[0m');
+                term.writeln('\x1b[32m╚══════════════════════════════════════════════════════════════╝\x1b[0m');
+                term.writeln('');
+                term.writeln('\x1b[36m⋋ Welcome to the NAVΛ Terminal!\x1b[0m');
+                term.writeln('\x1b[90mType \x1b[33mhelp\x1b[90m for available commands\x1b[0m');
+                term.writeln('\x1b[90mType \x1b[33mnav-help\x1b[90m for NAVΛ navigation commands\x1b[0m');
+                term.writeln('');
+                writePrompt();
             }
         }
 
@@ -4593,7 +6276,7 @@ How can I assist you today?</div>
 
         // Modal Functions for Widget Actions
         function showHelpModal() {
-            alert('📚 NAVΛ Studio Help\n\n• Press Ctrl+Shift+P for Command Palette\n• Click 🤖 for ROS Learning\n• Click 🌐 for Advanced IDE\n• Visit docs.navlambda.studio for full documentation\n\nNeed more help? Contact: support@navlambda.studio');
+            alert('📚 NAVΛ Studio Help\n\n• Press Ctrl+Shift+P for Command Palette\n• Click 🤖 for ROS Learning\n• Click ⋋ for Full IDE Application\n• Click 📚 for Documentation\n• Click 💻 for Terminal\n\nNeed more help? Contact: support@navlambda.studio');
         }
 
         function showSettingsModal() {
@@ -6483,6 +8166,7 @@ How can I assist you today?</div>
                 { id: 'arc', name: 'Arc', icon: '🌈', description: 'Modern Browser', installed: false, url: 'https://arc.net', virtual: true }
             ],
             devTools: [
+                { id: 'navlambda-ide', name: 'Full IDE Application', icon: '⋋', description: 'NAVΛ Studio IDE', installed: true, url: '/app.html' },
                 { id: 'vscode', name: 'VS Code', icon: '📝', description: 'Code Editor', installed: true, url: '/app.html' },
                 { id: 'figma', name: 'Figma', icon: '🎨', description: 'Design Tool', installed: true, url: 'https://figma.com' },
                 { id: 'github', name: 'GitHub', icon: '🐙', description: 'Code Hosting', installed: true, url: 'https://github.com' },
@@ -6711,7 +8395,16 @@ How can I assist you today?</div>
                 if (app.virtual) {
                     // Open in iframe or embed (virtual browser)
                     alert(`🌐 Opening ${app.name} in virtual browser...\n\nURL: ${app.url}\n\n(Integration coming soon!)`);
+                } else if (app.id === 'navlambda-ide' || app.id === 'vscode' || app.url === '/app.html') {
+                    // Navigate to IDE in same window
+                    window.location.href = app.url;
+                } else if (app.id === 'terminal' || app.url === '#terminal') {
+                    // Open terminal modal
+                    closeAppLauncher();
+                    toggleTerminalModal();
+                    return;
                 } else {
+                    // Open external URLs in new tab
                     window.open(app.url, '_blank');
                 }
             }

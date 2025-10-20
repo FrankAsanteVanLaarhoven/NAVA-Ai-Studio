@@ -117,15 +117,75 @@ async fn run_live_preview(
 }
 
 #[tauri::command]
-fn initialize_dataset_integration() -> String {
-    data::dataset_integration::initialize();
-    "Dataset Integration System Initialized".to_string()
+fn initialize_dataset_integration() -> Result<String, String> {
+    match data::dataset_integration::initialize() {
+        Ok(_) => Ok("Dataset Integration System Initialized".to_string()),
+        Err(e) => Err(format!("Failed to initialize dataset integration: {}", e)),
+    }
 }
 
 #[tauri::command]
-fn start_simulation() -> String {
-    simulation::simulation_engine::start_simulation();
-    "Simulation Started".to_string()
+async fn initialize_kafka_pipeline(brokers: String) -> Result<String, String> {
+    match data::kafka_pipeline::initialize_kafka_pipeline(&brokers).await {
+        Ok(pipeline) => {
+            // Store pipeline in a static for demo purposes
+            // In production, this would be stored in AppState
+            Ok(format!("Kafka Pipeline Initialized with brokers: {}", brokers))
+        }
+        Err(e) => Err(format!("Failed to initialize Kafka pipeline: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn initialize_spark_processor(master_url: String) -> Result<String, String> {
+    match data::spark_processing::initialize_spark_processor(master_url.clone()).await {
+        Ok(processor) => {
+            Ok(format!("Spark Processor Initialized with master: {}", master_url))
+        }
+        Err(e) => Err(format!("Failed to initialize Spark processor: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn run_data_pipeline_demo(brokers: String, spark_url: String) -> Result<String, String> {
+    // Initialize Kafka pipeline
+    let kafka_pipeline = match data::kafka_pipeline::initialize_kafka_pipeline(&brokers).await {
+        Ok(pipeline) => pipeline,
+        Err(e) => return Err(format!("Failed to initialize Kafka: {}", e)),
+    };
+
+    // Initialize Spark processor
+    let mut spark_processor = match data::spark_processing::initialize_spark_processor(spark_url.clone()).await {
+        Ok(processor) => processor,
+        Err(e) => return Err(format!("Failed to initialize Spark: {}", e)),
+    };
+
+    // Run the demo pipeline
+    match data::spark_processing::run_data_pipeline_demo(&mut spark_processor, &kafka_pipeline).await {
+        Ok(_) => Ok("Data Pipeline Demo Completed Successfully".to_string()),
+        Err(e) => Err(format!("Pipeline demo failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn test_kafka_throughput(brokers: String) -> Result<String, String> {
+    let pipeline = match data::kafka_pipeline::initialize_kafka_pipeline(&brokers).await {
+        Ok(pipeline) => pipeline,
+        Err(e) => return Err(format!("Failed to initialize Kafka pipeline: {}", e)),
+    };
+
+    match data::kafka_pipeline::test_kafka_throughput(&pipeline).await {
+        Ok(throughput) => Ok(format!("Kafka Throughput: {:.2} records/sec", throughput)),
+        Err(e) => Err(format!("Throughput test failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn start_simulation() -> Result<String, String> {
+    match simulation::simulation_engine::start_simulation().await {
+        Ok(_) => Ok("Simulation Started".to_string()),
+        Err(e) => Err(format!("Failed to start simulation: {}", e)),
+    }
 }
 
 #[tauri::command]
@@ -135,21 +195,36 @@ fn stop_simulation() -> String {
 }
 
 #[tauri::command]
-fn initialize_ros_middleware() -> String {
-    middleware::ros_middleware::initialize();
-    "ROS2 Middleware Initialized".to_string()
+fn initialize_ros_middleware() -> Result<String, String> {
+    match middleware::ros_middleware::initialize() {
+        Ok(_) => Ok("ROS2 Middleware Initialized".to_string()),
+        Err(e) => Err(format!("Failed to initialize ROS middleware: {}", e)),
+    }
 }
 
 #[tauri::command]
-fn train_ai_model() -> String {
-    ai::vla_models::train_model();
-    "AI Model Training Started".to_string()
+async fn train_ai_model() -> Result<String, String> {
+    match ai::vla_models::train_model().await {
+        Ok(result) => Ok(result),
+        Err(e) => Err(format!("AI Model Training Failed: {}", e)),
+    }
 }
 
 #[tauri::command]
-fn run_ai_inference() -> String {
-    ai::vla_models::run_inference();
-    "AI Model Inference Running".to_string()
+async fn run_ai_inference(image_data: Vec<u8>, text_prompt: String) -> Result<String, String> {
+    match ai::vla_models::run_inference(image_data, text_prompt).await {
+        Ok(result) => Ok(format!("AI Inference Result: {} actions predicted", result.actions.len())),
+        Err(e) => Err(format!("AI Inference Failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+fn get_ai_model_info() -> Result<String, String> {
+    let info = ai::vla_models::get_model_info();
+    match serde_json::to_string(&info) {
+        Ok(json) => Ok(json),
+        Err(e) => Err(format!("Failed to serialize model info: {}", e)),
+    }
 }
 
 #[tauri::command]
@@ -159,9 +234,27 @@ fn initialize_hil_system() -> String {
 }
 
 #[tauri::command]
-fn deploy_to_cloud() -> String {
-    cloud::deployment::deploy_to_cloud();
-    "Deployment to Cloud Started".to_string()
+async fn deploy_to_cloud() -> Result<String, String> {
+    match cloud::deployment::deploy_to_cloud().await {
+        Ok(result) => Ok(result),
+        Err(e) => Err(format!("Cloud deployment failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn scale_simulation(replicas: i32) -> Result<String, String> {
+    match cloud::deployment::scale_simulation(replicas).await {
+        Ok(result) => Ok(result),
+        Err(e) => Err(format!("Scaling failed: {}", e)),
+    }
+}
+
+#[tauri::command]
+async fn get_deployment_status() -> Result<String, String> {
+    match cloud::deployment::get_deployment_status().await {
+        Ok(status) => Ok(status),
+        Err(e) => Err(format!("Failed to get deployment status: {}", e)),
+    }
 }
 
 #[tauri::command]
@@ -239,15 +332,20 @@ fn main() {
             visualize_navigation_path,
             run_live_preview,
             initialize_dataset_integration,
+            initialize_kafka_pipeline,
+            initialize_spark_processor,
+            run_data_pipeline_demo,
+            test_kafka_throughput,
             start_simulation,
-            stop_simulation,
             initialize_ros_middleware,
             train_ai_model,
             run_ai_inference,
+            get_ai_model_info,
             initialize_hil_system,
             deploy_to_cloud,
+            scale_simulation,
+            get_deployment_status,
             render_ui,
-            system_sleep,
             system_restart,
             system_shutdown,
             system_lock,

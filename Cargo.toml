@@ -1,5 +1,5 @@
 [workspace]
-members = ["src-tauri", "wasm-preview", "simulation-platform"]
+members = ["src-tauri", "wasm-preview", "simulation-platform", "."]
 resolver = "2"
 
 [workspace.package]
@@ -47,13 +47,29 @@ parking_lot = "0.12"
 tauri = { version = "1.6", features = ["api-all"] }
 tauri-build = { version = "1.5" }
 
-[profile.release]
-opt-level = 3
-lto = true
-codegen-units = 1
-strip = true
-panic = "abort"
+# Scientific computing
+ndarray = "0.15"
 
-[profile.dev]
-opt-level = 1
+# Regular expressions
+regex = "1.10"
+
+# Async traits
+async-trait = "0.1"
+
+[package]
+name = "navlambda-nif"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Navigation Intelligence Framework (NIF) and NAVΛ Programming Language"
+license.workspace = true
+
+[dependencies]
+tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ndarray = { workspace = true }
+regex = { workspace = true }
+async-trait = { workspace = true }
+anyhow = { workspace = true }
 

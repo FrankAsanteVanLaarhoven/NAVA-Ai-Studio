@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronRight, ChevronDown, File, Folder, FolderOpen, RefreshCw, FilePlus, FolderPlus, MoreVertical } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { ChevronRight, ChevronDown, File, Folder, FolderOpen, RefreshCw, FilePlus, FolderPlus, MoreVertical, Upload, Github, GitBranch, FolderUp } from 'lucide-react';
 import './FileExplorer.css';
 
 interface FileNode {
@@ -63,6 +63,14 @@ export const FileExplorer: React.FC = () => {
   const [tree, setTree] = useState(PROJECT_STRUCTURE);
   const [selectedPath, setSelectedPath] = useState<string>('/');
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [showGitHubModal, setShowGitHubModal] = useState(false);
+  const [githubToken, setGithubToken] = useState(localStorage.getItem('github_token') || '');
+  const [repoName, setRepoName] = useState('');
+  const [repoDescription, setRepoDescription] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
 
   const toggleFolder = (path: string) => {
     const updateTree = (node: FileNode): FileNode => {
@@ -250,6 +258,189 @@ export const FileExplorer: React.FC = () => {
     setShowMoreMenu(false);
   };
 
+  // Drag and Drop Handlers
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const items = Array.from(e.dataTransfer.items);
+    
+    for (const item of items) {
+      if (item.kind === 'file') {
+        const entry = item.webkitGetAsEntry();
+        if (entry) {
+          await processEntry(entry, '/');
+        }
+      }
+    }
+  };
+
+  const processEntry = async (entry: any, parentPath: string): Promise<void> => {
+    if (entry.isFile) {
+      entry.file(async (file: File) => {
+        const content = await file.text();
+        const filePath = `${parentPath}/${file.name}`.replace('//', '/');
+        addFileToTree(parentPath, file.name);
+        console.log(`Loaded file: ${filePath}`, content);
+        // TODO: Store file content in a file system service
+      });
+    } else if (entry.isDirectory) {
+      addFolderToTree(parentPath, entry.name);
+      const dirPath = `${parentPath}/${entry.name}`.replace('//', '/');
+      
+      const reader = entry.createReader();
+      reader.readEntries(async (entries: any[]) => {
+        for (const childEntry of entries) {
+          await processEntry(childEntry, dirPath);
+        }
+      });
+    }
+  };
+
+  // File/Folder Upload Handlers
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const content = await file.text();
+      addFileToTree('/', file.name);
+      console.log(`Uploaded file: ${file.name}`, content);
+    }
+
+    if (e.target) e.target.value = '';
+  };
+
+  const handleFolderUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    const folderStructure: { [key: string]: File[] } = {};
+    
+    // Group files by folder
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const pathParts = file.webkitRelativePath.split('/');
+      const folderName = pathParts[0];
+      
+      if (!folderStructure[folderName]) {
+        folderStructure[folderName] = [];
+      }
+      folderStructure[folderName].push(file);
+    }
+
+    // Process each folder
+    for (const [folderName, folderFiles] of Object.entries(folderStructure)) {
+      addFolderToTree('/', folderName);
+      
+      for (const file of folderFiles) {
+        const pathParts = file.webkitRelativePath.split('/');
+        pathParts.shift(); // Remove root folder name
+        const relativePath = pathParts.join('/');
+        const parentPath = '/' + folderName + (pathParts.length > 1 ? '/' + pathParts.slice(0, -1).join('/') : '');
+        
+        addFileToTree(parentPath.replace('//', '/'), file.name);
+        console.log(`Loaded: ${file.webkitRelativePath}`);
+      }
+    }
+
+    if (e.target) e.target.value = '';
+  };
+
+  // GitHub Integration
+  const handleGitHubUpload = async () => {
+    if (!githubToken || !repoName) {
+      alert('Please provide GitHub token and repository name');
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Create repository
+      const createRepoResponse = await fetch('https://api.github.com/user/repos', {
+        method: 'POST',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: repoName,
+          description: repoDescription || 'Project created with NAVΛ Studio IDE',
+          private: false,
+          auto_init: true,
+        }),
+      });
+
+      if (!createRepoResponse.ok) {
+        const error = await createRepoResponse.json();
+        throw new Error(error.message || 'Failed to create repository');
+      }
+
+      const repo = await createRepoResponse.json();
+      
+      // Upload files to repository
+      await uploadFilesToGitHub(repo.owner.login, repo.name, tree);
+
+      alert(`✅ Successfully created and uploaded to: ${repo.html_url}`);
+      window.open(repo.html_url, '_blank');
+      
+      setShowGitHubModal(false);
+      setRepoName('');
+      setRepoDescription('');
+    } catch (error: any) {
+      console.error('GitHub upload error:', error);
+      alert(`❌ Error: ${error.message}`);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const uploadFilesToGitHub = async (owner: string, repo: string, node: FileNode, basePath = ''): Promise<void> => {
+    if (node.type === 'file') {
+      const path = basePath + '/' + node.name;
+      const content = `// File: ${node.name}\n// Created with NAVΛ Studio IDE\n`;
+      const encodedContent = btoa(unescape(encodeURIComponent(content)));
+
+      await fetch(`https://api.github.com/repos/${owner}/${repo}/contents${path}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${githubToken}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: `Add ${node.name}`,
+          content: encodedContent,
+        }),
+      });
+    } else if (node.children) {
+      for (const child of node.children) {
+        await uploadFilesToGitHub(owner, repo, child, basePath + '/' + node.name);
+      }
+    }
+  };
+
+  const saveGitHubToken = () => {
+    localStorage.setItem('github_token', githubToken);
+    alert('✅ GitHub token saved securely!');
+  };
+
   return (
     <div className="file-explorer">
       <div className="explorer-header">
@@ -276,6 +467,20 @@ export const FileExplorer: React.FC = () => {
           >
             <FolderPlus size={14} />
           </button>
+          <button 
+            className="explorer-toolbar-btn" 
+            onClick={() => folderInputRef.current?.click()}
+            title="Open Folder"
+          >
+            <FolderUp size={14} />
+          </button>
+          <button 
+            className="explorer-toolbar-btn" 
+            onClick={() => setShowGitHubModal(true)}
+            title="Push to GitHub"
+          >
+            <Github size={14} />
+          </button>
           <div style={{ position: 'relative' }}>
             <button 
               className={`explorer-toolbar-btn ${showMoreMenu ? 'active' : ''}`}
@@ -286,6 +491,12 @@ export const FileExplorer: React.FC = () => {
             </button>
             {showMoreMenu && (
               <div className="more-actions-menu">
+                <button onClick={() => { fileInputRef.current?.click(); setShowMoreMenu(false); }}>
+                  <Upload size={14} /> Upload Files
+                </button>
+                <button onClick={() => { folderInputRef.current?.click(); setShowMoreMenu(false); }}>
+                  <FolderUp size={14} /> Upload Folder
+                </button>
                 <button onClick={handleExpandAll}>
                   Expand All Folders
                 </button>
@@ -300,7 +511,114 @@ export const FileExplorer: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="explorer-tree">{renderNode(tree)}</div>
+
+      {/* Hidden File Inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        onChange={handleFileUpload}
+        style={{ display: 'none' }}
+      />
+      <input
+        ref={folderInputRef}
+        type="file"
+        multiple
+        webkitdirectory=""
+        directory=""
+        onChange={handleFolderUpload}
+        style={{ display: 'none' }}
+      />
+
+      {/* Drag and Drop Zone */}
+      <div 
+        className={`explorer-tree ${isDragging ? 'dragging' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
+        {isDragging && (
+          <div className="drop-overlay">
+            <div className="drop-message">
+              <FolderUp size={48} />
+              <h3>Drop your files or folders here</h3>
+              <p>To load them into the project</p>
+            </div>
+          </div>
+        )}
+        {renderNode(tree)}
+      </div>
+
+      {/* GitHub Modal */}
+      {showGitHubModal && (
+        <div className="github-modal-overlay" onClick={() => setShowGitHubModal(false)}>
+          <div className="github-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="github-modal-header">
+              <h3><Github size={20} /> Push to GitHub</h3>
+              <button onClick={() => setShowGitHubModal(false)} className="close-btn">×</button>
+            </div>
+            <div className="github-modal-content">
+              <div className="form-group">
+                <label>
+                  <GitBranch size={14} /> GitHub Personal Access Token
+                </label>
+                <input
+                  type="password"
+                  value={githubToken}
+                  onChange={(e) => setGithubToken(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxx"
+                  className="github-input"
+                />
+                <button onClick={saveGitHubToken} className="save-token-btn">
+                  💾 Save Token
+                </button>
+                <small style={{ display: 'block', marginTop: '8px', color: '#858585' }}>
+                  Generate token at: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">github.com/settings/tokens</a>
+                </small>
+              </div>
+
+              <div className="form-group">
+                <label>Repository Name *</label>
+                <input
+                  type="text"
+                  value={repoName}
+                  onChange={(e) => setRepoName(e.target.value)}
+                  placeholder="my-awesome-project"
+                  className="github-input"
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Description (Optional)</label>
+                <textarea
+                  value={repoDescription}
+                  onChange={(e) => setRepoDescription(e.target.value)}
+                  placeholder="A brief description of your project..."
+                  className="github-textarea"
+                  rows={3}
+                />
+              </div>
+
+              <div className="github-modal-footer">
+                <button onClick={() => setShowGitHubModal(false)} className="btn-cancel">
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleGitHubUpload} 
+                  disabled={isUploading || !githubToken || !repoName}
+                  className="btn-push"
+                >
+                  {isUploading ? (
+                    <>⏳ Uploading...</>
+                  ) : (
+                    <><Github size={16} /> Create & Push</>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -9,6 +9,7 @@ import { Outline } from './components/Sidebar/Outline';
 import { Timeline } from './components/Sidebar/Timeline';
 import { CollaborationPanel } from './components/Collaboration/CollaborationPanel';
 import { ResizablePanel } from './components/Common/ResizablePanel';
+import { SplitPanel } from './components/Common/SplitPanel';
 import { NotebookPanel } from './components/Notebook/NotebookPanel';
 import { AIPanePanel } from './components/AI/AIPanePanel';
 import { ActivityBar, ActivityType } from './components/ActivityBar/ActivityBar';
@@ -252,11 +253,27 @@ function App() {
     switch (activeActivity) {
       case 'explorer':
         return (
-          <>
+          <SplitPanel
+            direction="vertical"
+            defaultSplit={60}
+            minSize={100}
+            storageKey="nav-studio-explorer-split"
+            titles={['EXPLORER', 'OUTLINE & TIMELINE']}
+            collapsible={true}
+          >
             <FileExplorer />
-            <Outline />
-            <Timeline />
-          </>
+            <SplitPanel
+              direction="vertical"
+              defaultSplit={50}
+              minSize={80}
+              storageKey="nav-studio-outline-timeline-split"
+              titles={['OUTLINE', 'TIMELINE']}
+              collapsible={true}
+            >
+              <Outline hideHeader={true} />
+              <Timeline hideHeader={true} />
+            </SplitPanel>
+          </SplitPanel>
         );
       case 'source-control':
         return <SourceControlPanel />;
@@ -336,6 +353,7 @@ function App() {
             isCollapsed={!showSidebar}
             onToggleCollapse={handleToggleSidebar}
             title={activeActivity?.toUpperCase() || 'PANEL'}
+            storageKey="nav-studio-left-panel-width"
           >
             {renderActivityPanel()}
           </ResizablePanel>
@@ -359,12 +377,18 @@ function App() {
 
               {/* Bottom Panel - Resizable (Notebook) */}
             {showPanel && (
-              <div className={`bottom-panel-wrapper ${!showPanel ? 'collapsed' : ''}`}>
-                <div className="panel-resize-handle" />
-                <div className="bottom-panel">
-                  <NotebookPanel />
-                </div>
-              </div>
+              <ResizablePanel
+                side="bottom"
+                defaultHeight={300}
+                minHeight={150}
+                maxHeight={600}
+                isCollapsed={!showPanel}
+                onToggleCollapse={handleTogglePanel}
+                title="NOTEBOOK"
+                storageKey="nav-studio-bottom-panel-height"
+              >
+                <NotebookPanel />
+              </ResizablePanel>
             )}
             </div>
           )}
@@ -383,6 +407,7 @@ function App() {
                 setShowCollaboration(false);
               }}
               title="PANELS"
+              storageKey="nav-studio-right-panel-width"
             >
               {showVisualizer && (
                 <div className="visualizer-panel">
@@ -428,13 +453,13 @@ function App() {
         onClose={() => setShowSettings(false)}
       />
 
-      {/* Voice Assistant */}
-      <VoiceAssistant
+      {/* Voice Assistant - Now integrated into AI Pane Panel */}
+      {/* <VoiceAssistant
         onCommand={(command) => {
           console.log('Voice command:', command);
           handleExecuteCommand(command.toLowerCase());
         }}
-      />
+      /> */}
 
       {/* Widget Manager */}
       {showWidgetManager && (

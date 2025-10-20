@@ -8,6 +8,10 @@ interface OutlineItem {
   line: number;
 }
 
+interface OutlineProps {
+  hideHeader?: boolean;
+}
+
 const OUTLINE_ITEMS: OutlineItem[] = [
   { name: 'start', type: 'variable', line: 5 },
   { name: 'goal', type: 'variable', line: 6 },
@@ -19,7 +23,7 @@ const OUTLINE_ITEMS: OutlineItem[] = [
   { name: 'visualize⋋', type: 'function', line: 18 },
 ];
 
-export const Outline: React.FC = () => {
+export const Outline: React.FC<OutlineProps> = ({ hideHeader = false }) => {
   const getIcon = (type: string) => {
     switch (type) {
       case 'function':
@@ -37,10 +41,12 @@ export const Outline: React.FC = () => {
 
   return (
     <div className="outline-panel">
-      <div className="outline-header">
-        <List size={16} />
-        <h3>OUTLINE</h3>
-      </div>
+      {!hideHeader && (
+        <div className="outline-header">
+          <List size={16} />
+          <h3>OUTLINE</h3>
+        </div>
+      )}
       <div className="outline-list">
         {OUTLINE_ITEMS.map((item, index) => (
           <div key={index} className={`outline-item ${item.type}`}>

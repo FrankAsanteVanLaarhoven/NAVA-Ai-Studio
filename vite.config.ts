@@ -46,6 +46,8 @@ export default defineConfig({
         app: path.resolve(__dirname, 'app.html'),
         // Downloads and SDK page (accessed from workspace)
         download: path.resolve(__dirname, 'download.html'),
+        // Documentation page
+        docs: path.resolve(__dirname, 'docs.html'),
       },
     },
   },
