@@ -34,13 +34,15 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 .app-content {
   display: flex;
   flex: 1;
-  overflow: visible;
+  overflow: hidden; /* Changed from visible to hidden */
   position: relative;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 /* Editor Container (main + bottom panel) */
@@ -49,7 +51,8 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  overflow: visible;
+  min-height: 0; /* Critical: Allow flex children to shrink */
+  overflow: hidden; /* Changed from visible to hidden */
   position: relative;
 }
 
@@ -61,6 +64,7 @@ body {
   min-width: 0;
   min-height: 0;
   background: #1a1a1a;
+  overflow: hidden; /* Prevent overflow */
 }
 
 /* Bottom Panel (Notebook) - Now using ResizablePanel component */
@@ -68,12 +72,14 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 .bottom-panel {
   flex: 1;
   overflow: hidden;
   background: #1a1a1a;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 /* Right Panel Content */
@@ -82,17 +88,23 @@ body {
   display: flex;
   flex-direction: column;
   min-width: 0;
+  min-height: 0; /* Critical: Allow flex children to shrink */
   background: #0d0d0d;
+  overflow: hidden;
 }
 
 .ai-pane-container {
   height: 100%;
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 .collaboration-container {
   height: 100%;
   overflow: hidden;
+  min-height: 0; /* Critical: Allow flex children to shrink */
 }
 
 /* Scrollbar styling */
@@ -153,16 +165,12 @@ body {
   margin: 10px;
 }
 
-.simulation-sidebar-info h3 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
+/* Empty panel placeholder */
+.empty-panel {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  height: 100%;
+  color: #858585;
+  font-size: 14px;
 }
-
-.simulation-sidebar-info p {
-  margin: 0;
-  line-height: 1.6;
-}
-

@@ -4,6 +4,7 @@
   height: 100%;
   background: #1a1a1a;
   color: #cccccc;
+  overflow: hidden; /* Prevent content overflow */
 }
 
 .ai-pane-header {
@@ -15,6 +16,8 @@
   border-bottom: 1px solid #3c3c3c;
   flex-wrap: wrap;
   gap: 8px;
+  flex-shrink: 0; /* Prevent header from shrinking */
+  z-index: 10; /* Keep header above content */
 }
 
 .ai-pane-title {
@@ -60,10 +63,12 @@
 .ai-messages {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 16px;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  min-height: 0; /* Allow flex shrinking */
 }
 
 .ai-message {
@@ -177,12 +182,18 @@
 }
 
 .ai-input-area {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
   border-top: 1px solid #3c3c3c;
   background: #252526;
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  flex-shrink: 0; /* Prevent input area from shrinking */
+  z-index: 10; /* Keep input area above content */
 }
 
 .symbol-toolbar {

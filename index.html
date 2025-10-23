@@ -1,20 +1,23 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NAVΛ Studio - Workspace Dashboard</title>
+<head>
     <script>
-      // Redirect to workspace dashboard on load
-      window.location.href = '/workspace.html';
+        // Immediate redirect - executes before anything else
+        if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+            window.location.replace('/workspace.html');
+        }
     </script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
-</html>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="0; url=/workspace.html">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>NAVΛ Studio - Redirecting...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
