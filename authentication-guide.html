@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAVΛ Studio - Authentication Status Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 60px;
+        }
+
+        .header h1 {
+            font-size: 48px;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 20px;
+            opacity: 0.9;
+        }
+
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .status-card:hover {
+            transform: translateY(-10px);
+        }
+
+        .status-dot-large {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 0 auto 30px;
+            box-shadow: 0 0 30px currentColor, inset 0 0 10px rgba(0, 0, 0, 0.2);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+            position: relative;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        .status-card.signed-in .status-dot-large::after {
+            content: '';
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 3px solid #10b981;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: pulseRing 2s ease-out infinite;
+        }
+
+        @keyframes pulseRing {
+            0% {
+                transform: translate(-50%, -50%) scale(0.8);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 0;
+            }
+        }
+
+        .status-card h2 {
+            font-size: 32px;
+            margin-bottom: 15px;
+            color: #1f2937;
+        }
+
+        .status-card .status-label {
+            font-size: 18px;
+            font-weight: 600;
+            color: #6b7280;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .status-card .description {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .status-card .actions {
+            font-size: 14px;
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .signed-out .status-dot-large {
+            background: #ef4444;
+        }
+
+        .standby .status-dot-large {
+            background: #ffffff;
+            border-color: #d1d5db;
+        }
+
+        .signed-in .status-dot-large {
+            background: #10b981;
+        }
+
+        .features-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-bottom: 40px;
+        }
+
+        .features-section h2 {
+            font-size: 32px;
+            color: #1f2937;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-item {
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .feature-item h3 {
+            font-size: 18px;
+            color: #1f2937;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .feature-item p {
+            font-size: 14px;
+            color: #6b7280;
+            line-height: 1.6;
+        }
+
+        .code-section {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .code-section h2 {
+            font-size: 32px;
+            color: #1f2937;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 NAVΛ Studio Authentication</h1>
+            <p>Visual Status Indicator Guide</p>
+        </div>
+
+        <div class="status-grid">
+            <!-- Signed Out -->
+            <div class="status-card signed-out">
+                <div class="status-dot-large"></div>
+                <h2>🔴 Signed Out</h2>
+                <div class="status-label">No Active Session</div>
+                <div class="description">
+                    User is not authenticated. All features are locked and require sign-in to access.
+                </div>
+                <div class="actions">
+                    Available: Sign In, Sign Up, Guest Mode
+                </div>
+            </div>
+
+            <!-- Standby -->
+            <div class="status-card standby">
+                <div class="status-dot-large"></div>
+                <h2>⚪ Standby</h2>
+                <div class="status-label">Session Locked</div>
+                <div class="description">
+                    User session is active but locked. Quick resume without re-entering full credentials.
+                </div>
+                <div class="actions">
+                    Available: Resume Session, Sign Out
+                </div>
+            </div>
+
+            <!-- Signed In -->
+            <div class="status-card signed-in">
+                <div class="status-dot-large"></div>
+                <h2>🟢 Signed In</h2>
+                <div class="status-label">Active Session</div>
+                <div class="description">
+                    User is fully authenticated with access to all features and permissions.
+                </div>
+                <div class="actions">
+                    Available: All Features, Lock, Sign Out
+                </div>
+            </div>
+        </div>
+
+        <div class="features-section">
+            <h2>🔑 Authentication Methods</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <h3>🔐 Username & Password</h3>
+                    <p>Traditional credentials-based authentication with secure password validation.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔢 PIN Authentication</h3>
+                    <p>Quick 4-digit PIN access for returning users with saved sessions.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>👆 Biometric Login</h3>
+                    <p>Fingerprint authentication using WebAuthn API for secure access.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>😊 Face ID</h3>
+                    <p>Facial recognition authentication for supported devices.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>👤 Guest Mode</h3>
+                    <p>Limited access without authentication for quick exploration.</p>
+                </div>
+                <div class="feature-item">
+                    <h3>🔐 Two-Factor Auth</h3>
+                    <p>Extra security layer with email or SMS verification codes.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="code-section">
+            <h2>💻 Quick Implementation</h2>
+            <div class="code-block">
+<pre>// 1. Wrap your app with AuthProvider
+import { AuthProvider } from './contexts/AuthContext';
+
+function App() {
+  return (
+    <AuthProvider>
+      <YourApp />
+    </AuthProvider>
+  );
+}
+
+// 2. Use authentication in components
+import { useAuth } from './contexts/AuthContext';
+import AuthStatusIndicator from './components/Auth/AuthStatusIndicator';
+
+function Dashboard() {
+  const { user, authStatus, isAuthenticated } = useAuth();
+
+  return (
+    <div>
+      <AuthStatusIndicator position="top-right" size="medium" />
+      <h1>Welcome, {user?.username}!</h1>
+    </div>
+  );
+}
+
+// 3. Test credentials
+Username: admin
+Password: admin123
+PIN: 1234
+2FA Code: 123456</pre>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>📚 Full documentation available in AUTHENTICATION_SYSTEM.md</p>
+            <p>© 2024 NAVΛ Studio - MIT OR Apache-2.0 License</p>
+        </div>
+    </div>
+</body>
+</html>

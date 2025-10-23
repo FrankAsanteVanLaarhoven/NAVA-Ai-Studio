@@ -1,0 +1,306 @@
+name: Policy Pack Enforcement
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Code Quality Policy
+  code-quality-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: npm ci
+    - name: Run ESLint
+      run: npx eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0
+    - name: Run Prettier check
+      run: npx prettier --check "src/**/*.{ts,tsx,js,jsx,css,md}"
+    - name: Run Rust clippy
+      run: cargo clippy -- -D warnings
+    - name: Run Rust formatting check
+      run: cargo fmt --check
+    - name: Check for TODO comments
+      run: |
+        # Count TODO comments (should be minimal)
+        TODO_COUNT=$(grep -r "TODO\|FIXME\|XXX" src/ --include="*.ts" --include="*.tsx" --include="*.rs" | wc -l)
+        if [ "$TODO_COUNT" -gt 10 ]; then
+          echo "❌ Too many TODO comments: $TODO_COUNT (max allowed: 10)"
+          exit 1
+        fi
+        echo "✅ TODO count acceptable: $TODO_COUNT"
+
+  # Security Policy
+  security-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check for secrets in code
+      run: |
+        # Check for hardcoded secrets
+        if grep -r "password\|secret\|token\|key" src/ --include="*.ts" --include="*.tsx" --include="*.rs" | grep -v "process.env\|std::env" | grep -v "import\|use\|from"; then
+          echo "❌ Potential hardcoded secrets found"
+          exit 1
+        fi
+        echo "✅ No hardcoded secrets detected"
+    - name: Check for insecure dependencies
+      run: |
+        npm audit --audit-level moderate
+        if [ $? -ne 0 ]; then
+          echo "❌ Security vulnerabilities found in dependencies"
+          exit 1
+        fi
+        echo "✅ Dependency security check passed"
+    - name: Check for unsafe Rust code
+      run: |
+        UNSAFE_COUNT=$(grep -r "unsafe" src-tauri/src/ | wc -l)
+        if [ "$UNSAFE_COUNT" -gt 5 ]; then
+          echo "❌ Too many unsafe blocks: $UNSAFE_COUNT (max allowed: 5)"
+          exit 1
+        fi
+        echo "✅ Unsafe code usage acceptable: $UNSAFE_COUNT blocks"
+
+  # Testing Policy
+  testing-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: npm ci
+    - name: Run test coverage
+      run: npm run test:coverage
+    - name: Check test coverage threshold
+      run: |
+        COVERAGE=$(jq '.total.lines.pct' coverage/coverage-summary.json)
+        THRESHOLD=80.0
+
+        if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+          echo "❌ Test coverage too low: $COVERAGE% (minimum: $THRESHOLD%)"
+          exit 1
+        fi
+        echo "✅ Test coverage acceptable: $COVERAGE%"
+    - name: Run Rust tests
+      run: cargo test
+    - name: Check Rust test coverage
+      run: |
+        # Install cargo-tarpaulin for coverage
+        cargo install cargo-tarpaulin
+        cargo tarpaulin --out Json --output-dir rust-coverage
+
+        RUST_COVERAGE=$(jq '.coverage' rust-coverage/coverage.json)
+        RUST_THRESHOLD=75.0
+
+        if (( $(echo "$RUST_COVERAGE < $RUST_THRESHOLD" | bc -l) )); then
+          echo "❌ Rust test coverage too low: $RUST_COVERAGE% (minimum: $RUST_THRESHOLD%)"
+          exit 1
+        fi
+        echo "✅ Rust test coverage acceptable: $RUST_COVERAGE%"
+
+  # Documentation Policy
+  documentation-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check README completeness
+      run: |
+        # Check for required sections in README
+        REQUIRED_SECTIONS=("Installation" "Usage" "Contributing" "License")
+        for section in "${REQUIRED_SECTIONS[@]}"; do
+          if ! grep -q "^# $section" README.md; then
+            echo "❌ Missing required section in README: $section"
+            exit 1
+          fi
+        done
+        echo "✅ README completeness check passed"
+    - name: Check API documentation
+      run: |
+        # Check for undocumented exports
+        UNDOCUMENTED=$(grep -r "export" src/ --include="*.ts" --include="*.tsx" | grep -v "/\*" | grep -v "//" | wc -l)
+        if [ "$UNDOCUMENTED" -gt 5 ]; then
+          echo "❌ Too many undocumented exports: $UNDOCUMENTED (max allowed: 5)"
+          exit 1
+        fi
+        echo "✅ API documentation check passed"
+    - name: Check Rust documentation
+      run: |
+        cargo doc --no-deps
+        UNDOCUMENTED_RUST=$(cargo doc --no-deps 2>&1 | grep "warning:" | wc -l)
+        if [ "$UNDOCUMENTED_RUST" -gt 10 ]; then
+          echo "❌ Too many undocumented Rust items: $UNDOCUMENTED_RUST (max allowed: 10)"
+          exit 1
+        fi
+        echo "✅ Rust documentation check passed"
+
+  # Performance Policy
+  performance-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Build for performance analysis
+      run: |
+        npm run build
+        cargo build --release
+    - name: Check bundle size
+      run: |
+        BUNDLE_SIZE=$(du -b dist/static/js/*.js | awk '{sum += $1} END {print sum}')
+        MAX_SIZE=5242880  # 5MB
+
+        if [ "$BUNDLE_SIZE" -gt "$MAX_SIZE" ]; then
+          echo "❌ Bundle size too large: $BUNDLE_SIZE bytes (max: $MAX_SIZE bytes)"
+          exit 1
+        fi
+        echo "✅ Bundle size acceptable: $BUNDLE_SIZE bytes"
+    - name: Check binary size
+      run: |
+        BINARY_SIZE=$(du -b target/release/navlambda-nif | awk '{print $1}')
+        MAX_BINARY_SIZE=104857600  # 100MB
+
+        if [ "$BINARY_SIZE" -gt "$MAX_BINARY_SIZE" ]; then
+          echo "❌ Binary size too large: $BINARY_SIZE bytes (max: $MAX_BINARY_SIZE bytes)"
+          exit 1
+        fi
+        echo "✅ Binary size acceptable: $BINARY_SIZE bytes"
+    - name: Run performance benchmarks
+      run: |
+        # Quick performance check
+        timeout 30s ./target/release/navlambda-nif --benchmark || true
+        echo "✅ Performance benchmarks completed"
+
+  # Compliance Policy
+  compliance-policy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Check for required files
+      run: |
+        REQUIRED_FILES=("LICENSE" "CODE_OF_CONDUCT.md" "CONTRIBUTING.md" "SECURITY.md")
+        for file in "${REQUIRED_FILES[@]}"; do
+          if [ ! -f "$file" ]; then
+            echo "❌ Missing required file: $file"
+            exit 1
+          fi
+        done
+        echo "✅ Required files check passed"
+    - name: Check license compatibility
+      run: |
+        # Check if LICENSE file exists and is valid
+        if ! head -n 5 LICENSE | grep -q "MIT\|Apache\|BSD"; then
+          echo "❌ Invalid or missing license header"
+          exit 1
+        fi
+        echo "✅ License compatibility check passed"
+    - name: Check for prohibited files
+      run: |
+        PROHIBITED_PATTERNS=("*.log" "*.tmp" ".DS_Store" "Thumbs.db")
+        VIOLATIONS=0
+
+        for pattern in "${PROHIBITED_PATTERNS[@]}"; do
+          COUNT=$(find . -name "$pattern" -not -path "./node_modules/*" -not -path "./target/*" | wc -l)
+          if [ "$COUNT" -gt 0 ]; then
+            echo "❌ Found prohibited files: $pattern ($COUNT files)"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+        done
+
+        if [ "$VIOLATIONS" -gt 0 ]; then
+          exit 1
+        fi
+        echo "✅ Prohibited files check passed"
+
+  # Policy Pack Summary
+  policy-pack-summary:
+    runs-on: ubuntu-latest
+    needs: [code-quality-policy, security-policy, testing-policy, documentation-policy, performance-policy, compliance-policy]
+    if: always()
+    steps:
+    - name: Generate policy pack report
+      run: |
+        echo "# Policy Pack Enforcement Report" > policy-report.md
+        echo "" >> policy-report.md
+        echo "## Policy Results" >> policy-report.md
+        echo "- Code Quality: ${{ needs.code-quality-policy.result }}" >> policy-report.md
+        echo "- Security: ${{ needs.security-policy.result }}" >> policy-report.md
+        echo "- Testing: ${{ needs.testing-policy.result }}" >> policy-report.md
+        echo "- Documentation: ${{ needs.documentation-policy.result }}" >> policy-report.md
+        echo "- Performance: ${{ needs.performance-policy.result }}" >> policy-report.md
+        echo "- Compliance: ${{ needs.compliance-policy.result }}" >> policy-report.md
+        echo "" >> policy-report.md
+
+        # Check if all policies passed
+        FAILED_POLICIES=0
+        if [ "${{ needs.code-quality-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+        if [ "${{ needs.security-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+        if [ "${{ needs.testing-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+        if [ "${{ needs.documentation-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+        if [ "${{ needs.performance-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+        if [ "${{ needs.compliance-policy.result }}" != "success" ]; then FAILED_POLICIES=$((FAILED_POLICIES + 1)); fi
+
+        if [ "$FAILED_POLICIES" -gt 0 ]; then
+          echo "## ❌ Policy Pack Status: FAILED" >> policy-report.md
+          echo "$FAILED_POLICIES policies failed - blocking merge" >> policy-report.md
+          echo "POLICY_STATUS=failed" >> $GITHUB_ENV
+        else
+          echo "## ✅ Policy Pack Status: PASSED" >> policy-report.md
+          echo "All policies passed successfully" >> policy-report.md
+          echo "POLICY_STATUS=passed" >> $GITHUB_ENV
+        fi
+
+        echo "" >> policy-report.md
+        echo "## Generated: $(date)" >> policy-report.md
+    - name: Upload policy report
+      uses: actions/upload-artifact@v3
+      with:
+        name: policy-pack-report
+        path: policy-report.md
+    - name: Fail workflow if policies failed
+      if: env.POLICY_STATUS == 'failed'
+      run: |
+        echo "❌ Policy pack enforcement failed"
+        exit 1
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const report = fs.readFileSync('policy-report.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: report
+          });

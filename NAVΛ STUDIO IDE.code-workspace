@@ -2,6 +2,33 @@
 	"folders": [
 		{
 			"path": "."
+		},
+		{
+			"path": "../NAVΛ_STUDIO_IDE_integration_patch(1)"
+		},
+		{
+			"path": "../deploy_prod_gates_patch"
+		},
+		{
+			"path": "../helm_promotion_patch"
+		},
+		{
+			"path": "../exporter_ci_publish_patch(1)"
+		},
+		{
+			"path": "../nava_license_metrics_patch"
+		},
+		{
+			"path": "../security_sarif_sbom_patch"
+		},
+		{
+			"path": "../policy_pack_patch"
+		},
+		{
+			"path": "../pins_and_release_assets_patch"
+		},
+		{
+			"path": "../pins_always_and_notes_echo_patch"
 		}
 	],
 	"settings": {}

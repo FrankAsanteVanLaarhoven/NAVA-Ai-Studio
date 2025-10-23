@@ -1,0 +1,244 @@
+/* NAVΛ Studio Auth Status Indicator - Brand Identity Compliant */
+
+.auth-status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 16px;
+  background: #252526;
+  border: 1px solid #3e3e3e;
+  border-radius: 6px;
+  transition: all 150ms ease;
+}
+
+.auth-status-indicator:hover {
+  background: #2d2d2d;
+  border-color: #4d4d4d;
+}
+
+.auth-status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  position: relative;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.1);
+  }
+}
+
+.auth-status-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: ripple 2s ease-in-out infinite;
+}
+
+@keyframes ripple {
+  0% {
+    width: 10px;
+    height: 10px;
+    opacity: 0.3;
+  }
+  100% {
+    width: 24px;
+    height: 24px;
+    opacity: 0;
+  }
+}
+
+.auth-status-dot.signed-out {
+  background: #f44336;
+  box-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+}
+
+.auth-status-dot.signed-out::after {
+  background: #f44336;
+}
+
+.auth-status-dot.signed-in {
+  background: #7FD957;
+  box-shadow: 0 0 10px rgba(127, 217, 87, 0.5);
+}
+
+.auth-status-dot.signed-in::after {
+  background: #7FD957;
+}
+
+.auth-status-dot.standby {
+  background: #ff9800;
+  box-shadow: 0 0 10px rgba(255, 152, 0, 0.5);
+}
+
+.auth-status-dot.standby::after {
+  background: #ff9800;
+}
+
+.auth-status-text {
+  font-size: 12px;
+  color: #cccccc;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+.auth-status-user {
+  font-size: 12px;
+  color: #7FD957;
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.auth-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  background: rgba(127, 217, 87, 0.1);
+  border: 1px solid rgba(127, 217, 87, 0.3);
+  border-radius: 4px;
+  font-size: 10px;
+  color: #7FD957;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+}
+
+.auth-status-badge.guest {
+  background: rgba(255, 152, 0, 0.1);
+  border-color: rgba(255, 152, 0, 0.3);
+  color: #ff9800;
+}
+
+.auth-status-badge.admin {
+  background: rgba(33, 150, 243, 0.1);
+  border-color: rgba(33, 150, 243, 0.3);
+  color: #2196f3;
+}
+
+/* Compact Mode */
+.auth-status-indicator.compact {
+  padding: 6px 12px;
+  gap: 8px;
+}
+
+.auth-status-indicator.compact .auth-status-dot {
+  width: 8px;
+  height: 8px;
+}
+
+.auth-status-indicator.compact .auth-status-text {
+  font-size: 11px;
+}
+
+/* Inline Mode */
+.auth-status-indicator.inline {
+  display: inline-flex;
+  padding: 4px 10px;
+  background: transparent;
+  border: none;
+}
+
+/* Toolbar Mode */
+.auth-status-indicator.toolbar {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.auth-status-indicator.toolbar:hover {
+  background: rgba(127, 217, 87, 0.1);
+}
+
+/* Clickable Mode */
+.auth-status-indicator.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.auth-status-indicator.clickable:hover {
+  background: #333333;
+  border-color: #7FD957;
+}
+
+.auth-status-indicator.clickable:active {
+  transform: scale(0.98);
+}
+
+/* Loading State */
+.auth-status-indicator.loading .auth-status-dot {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error State */
+.auth-status-indicator.error {
+  border-color: #f44336;
+  background: rgba(244, 67, 54, 0.05);
+}
+
+/* Success State */
+.auth-status-indicator.success {
+  border-color: #7FD957;
+  background: rgba(127, 217, 87, 0.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .auth-status-indicator {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .auth-status-text {
+    font-size: 11px;
+  }
+
+  .auth-status-badge {
+    display: none;
+  }
+}
+
+/* Accessibility */
+.auth-status-indicator:focus-visible {
+  outline: 2px solid #7FD957;
+  outline-offset: 2px;
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+  .auth-status-indicator {
+    border-width: 2px;
+  }
+
+  .auth-status-dot {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .auth-status-dot,
+  .auth-status-dot::after {
+    animation: none;
+  }
+}

@@ -1,0 +1,491 @@
+/**
+ * NAVΛ Studio Brand Identity System
+ * Official Colors & Design Tokens
+ * DO NOT MODIFY - This is our brand identity
+ */
+
+:root {
+  /* ============================================
+     PRIMARY BRAND COLORS - NEVER CHANGE
+     ============================================ */
+  
+  /* Main Brand Green - Our Signature Color */
+  --navlambda-primary: #7FD957;
+  --navlambda-primary-hover: #8FE967;
+  --navlambda-primary-active: #6FC947;
+  --navlambda-primary-light: rgba(127, 217, 87, 0.1);
+  --navlambda-primary-glow: rgba(127, 217, 87, 0.3);
+  
+  /* Secondary Accent Colors */
+  --navlambda-secondary: #4CAF50;
+  --navlambda-accent: #00ff88;
+  
+  /* ============================================
+     DARK THEME BACKGROUNDS
+     ============================================ */
+  
+  /* Main Backgrounds */
+  --navlambda-bg-primary: #1e1e1e;
+  --navlambda-bg-secondary: #252526;
+  --navlambda-bg-tertiary: #2d2d2d;
+  --navlambda-bg-elevated: #333333;
+  
+  /* Editor & Code Areas */
+  --navlambda-editor-bg: #1e1e1e;
+  --navlambda-sidebar-bg: #252526;
+  --navlambda-panel-bg: #2d2d2d;
+  
+  /* Overlays & Modals */
+  --navlambda-overlay-bg: rgba(0, 0, 0, 0.85);
+  --navlambda-modal-bg: #2d2d2d;
+  --navlambda-modal-header: #252526;
+  
+  /* ============================================
+     TEXT COLORS
+     ============================================ */
+  
+  --navlambda-text-primary: #ffffff;
+  --navlambda-text-secondary: #cccccc;
+  --navlambda-text-tertiary: #999999;
+  --navlambda-text-muted: #6e6e6e;
+  --navlambda-text-disabled: #4d4d4d;
+  
+  /* Code Syntax */
+  --navlambda-code-keyword: #7FD957;
+  --navlambda-code-string: #ce9178;
+  --navlambda-code-number: #b5cea8;
+  --navlambda-code-comment: #6a9955;
+  --navlambda-code-function: #dcdcaa;
+  
+  /* ============================================
+     BORDERS & DIVIDERS
+     ============================================ */
+  
+  --navlambda-border-primary: #3e3e3e;
+  --navlambda-border-secondary: #2d2d2d;
+  --navlambda-border-focus: #7FD957;
+  --navlambda-border-hover: #4d4d4d;
+  
+  /* ============================================
+     BUTTONS & INTERACTIVE ELEMENTS
+     ============================================ */
+  
+  /* Primary Button (Green) */
+  --navlambda-btn-primary-bg: #7FD957;
+  --navlambda-btn-primary-hover: #8FE967;
+  --navlambda-btn-primary-active: #6FC947;
+  --navlambda-btn-primary-text: #1e1e1e;
+  
+  /* Secondary Button (Dark) */
+  --navlambda-btn-secondary-bg: #3e3e3e;
+  --navlambda-btn-secondary-hover: #4d4d4d;
+  --navlambda-btn-secondary-active: #2d2d2d;
+  --navlambda-btn-secondary-text: #ffffff;
+  
+  /* Tertiary Button (Transparent) */
+  --navlambda-btn-tertiary-bg: transparent;
+  --navlambda-btn-tertiary-hover: rgba(127, 217, 87, 0.1);
+  --navlambda-btn-tertiary-active: rgba(127, 217, 87, 0.2);
+  --navlambda-btn-tertiary-text: #7FD957;
+  
+  /* Danger Button */
+  --navlambda-btn-danger-bg: #f44336;
+  --navlambda-btn-danger-hover: #ff5544;
+  --navlambda-btn-danger-active: #e33326;
+  --navlambda-btn-danger-text: #ffffff;
+  
+  /* ============================================
+     STATUS COLORS
+     ============================================ */
+  
+  --navlambda-success: #7FD957;
+  --navlambda-success-bg: rgba(127, 217, 87, 0.1);
+  --navlambda-success-border: rgba(127, 217, 87, 0.3);
+  
+  --navlambda-error: #f44336;
+  --navlambda-error-bg: rgba(244, 67, 54, 0.1);
+  --navlambda-error-border: rgba(244, 67, 54, 0.3);
+  
+  --navlambda-warning: #ff9800;
+  --navlambda-warning-bg: rgba(255, 152, 0, 0.1);
+  --navlambda-warning-border: rgba(255, 152, 0, 0.3);
+  
+  --navlambda-info: #2196f3;
+  --navlambda-info-bg: rgba(33, 150, 243, 0.1);
+  --navlambda-info-border: rgba(33, 150, 243, 0.3);
+  
+  /* ============================================
+     SHADOWS & EFFECTS
+     ============================================ */
+  
+  --navlambda-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --navlambda-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --navlambda-shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.5);
+  --navlambda-shadow-xl: 0 12px 24px rgba(0, 0, 0, 0.6);
+  
+  --navlambda-glow-primary: 0 0 20px rgba(127, 217, 87, 0.3);
+  --navlambda-glow-focus: 0 0 0 3px rgba(127, 217, 87, 0.2);
+  
+  /* ============================================
+     SPACING & SIZING
+     ============================================ */
+  
+  --navlambda-spacing-xs: 4px;
+  --navlambda-spacing-sm: 8px;
+  --navlambda-spacing-md: 16px;
+  --navlambda-spacing-lg: 24px;
+  --navlambda-spacing-xl: 32px;
+  --navlambda-spacing-2xl: 48px;
+  
+  --navlambda-radius-sm: 4px;
+  --navlambda-radius-md: 6px;
+  --navlambda-radius-lg: 8px;
+  --navlambda-radius-xl: 12px;
+  --navlambda-radius-full: 9999px;
+  
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+  
+  --navlambda-font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+  --navlambda-font-mono: 'Fira Code', 'Consolas', 'Monaco', 'Courier New', monospace;
+  
+  --navlambda-font-size-xs: 11px;
+  --navlambda-font-size-sm: 12px;
+  --navlambda-font-size-md: 13px;
+  --navlambda-font-size-lg: 14px;
+  --navlambda-font-size-xl: 16px;
+  --navlambda-font-size-2xl: 20px;
+  --navlambda-font-size-3xl: 24px;
+  
+  --navlambda-font-weight-normal: 400;
+  --navlambda-font-weight-medium: 500;
+  --navlambda-font-weight-semibold: 600;
+  --navlambda-font-weight-bold: 700;
+  
+  /* ============================================
+     TRANSITIONS
+     ============================================ */
+  
+  --navlambda-transition-fast: 150ms ease;
+  --navlambda-transition-normal: 250ms ease;
+  --navlambda-transition-slow: 350ms ease;
+  
+  /* ============================================
+     Z-INDEX LAYERS
+     ============================================ */
+  
+  --navlambda-z-base: 0;
+  --navlambda-z-dropdown: 1000;
+  --navlambda-z-sticky: 1020;
+  --navlambda-z-fixed: 1030;
+  --navlambda-z-modal-backdrop: 1040;
+  --navlambda-z-modal: 1050;
+  --navlambda-z-popover: 1060;
+  --navlambda-z-tooltip: 1070;
+  --navlambda-z-notification: 1080;
+}
+
+/* ============================================
+   GLOBAL RESETS & BASE STYLES
+   ============================================ */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--navlambda-font-family);
+  font-size: var(--navlambda-font-size-md);
+  color: var(--navlambda-text-primary);
+  background: var(--navlambda-bg-primary);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.navlambda-text-primary { color: var(--navlambda-text-primary); }
+.navlambda-text-secondary { color: var(--navlambda-text-secondary); }
+.navlambda-text-muted { color: var(--navlambda-text-muted); }
+
+.navlambda-bg-primary { background: var(--navlambda-bg-primary); }
+.navlambda-bg-secondary { background: var(--navlambda-bg-secondary); }
+.navlambda-bg-tertiary { background: var(--navlambda-bg-tertiary); }
+
+.navlambda-brand-green { color: var(--navlambda-primary); }
+.navlambda-brand-bg { background: var(--navlambda-primary); }
+
+/* ============================================
+   COMPONENT STYLES
+   ============================================ */
+
+/* Buttons */
+.navlambda-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: var(--navlambda-font-size-md);
+  font-weight: var(--navlambda-font-weight-medium);
+  border: none;
+  border-radius: var(--navlambda-radius-md);
+  cursor: pointer;
+  transition: all var(--navlambda-transition-fast);
+  outline: none;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navlambda-btn-primary {
+  background: var(--navlambda-btn-primary-bg);
+  color: var(--navlambda-btn-primary-text);
+}
+
+.navlambda-btn-primary:hover {
+  background: var(--navlambda-btn-primary-hover);
+  box-shadow: var(--navlambda-glow-primary);
+}
+
+.navlambda-btn-primary:active {
+  background: var(--navlambda-btn-primary-active);
+}
+
+.navlambda-btn-secondary {
+  background: var(--navlambda-btn-secondary-bg);
+  color: var(--navlambda-btn-secondary-text);
+}
+
+.navlambda-btn-secondary:hover {
+  background: var(--navlambda-btn-secondary-hover);
+}
+
+.navlambda-btn-tertiary {
+  background: var(--navlambda-btn-tertiary-bg);
+  color: var(--navlambda-btn-tertiary-text);
+  border: 1px solid var(--navlambda-border-primary);
+}
+
+.navlambda-btn-tertiary:hover {
+  background: var(--navlambda-btn-tertiary-hover);
+  border-color: var(--navlambda-primary);
+}
+
+/* Input Fields */
+.navlambda-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: var(--navlambda-font-size-md);
+  font-family: var(--navlambda-font-family);
+  color: var(--navlambda-text-primary);
+  background: var(--navlambda-bg-tertiary);
+  border: 1px solid var(--navlambda-border-primary);
+  border-radius: var(--navlambda-radius-md);
+  outline: none;
+  transition: all var(--navlambda-transition-fast);
+}
+
+.navlambda-input:hover {
+  border-color: var(--navlambda-border-hover);
+}
+
+.navlambda-input:focus {
+  border-color: var(--navlambda-border-focus);
+  box-shadow: var(--navlambda-glow-focus);
+}
+
+.navlambda-input::placeholder {
+  color: var(--navlambda-text-muted);
+}
+
+/* Cards & Panels */
+.navlambda-card {
+  background: var(--navlambda-bg-secondary);
+  border: 1px solid var(--navlambda-border-primary);
+  border-radius: var(--navlambda-radius-lg);
+  padding: var(--navlambda-spacing-lg);
+  box-shadow: var(--navlambda-shadow-md);
+}
+
+.navlambda-panel {
+  background: var(--navlambda-panel-bg);
+  border: 1px solid var(--navlambda-border-primary);
+  border-radius: var(--navlambda-radius-md);
+}
+
+/* Modals */
+.navlambda-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--navlambda-overlay-bg);
+  backdrop-filter: blur(4px);
+  z-index: var(--navlambda-z-modal-backdrop);
+}
+
+.navlambda-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--navlambda-modal-bg);
+  border: 1px solid var(--navlambda-border-primary);
+  border-radius: var(--navlambda-radius-xl);
+  box-shadow: var(--navlambda-shadow-xl);
+  z-index: var(--navlambda-z-modal);
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow: auto;
+}
+
+/* Notifications */
+.navlambda-notification {
+  padding: 12px 16px;
+  border-radius: var(--navlambda-radius-md);
+  font-size: var(--navlambda-font-size-md);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--navlambda-shadow-lg);
+}
+
+.navlambda-notification-success {
+  background: var(--navlambda-success-bg);
+  border: 1px solid var(--navlambda-success-border);
+  color: var(--navlambda-success);
+}
+
+.navlambda-notification-error {
+  background: var(--navlambda-error-bg);
+  border: 1px solid var(--navlambda-error-border);
+  color: var(--navlambda-error);
+}
+
+.navlambda-notification-warning {
+  background: var(--navlambda-warning-bg);
+  border: 1px solid var(--navlambda-warning-border);
+  color: var(--navlambda-warning);
+}
+
+.navlambda-notification-info {
+  background: var(--navlambda-info-bg);
+  border: 1px solid var(--navlambda-info-border);
+  color: var(--navlambda-info);
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--navlambda-bg-primary);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--navlambda-bg-elevated);
+  border-radius: var(--navlambda-radius-sm);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4d4d4d;
+}
+
+/* Selection */
+::selection {
+  background: rgba(127, 217, 87, 0.3);
+  color: var(--navlambda-text-primary);
+}
+
+::-moz-selection {
+  background: rgba(127, 217, 87, 0.3);
+  color: var(--navlambda-text-primary);
+}
+
+/* Focus Visible */
+:focus-visible {
+  outline: 2px solid var(--navlambda-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+
+@keyframes navlambda-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes navlambda-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes navlambda-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes navlambda-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes navlambda-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(127, 217, 87, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(127, 217, 87, 0.5);
+  }
+}
+
+/* ============================================
+   RESPONSIVE BREAKPOINTS
+   ============================================ */
+
+@media (max-width: 768px) {
+  :root {
+    --navlambda-font-size-md: 14px;
+    --navlambda-spacing-md: 12px;
+    --navlambda-spacing-lg: 16px;
+  }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+}

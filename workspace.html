@@ -6,13 +6,17 @@
     <meta name="description" content="NAVΛ Studio - Where Your Navigation Calculus Career Happens">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>NAVΛ Studio - Navigation Calculus Institute</title>
-    
+
+    <!-- Authentication Styles -->
+    <link rel="stylesheet" href="/src/components/Auth/Login.css">
+    <link rel="stylesheet" href="/src/components/Auth/AuthStatusIndicator.css">
+
     <!-- Xterm.js for Terminal -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/css/xterm.css" />
     <script src="https://cdn.jsdelivr.net/npm/@xterm/xterm@5.3.0/lib/xterm.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-fit@0.8.0/lib/addon-fit.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-web-links@0.9.0/lib/addon-web-links.js"></script>
-    
+
     <style>
         * {
             margin: 0;
@@ -8994,5 +8998,1451 @@ npm run tauri:build</pre>
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', initWidgets);
     </script>
+
+    <!-- Authentication Modal -->
+    <div class="auth-modal" id="authModal" style="display: none;">
+        <div class="auth-modal-content">
+            <div class="auth-header">
+                <h2 id="authTitle">🔐 Sign In to NAVΛ Studio</h2>
+                <button class="auth-close-btn" onclick="closeAuthModal()">✕</button>
+            </div>
+
+            <div class="auth-status-indicator" id="authStatusIndicator">
+                <div class="auth-status-dot" id="authStatusDot"></div>
+                <span id="authStatusText">Signed Out</span>
+            </div>
+
+            <div class="auth-body" id="authBody">
+                <!-- Sign In Form -->
+                <div class="auth-form" id="signInForm">
+                    <div class="auth-input-group">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="Enter your email" autocomplete="email">
+                    </div>
+                    <div class="auth-input-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter password" autocomplete="current-password">
+                    </div>
+                    <div class="auth-error" id="authError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handleSignIn()">
+                        <span>Sign In</span>
+                    </button>
+                    <button class="auth-btn auth-btn-secondary" onclick="showSignUpForm()">Create Account</button>
+                    <button class="auth-btn auth-btn-tertiary" onclick="handleGuestMode()">Continue as Guest</button>
+
+                    <div class="auth-divider">OR SIGN IN WITH</div>
+
+                    <button class="auth-btn auth-btn-pin" onclick="showPinForm()" id="pinSignInBtn">
+                        🔢 Sign In with PIN
+                    </button>
+                    <button class="auth-btn auth-btn-pin" onclick="handleBiometricSignIn()" id="biometricSignInBtn" style="display: none;">
+                        <span id="biometricIcon">👆</span> <span id="biometricText">Face ID / Touch ID</span>
+                    </button>
+                </div>
+
+                <!-- Sign Up Form -->
+                <div class="auth-form" id="signUpForm" style="display: none;">
+                    <div class="auth-input-group">
+                        <label>Username</label>
+                        <input type="text" id="signupUsername" placeholder="Choose username (min 3 characters)">
+                    </div>
+                    <div class="auth-input-group">
+                        <label>Email</label>
+                        <input type="email" id="signupEmail" placeholder="Enter your email">
+                    </div>
+                    <div class="auth-input-group">
+                        <label>Password</label>
+                        <input type="password" id="signupPassword" placeholder="Choose password (min 8 characters)">
+                    </div>
+                    <div class="auth-input-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="signupConfirmPassword" placeholder="Confirm password">
+                    </div>
+                    <div class="auth-error" id="signupError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handleSignUp()">Create Account</button>
+                    <button class="auth-btn auth-btn-secondary" onclick="showSignInForm()">Back to Sign In</button>
+                </div>
+
+                <!-- Email Verification Form -->
+                <div class="auth-form" id="verificationForm" style="display: none;">
+                    <p style="color: #cccccc; font-size: 13px; margin-bottom: 16px;">
+                        We've sent a 6-digit verification code to <strong id="verificationEmail"></strong>
+                    </p>
+                    <div class="auth-input-group">
+                        <label>Verification Code</label>
+                        <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="auth-error" id="verificationError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handleVerifyEmail()">Verify Email</button>
+                    <button class="auth-btn auth-btn-tertiary" onclick="handleResendCode()">Resend Code</button>
+                    <button class="auth-btn auth-btn-secondary" onclick="showSignInForm()">Back to Sign In</button>
+                </div>
+
+                <!-- PIN Form -->
+                <div class="auth-form" id="pinForm" style="display: none;">
+                    <div class="auth-input-group">
+                        <label>Enter PIN</label>
+                        <input type="password" id="pinInput" placeholder="Enter your PIN" maxlength="8" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="auth-error" id="pinError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handlePinSignIn()">Sign In</button>
+                    <button class="auth-btn auth-btn-secondary" onclick="showSignInForm()">Back to Sign In</button>
+                </div>
+
+                <!-- PIN Setup Form -->
+                <div class="auth-form" id="pinSetupForm" style="display: none;">
+                    <p style="color: #cccccc; font-size: 13px; margin-bottom: 16px;">
+                        Set up a PIN for quick access (4-8 digits)
+                    </p>
+                    <div class="auth-input-group">
+                        <label>New PIN</label>
+                        <input type="password" id="newPin" placeholder="Enter new PIN (4-8 digits)" maxlength="8" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="auth-input-group">
+                        <label>Confirm PIN</label>
+                        <input type="password" id="confirmPin" placeholder="Confirm PIN" maxlength="8" pattern="[0-9]*" inputmode="numeric">
+                    </div>
+                    <div class="auth-error" id="pinSetupError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handleSetupPin()">Set Up PIN</button>
+                    <button class="auth-btn auth-btn-tertiary" onclick="handleSkipPin()">Skip for Now</button>
+                </div>
+
+                <!-- Biometric Setup Form -->
+                <div class="auth-form" id="biometricSetupForm" style="display: none;">
+                    <p style="color: #cccccc; font-size: 13px; margin-bottom: 16px;">
+                        Enable <strong id="biometricTypeName">biometric authentication</strong> for secure and convenient sign-in
+                    </p>
+                    <div style="text-align: center; margin: 24px 0;">
+                        <div style="font-size: 64px; margin-bottom: 16px;" id="biometricSetupIcon">👆</div>
+                        <p style="color: #999999; font-size: 12px;">
+                            Your biometric data stays on your device and is never shared
+                        </p>
+                    </div>
+                    <div class="auth-error" id="biometricSetupError" style="display: none;"></div>
+                    <button class="auth-btn auth-btn-primary" onclick="handleEnableBiometric()">
+                        <span id="enableBiometricText">Enable Face ID / Touch ID</span>
+                    </button>
+                    <button class="auth-btn auth-btn-tertiary" onclick="handleSkipBiometric()">Skip for Now</button>
+                </div>
+            </div>
+
+            <div class="auth-footer">
+                <p id="authFooterText">Secure authentication powered by NAVΛ Studio</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Authentication JavaScript -->
+    <script src="src/services/auth-service.ts" type="module"></script>
+    <script>
+        // Authentication State
+        let authState = {
+            isAuthenticated: false,
+            user: null,
+            authStatus: 'signed-out', // 'signed-out', 'standby', 'signed-in'
+            pendingVerification: null
+        };
+
+        // Authentication Service (inline for workspace.html)
+        class WorkspaceAuthService {
+            constructor() {
+                this.STORAGE_KEYS = {
+                    USERS: 'navlambda_users',
+                    SESSION: 'navlambda_session',
+                    VERIFICATION_CODES: 'navlambda_verification_codes',
+                    PINS: 'navlambda_pins',
+                    PASSWORDS: 'navlambda_passwords'
+                };
+            }
+
+            // Create account
+            async createAccount(username, email, password) {
+                if (!username || username.length < 3) {
+                    return { success: false, message: 'Username must be at least 3 characters' };
+                }
+
+                if (!this.isValidEmail(email)) {
+                    return { success: false, message: 'Invalid email address' };
+                }
+
+                if (!password || password.length < 8) {
+                    return { success: false, message: 'Password must be at least 8 characters' };
+                }
+
+                const users = this.getUsers();
+                if (users.find(u => u.email === email)) {
+                    return { success: false, message: 'Email already registered' };
+                }
+
+                if (users.find(u => u.username === username)) {
+                    return { success: false, message: 'Username already taken' };
+                }
+
+                const userId = this.generateId();
+                const user = {
+                    id: userId,
+                    username,
+                    email,
+                    emailVerified: false,
+                    hasPIN: false,
+                    biometricEnabled: false,
+                    createdAt: new Date().toISOString(),
+                    lastLogin: new Date().toISOString()
+                };
+
+                users.push(user);
+                this.saveUsers(users);
+                this.storePassword(userId, password);
+
+                await this.sendVerificationEmail(email);
+
+                return { success: true, message: 'Account created! Check your email for verification code.', user };
+            }
+
+            // Sign in
+            async signIn(email, password) {
+                const users = this.getUsers();
+                const user = users.find(u => u.email === email);
+
+                if (!user) {
+                    return { success: false, message: 'Invalid email or password' };
+                }
+
+                const storedPassword = this.getPassword(user.id);
+                if (storedPassword !== password) {
+                    return { success: false, message: 'Invalid email or password' };
+                }
+
+                if (!user.emailVerified) {
+                    await this.sendVerificationEmail(email);
+                    return {
+                        success: false,
+                        message: 'Please verify your email first. A new code has been sent.',
+                        requiresVerification: true,
+                        user
+                    };
+                }
+
+                user.lastLogin = new Date().toISOString();
+                this.updateUser(user);
+                this.createSession(user);
+
+                return { success: true, message: 'Signed in successfully', user };
+            }
+
+            // Sign in with PIN
+            async signInWithPIN(pin) {
+                const users = this.getUsers();
+
+                for (const user of users) {
+                    const storedPIN = this.getPIN(user.id);
+                    if (storedPIN === pin) {
+                        user.lastLogin = new Date().toISOString();
+                        this.updateUser(user);
+                        this.createSession(user);
+                        return { success: true, message: 'Signed in with PIN', user };
+                    }
+                }
+
+                return { success: false, message: 'Invalid PIN' };
+            }
+
+            // Sign in with biometric
+            async signInWithBiometric() {
+                if (!this.isBiometricAvailable()) {
+                    return { success: false, message: 'Biometric authentication not available' };
+                }
+
+                try {
+                    const authenticated = await this.authenticateWithBiometric();
+
+                    if (!authenticated) {
+                        return { success: false, message: 'Biometric authentication failed' };
+                    }
+
+                    const users = this.getUsers();
+                    const user = users.find(u => u.biometricEnabled);
+
+                    if (!user) {
+                        return { success: false, message: 'No user with biometric enabled' };
+                    }
+
+                    user.lastLogin = new Date().toISOString();
+                    this.updateUser(user);
+                    this.createSession(user);
+
+                    return { success: true, message: 'Signed in with biometric', user };
+                } catch (error) {
+                    console.error('Biometric error:', error);
+                    return { success: false, message: 'Biometric authentication failed' };
+                }
+            }
+
+            // Send verification email
+            async sendVerificationEmail(email) {
+                const code = this.generateVerificationCode();
+                const verification = {
+                    code,
+                    email,
+                    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+                };
+
+                const codes = this.getVerificationCodes();
+                codes.push(verification);
+                localStorage.setItem(this.STORAGE_KEYS.VERIFICATION_CODES, JSON.stringify(codes));
+
+                console.log(`📧 Verification code for ${email}: ${code}`);
+                showNotification(`Verification code: ${code} (Check console)`, 'info');
+            }
+
+            // Verify email
+            verifyEmail(email, code) {
+                const codes = this.getVerificationCodes();
+                const verification = codes.find(v => v.email === email && v.code === code);
+
+                if (!verification) {
+                    return { success: false, message: 'Invalid verification code' };
+                }
+
+                if (new Date(verification.expiresAt) < new Date()) {
+                    return { success: false, message: 'Verification code expired' };
+                }
+
+                const users = this.getUsers();
+                const user = users.find(u => u.email === email);
+
+                if (user) {
+                    user.emailVerified = true;
+                    this.updateUser(user);
+
+                    const updatedCodes = codes.filter(v => v !== verification);
+                    localStorage.setItem(this.STORAGE_KEYS.VERIFICATION_CODES, JSON.stringify(updatedCodes));
+
+                    return { success: true, message: 'Email verified successfully!', user };
+                }
+
+                return { success: false, message: 'User not found' };
+            }
+
+            // Setup PIN
+            setupPIN(userId, pin) {
+                if (!pin || pin.length < 4 || pin.length > 8) {
+                    return { success: false, message: 'PIN must be 4-8 digits' };
+                }
+
+                if (!/^\d+$/.test(pin)) {
+                    return { success: false, message: 'PIN must contain only numbers' };
+                }
+
+                const pins = this.getPINs();
+                pins[userId] = pin;
+                localStorage.setItem(this.STORAGE_KEYS.PINS, JSON.stringify(pins));
+
+                const users = this.getUsers();
+                const user = users.find(u => u.id === userId);
+                if (user) {
+                    user.hasPIN = true;
+                    this.updateUser(user);
+                }
+
+                return { success: true, message: 'PIN set up successfully!' };
+            }
+
+            // Enable biometric
+            async enableBiometric(userId) {
+                if (!this.isBiometricAvailable()) {
+                    return { success: false, message: 'Biometric not available on this device' };
+                }
+
+                try {
+                    const registered = await this.registerBiometric(userId);
+
+                    if (!registered) {
+                        return { success: false, message: 'Failed to register biometric' };
+                    }
+
+                    const users = this.getUsers();
+                    const user = users.find(u => u.id === userId);
+                    if (user) {
+                        user.biometricEnabled = true;
+                        this.updateUser(user);
+                    }
+
+                    return { success: true, message: `${this.getBiometricType()} enabled!` };
+                } catch (error) {
+                    console.error('Enable biometric error:', error);
+                    return { success: false, message: 'Failed to enable biometric' };
+                }
+            }
+
+            // Biometric helpers
+            isBiometricAvailable() {
+                return window.PublicKeyCredential !== undefined && navigator.credentials !== undefined;
+            }
+
+            getBiometricType() {
+                const platform = navigator.platform.toLowerCase();
+                if (platform.includes('mac')) return 'Touch ID / Face ID';
+                if (platform.includes('win')) return 'Windows Hello';
+                if (platform.includes('iphone') || platform.includes('ipad')) return 'Face ID / Touch ID';
+                if (platform.includes('android')) return 'Fingerprint / Face Unlock';
+                return 'Biometric Authentication';
+            }
+
+            async registerBiometric(userId) {
+                try {
+                    const credential = await navigator.credentials.create({
+                        publicKey: {
+                            challenge: new Uint8Array(32),
+                            rp: { name: 'NAVΛ Studio', id: window.location.hostname },
+                            user: {
+                                id: new TextEncoder().encode(userId),
+                                name: userId,
+                                displayName: 'NAVΛ Studio User'
+                            },
+                            pubKeyCredParams: [
+                                { type: 'public-key', alg: -7 },
+                                { type: 'public-key', alg: -257 }
+                            ],
+                            authenticatorSelection: {
+                                authenticatorAttachment: 'platform',
+                                userVerification: 'required'
+                            },
+                            timeout: 60000
+                        }
+                    });
+
+                    return credential !== null;
+                } catch (error) {
+                    console.error('Register biometric error:', error);
+                    return false;
+                }
+            }
+
+            async authenticateWithBiometric() {
+                try {
+                    const assertion = await navigator.credentials.get({
+                        publicKey: {
+                            challenge: new Uint8Array(32),
+                            timeout: 60000,
+                            userVerification: 'required'
+                        }
+                    });
+
+                    return assertion !== null;
+                } catch (error) {
+                    console.error('Authenticate biometric error:', error);
+                    return false;
+                }
+            }
+
+            // Helper methods
+            getUsers() {
+                const data = localStorage.getItem(this.STORAGE_KEYS.USERS);
+                return data ? JSON.parse(data) : [];
+            }
+
+            saveUsers(users) {
+                localStorage.setItem(this.STORAGE_KEYS.USERS, JSON.stringify(users));
+            }
+
+            updateUser(user) {
+                const users = this.getUsers();
+                const index = users.findIndex(u => u.id === user.id);
+                if (index !== -1) {
+                    users[index] = user;
+                    this.saveUsers(users);
+                }
+            }
+
+            createSession(user) {
+                const session = {
+                    user,
+                    token: this.generateToken(),
+                    expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+                };
+                localStorage.setItem(this.STORAGE_KEYS.SESSION, JSON.stringify(session));
+                return session;
+            }
+
+            storePassword(userId, password) {
+                const passwords = this.getPasswords();
+                passwords[userId] = password;
+                localStorage.setItem(this.STORAGE_KEYS.PASSWORDS, JSON.stringify(passwords));
+            }
+
+            getPassword(userId) {
+                const passwords = this.getPasswords();
+                return passwords[userId] || null;
+            }
+
+            getPasswords() {
+                const data = localStorage.getItem(this.STORAGE_KEYS.PASSWORDS);
+                return data ? JSON.parse(data) : {};
+            }
+
+            getPINs() {
+                const data = localStorage.getItem(this.STORAGE_KEYS.PINS);
+                return data ? JSON.parse(data) : {};
+            }
+
+            getPIN(userId) {
+                const pins = this.getPINs();
+                return pins[userId] || null;
+            }
+
+            getVerificationCodes() {
+                const data = localStorage.getItem(this.STORAGE_KEYS.VERIFICATION_CODES);
+                return data ? JSON.parse(data) : [];
+            }
+
+            generateId() {
+                return `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            }
+
+            generateToken() {
+                return `token_${Date.now()}_${Math.random().toString(36).substr(2, 16)}`;
+            }
+
+            generateVerificationCode() {
+                return Math.floor(100000 + Math.random() * 900000).toString();
+            }
+
+            isValidEmail(email) {
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            }
+        }
+
+        // Initialize auth service
+        const authService = new WorkspaceAuthService();
+
+        // Load auth state from localStorage
+        function loadAuthState() {
+            const saved = localStorage.getItem('navlambda_auth');
+            if (saved) {
+                try {
+                    authState = JSON.parse(saved);
+                    updateAuthUI();
+                    applyAccessRestrictions();
+                } catch (e) {
+                    console.error('Failed to load auth state:', e);
+                }
+            }
+        }
+
+        // Save auth state to localStorage
+        function saveAuthState() {
+            localStorage.setItem('navlambda_auth', JSON.stringify(authState));
+        }
+
+        // Show authentication modal
+        function showAuthModal() {
+            document.getElementById('authModal').style.display = 'flex';
+            showSignInForm();
+
+            // Check if biometric is available
+            if (authService.isBiometricAvailable()) {
+                const biometricBtn = document.getElementById('biometricSignInBtn');
+                const biometricText = document.getElementById('biometricText');
+                biometricBtn.style.display = 'flex';
+                biometricText.textContent = authService.getBiometricType();
+            }
+        }
+
+        // Close authentication modal
+        function closeAuthModal() {
+            document.getElementById('authModal').style.display = 'none';
+            // Clear all error messages
+            document.querySelectorAll('.auth-error').forEach(el => el.style.display = 'none');
+        }
+
+        // Show sign in form
+        function showSignInForm() {
+            hideAllForms();
+            document.getElementById('signInForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = '🔐 Sign In to NAVΛ Studio';
+        }
+
+        // Show sign up form
+        function showSignUpForm() {
+            hideAllForms();
+            document.getElementById('signUpForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = '✨ Create Your Account';
+        }
+
+        // Show verification form
+        function showVerificationForm(email) {
+            hideAllForms();
+            document.getElementById('verificationForm').style.display = 'block';
+            document.getElementById('verificationEmail').textContent = email;
+            document.getElementById('authTitle').textContent = '📧 Verify Your Email';
+        }
+
+        // Show PIN form
+        function showPinForm() {
+            hideAllForms();
+            document.getElementById('pinForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = '🔢 PIN Authentication';
+        }
+
+        // Show PIN setup form
+        function showPinSetupForm() {
+            hideAllForms();
+            document.getElementById('pinSetupForm').style.display = 'block';
+            document.getElementById('authTitle').textContent = '🔢 Set Up PIN';
+        }
+
+        // Show biometric setup form
+        function showBiometricSetupForm() {
+            hideAllForms();
+            document.getElementById('biometricSetupForm').style.display = 'block';
+            document.getElementById('biometricTypeName').textContent = authService.getBiometricType();
+            document.getElementById('enableBiometricText').textContent = `Enable ${authService.getBiometricType()}`;
+            document.getElementById('authTitle').textContent = '👆 Enable Biometric';
+        }
+
+        // Hide all forms
+        function hideAllForms() {
+            document.getElementById('signInForm').style.display = 'none';
+            document.getElementById('signUpForm').style.display = 'none';
+            document.getElementById('verificationForm').style.display = 'none';
+            document.getElementById('pinForm').style.display = 'none';
+            document.getElementById('pinSetupForm').style.display = 'none';
+            document.getElementById('biometricSetupForm').style.display = 'none';
+        }
+
+        // Handle sign in
+        async function handleSignIn() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('authError');
+
+            if (!email || !password) {
+                errorEl.textContent = 'Please enter both email and password';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const result = await authService.signIn(email, password);
+
+            if (result.success) {
+                authState = {
+                    isAuthenticated: true,
+                    user: result.user,
+                    authStatus: 'signed-in'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                closeAuthModal();
+                showNotification('✅ Signed in successfully!', 'success');
+
+                // Offer PIN setup if not set
+                if (!result.user.hasPIN) {
+                    setTimeout(() => {
+                        if (confirm('Would you like to set up a PIN for quick access?')) {
+                            authState.pendingVerification = result.user;
+                            showAuthModal();
+                            showPinSetupForm();
+                        }
+                    }, 1000);
+                }
+            } else {
+                if (result.requiresVerification) {
+                    authState.pendingVerification = result.user;
+                    showVerificationForm(email);
+                } else {
+                    errorEl.textContent = result.message;
+                    errorEl.style.display = 'block';
+                }
+            }
+        }
+
+        // Handle sign up
+        async function handleSignUp() {
+            const username = document.getElementById('signupUsername').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const confirmPassword = document.getElementById('signupConfirmPassword').value;
+            const errorEl = document.getElementById('signupError');
+
+            if (!username || !email || !password || !confirmPassword) {
+                errorEl.textContent = 'Please fill in all fields';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                errorEl.textContent = 'Passwords do not match';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const result = await authService.createAccount(username, email, password);
+
+            if (result.success) {
+                authState.pendingVerification = result.user;
+                showVerificationForm(email);
+                showNotification('✅ Account created! Please verify your email.', 'success');
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Handle email verification
+        function handleVerifyEmail() {
+            const code = document.getElementById('verificationCode').value;
+            const email = document.getElementById('verificationEmail').textContent;
+            const errorEl = document.getElementById('verificationError');
+
+            if (!code || code.length !== 6) {
+                errorEl.textContent = 'Please enter the 6-digit code';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const result = authService.verifyEmail(email, code);
+
+            if (result.success) {
+                showNotification('✅ Email verified successfully!', 'success');
+
+                // Sign in the user
+                authState = {
+                    isAuthenticated: true,
+                    user: result.user,
+                    authStatus: 'signed-in'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+
+                // Offer PIN setup
+                showPinSetupForm();
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Handle resend code
+        async function handleResendCode() {
+            const email = document.getElementById('verificationEmail').textContent;
+            await authService.sendVerificationEmail(email);
+            showNotification('📧 New verification code sent!', 'info');
+        }
+
+        // Handle PIN sign in
+        async function handlePinSignIn() {
+            const pin = document.getElementById('pinInput').value;
+            const errorEl = document.getElementById('pinError');
+
+            if (!pin || pin.length < 4) {
+                errorEl.textContent = 'Please enter your PIN';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const result = await authService.signInWithPIN(pin);
+
+            if (result.success) {
+                authState = {
+                    isAuthenticated: true,
+                    user: result.user,
+                    authStatus: 'signed-in'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                closeAuthModal();
+                showNotification('✅ Signed in with PIN!', 'success');
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Handle PIN setup
+        function handleSetupPin() {
+            const newPin = document.getElementById('newPin').value;
+            const confirmPin = document.getElementById('confirmPin').value;
+            const errorEl = document.getElementById('pinSetupError');
+
+            if (!newPin || !confirmPin) {
+                errorEl.textContent = 'Please enter and confirm your PIN';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            if (newPin !== confirmPin) {
+                errorEl.textContent = 'PINs do not match';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const result = authService.setupPIN(authState.user.id, newPin);
+
+            if (result.success) {
+                showNotification('✅ PIN set up successfully!', 'success');
+
+                // Offer biometric setup if available
+                if (authService.isBiometricAvailable()) {
+                    showBiometricSetupForm();
+                } else {
+                    closeAuthModal();
+                }
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Handle skip PIN
+        function handleSkipPin() {
+            if (authService.isBiometricAvailable()) {
+                showBiometricSetupForm();
+            } else {
+                closeAuthModal();
+            }
+        }
+
+        // Handle biometric sign in
+        async function handleBiometricSignIn() {
+            const result = await authService.signInWithBiometric();
+
+            if (result.success) {
+                authState = {
+                    isAuthenticated: true,
+                    user: result.user,
+                    authStatus: 'signed-in'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                closeAuthModal();
+                showNotification(`✅ Signed in with ${authService.getBiometricType()}!`, 'success');
+            } else {
+                showNotification(`❌ ${result.message}`, 'error');
+            }
+        }
+
+        // Handle enable biometric
+        async function handleEnableBiometric() {
+            const errorEl = document.getElementById('biometricSetupError');
+            const result = await authService.enableBiometric(authState.user.id);
+
+            if (result.success) {
+                showNotification(`✅ ${result.message}`, 'success');
+                closeAuthModal();
+            } else {
+                errorEl.textContent = result.message;
+                errorEl.style.display = 'block';
+            }
+        }
+
+        // Handle skip biometric
+        function handleSkipBiometric() {
+            closeAuthModal();
+        }
+
+        // Handle guest mode
+        function handleGuestMode() {
+            authState = {
+                isAuthenticated: true,
+                user: {
+                    id: 'guest',
+                    username: 'Guest',
+                    isGuest: true,
+                    permissions: ['read']
+                },
+                authStatus: 'signed-in'
+            };
+            saveAuthState();
+            updateAuthUI();
+            applyAccessRestrictions();
+            closeAuthModal();
+            showNotification('👤 Continuing as guest (limited access)', 'info');
+        }
+
+        // Handle sign out
+        function handleSignOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                authState = {
+                    isAuthenticated: false,
+                    user: null,
+                    authStatus: 'signed-out'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                showNotification('👋 Signed out successfully', 'info');
+            }
+        }
+
+        // Update power button click handler
+        function confirmLogout() {
+            if (authState.isAuthenticated) {
+                handleSignOut();
+            } else {
+                showAuthModal();
+            }
+        }
+
+        // Handle PIN authentication
+        function handlePINAuth(pin) {
+            const errorEl = document.getElementById('pinError');
+            if (pin === '1234') { // Simple PIN check for demo
+                authState = {
+                    isAuthenticated: true,
+                    user: {
+                        id: '1',
+                        username: 'admin',
+                        isGuest: false,
+                        permissions: ['all']
+                    },
+                    authStatus: 'signed-in'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                closeAuthModal();
+                showNotification('✅ Signed in with PIN!', 'success');
+        // Handle guest mode
+        function handleGuestMode() {
+            authState = {
+                isAuthenticated: true,
+                user: {
+                    id: 'guest',
+                    username: 'Guest',
+                    isGuest: true,
+                    permissions: ['read']
+                },
+                authStatus: 'signed-in'
+            };
+            saveAuthState();
+            updateAuthUI();
+            applyAccessRestrictions();
+            closeAuthModal();
+                authStatus: 'signed-in'
+            };
+            saveAuthState();
+            updateAuthUI();
+            applyAccessRestrictions();
+            closeAuthModal();
+            showNotification('👤 Continuing as guest (limited access)', 'info');
+        }
+
+        // Handle sign out
+        function handleSignOut() {
+            if (confirm('Are you sure you want to sign out?')) {
+                authState = {
+                    isAuthenticated: false,
+                    user: null,
+                    authStatus: 'signed-out'
+                };
+                saveAuthState();
+                updateAuthUI();
+                applyAccessRestrictions();
+                showNotification('👋 Signed out successfully', 'info');
+            }
+        }
+
+        // Update power button click handler
+        // Use authState.authStatus (string) instead of a possibly out-of-sync boolean.
+        // Make handler async to accommodate async sign-out flows and temporarily disable the button
+        async function confirmLogout(event) {
+            const powerBtn = document.getElementById('powerBtn');
+
+            // Prevent double clicks while processing
+            if (powerBtn) {
+                powerBtn.disabled = true;
+            }
+
+            try {
+                // If fully signed in, treat click as a sign-out request
+                if (authState.authStatus === 'signed-in') {
+                    const result = handleSignOut();
+                    // If handleSignOut returns a promise, await it
+                    if (result && typeof result.then === 'function') {
+                        await result;
+                    }
+                } else if (authState.authStatus === 'standby') {
+                    // In standby, clicking should prompt the user to re-authenticate / resume
+                    showAuthModal();
+                } else {
+                    // Signed out or unknown state -> show sign-in modal
+                    showAuthModal();
+                }
+            } catch (err) {
+                console.error('Error handling power button action:', err);
+                showNotification('Failed to complete action. Please try again.', 'error');
+            } finally {
+                if (powerBtn) {
+                    powerBtn.disabled = false;
+                }
+            }
+        }
+
+        // Update authentication UI
+        function updateAuthUI() {
+            const powerBtn = document.getElementById('powerBtn');
+            const statusDot = document.getElementById('authStatusDot');
+            const statusText = document.getElementById('authStatusText');
+
+            // Guard against missing elements
+            if (powerBtn) {
+                // Ensure the power button click uses the updated handler (replace any existing handler)
+                powerBtn.onclick = confirmLogout;
+            }
+
+            if (authState.authStatus === 'signed-in') {
+                if (powerBtn) {
+                    powerBtn.style.color = '#7FD957'; // Brand Green
+                    powerBtn.title = `Signed in as ${authState.user.username} (Click to sign out)`;
+                    powerBtn.setAttribute('aria-pressed', 'true');
+                    powerBtn.dataset.authStatus = 'signed-in';
+                }
+                if (statusDot) {
+                    statusDot.style.background = '#7FD957';
+                    if (statusText) statusText.textContent = `Signed In: ${authState.user.username}`;
+                }
+            } else if (authState.authStatus === 'standby') {
+                if (powerBtn) {
+                    powerBtn.style.color = '#ff9800'; // Orange
+                    powerBtn.title = 'Standby Mode (Click to resume)';
+                    powerBtn.setAttribute('aria-pressed', 'false');
+                    powerBtn.dataset.authStatus = 'standby';
+                }
+                if (statusDot) {
+                    statusDot.style.background = '#ff9800';
+                    if (statusText) statusText.textContent = 'Standby';
+                }
+            } else {
+                if (powerBtn) {
+                    powerBtn.style.color = '#f44336'; // Red
+                    powerBtn.title = 'Signed Out (Click to sign in)';
+                    powerBtn.setAttribute('aria-pressed', 'false');
+                    powerBtn.dataset.authStatus = 'signed-out';
+                }
+                if (statusDot) {
+                    statusDot.style.background = '#f44336';
+                    if (statusText) statusText.textContent = 'Signed Out';
+                }
+            }
+
+            // Update power state for existing system
+            if (authState.authStatus === 'signed-in') {
+                powerState = 'on';
+            } else if (authState.authStatus === 'standby') {
+                powerState = 'standby';
+            } else {
+                powerState = 'off';
+            }
+            updatePowerButton();
+        }
+
+        // Apply access restrictions based on authentication
+        function applyAccessRestrictions() {
+            const restrictedIcons = document.querySelectorAll('.bottom-icon');
+
+            restrictedIcons.forEach(icon => {
+                const title = icon.getAttribute('title') || '';
+
+                // Always allow: Documentation, Browser, Language, Help, Settings
+                const alwaysAllowed = [
+                    'Documentation',
+                    'Browser',
+                    'Help',
+                    'Settings',
+                    'Language'
+                ];
+
+                const isAllowed = alwaysAllowed.some(allowed => title.includes(allowed));
+
+                if (!authState.isAuthenticated && !isAllowed) {
+                    // Disable restricted icons
+                    icon.style.opacity = '0.3';
+                    icon.style.cursor = 'not-allowed';
+                    icon.style.pointerEvents = 'none';
+                    icon.title = `🔒 ${title} - Sign in required`;
+                } else {
+                    // Enable all icons
+                    icon.style.opacity = '1';
+                    icon.style.cursor = 'pointer';
+                    icon.style.pointerEvents = 'auto';
+                }
+            });
+
+            // Restrict folders on desktop
+            const folders = document.querySelectorAll('.desktop-icon');
+            folders.forEach(folder => {
+                if (!authState.isAuthenticated) {
+                    folder.style.opacity = '0.3';
+                    folder.style.pointerEvents = 'none';
+                    const label = folder.querySelector('.icon-label');
+                    if (label) {
+                        label.textContent = '🔒 ' + label.textContent.replace('🔒 ', '');
+                    }
+                } else {
+                    folder.style.opacity = '1';
+                    folder.style.pointerEvents = 'auto';
+                    const label = folder.querySelector('.icon-label');
+                    if (label) {
+                        label.textContent = label.textContent.replace('🔒 ', '');
+                    }
+                }
+            });
+
+            // Show/hide guest badge
+            if (authState.user && authState.user.isGuest) {
+                showNotification('👤 Guest Mode: Limited access to features', 'warning');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `auth-notification auth-notification-${type}`;
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 15px 20px;
+                background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : type === 'warning' ? '#f59e0b' : '#3b82f6'};
+                color: white;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+                z-index: 100000;
+                animation: slideIn 0.3s ease;
+                font-size: 14px;
+                max-width: 300px;
+            `;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize authentication on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAuthState();
+
+            // Add CSS animations
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(400px); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(400px); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
+        });
+    </script>
+
+    <style>
+        /* Authentication Modal Styles - NAVΛ Studio Brand Identity */
+        .auth-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(4px);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .auth-modal-content {
+            background: #2d2d2d;
+            border: 1px solid #3e3e3e;
+            border-radius: 12px;
+            padding: 48px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+            animation: slideUp 0.3s ease;
+        }
+
+        .auth-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+        }
+
+        .auth-header h2 {
+            color: #ffffff;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .auth-close-btn {
+            background: #3e3e3e;
+            border: none;
+            color: #ffffff;
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+
+        .auth-close-btn:hover {
+            background: #4d4d4d;
+            color: #7FD957;
+        }
+
+        .auth-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            background: #333333;
+            border: 1px solid #3e3e3e;
+            border-radius: 6px;
+            margin-bottom: 24px;
+        }
+
+        .auth-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .auth-status-dot[style*="background: #ef4444"],
+        .auth-status-dot[style*="background:#ef4444"] {
+            background: #f44336 !important;
+            box-shadow: 0 0 10px #f44336;
+        }
+
+        .auth-status-dot[style*="background: #10b981"],
+        .auth-status-dot[style*="background:#10b981"] {
+            background: #7FD957 !important;
+            box-shadow: 0 0 10px #7FD957;
+        }
+
+        .auth-status-indicator span {
+            color: #cccccc;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .auth-body {
+            margin-bottom: 24px;
+        }
+
+        .auth-form {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .auth-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .auth-input-group label {
+            color: #cccccc;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .auth-input-group input {
+            padding: 12px 16px;
+            border: 1px solid #3e3e3e;
+            border-radius: 6px;
+            background: #333333;
+            color: #ffffff;
+            font-size: 13px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            transition: all 150ms ease;
+        }
+
+        .auth-input-group input:hover {
+            border-color: #4d4d4d;
+            background: #3a3a3a;
+        }
+
+        .auth-input-group input:focus {
+            outline: none;
+            border-color: #7FD957;
+            background: #3a3a3a;
+            box-shadow: 0 0 0 3px rgba(127, 217, 87, 0.2);
+        }
+
+        .auth-input-group input::placeholder {
+            color: #6e6e6e;
+        }
+
+        .auth-error {
+            padding: 12px 16px;
+            background: rgba(244, 67, 54, 0.1);
+            border: 1px solid rgba(244, 67, 54, 0.3);
+            border-radius: 6px;
+            color: #f44336;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .auth-error::before {
+            content: '⚠️';
+            font-size: 14px;
+        }
+
+        .auth-btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+            cursor: pointer;
+            transition: all 150ms ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .auth-btn-primary {
+            background: #7FD957;
+            color: #1e1e1e;
+            font-weight: 700;
+        }
+
+        .auth-btn-primary:hover {
+            background: #8FE967;
+            box-shadow: 0 0 20px rgba(127, 217, 87, 0.3);
+            transform: translateY(-1px);
+        }
+
+        .auth-btn-primary:active {
+            background: #6FC947;
+            transform: translateY(0);
+        }
+
+        .auth-btn-secondary {
+            background: #3e3e3e;
+            color: #ffffff;
+            border: 1px solid #3e3e3e;
+        }
+
+        .auth-btn-secondary:hover {
+            background: #4d4d4d;
+            border-color: #4d4d4d;
+        }
+
+        .auth-btn-tertiary {
+            background: transparent;
+            color: #7FD957;
+            border: 1px solid #3e3e3e;
+        }
+
+        .auth-btn-tertiary:hover {
+            background: rgba(127, 217, 87, 0.1);
+            border-color: #7FD957;
+        }
+
+        .auth-btn-pin {
+            background: #333333;
+            color: #7FD957;
+            border: 1px solid #7FD957;
+        }
+
+        .auth-btn-pin:hover {
+            background: rgba(127, 217, 87, 0.1);
+            box-shadow: 0 0 0 3px rgba(127, 217, 87, 0.2);
+        }
+
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 24px 0;
+            color: #6e6e6e;
+            font-size: 12px;
+        }
+
+        .auth-divider::before,
+        .auth-divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #3e3e3e;
+        }
+
+        .auth-divider::before {
+            margin-right: 16px;
+        }
+
+        .auth-divider::after {
+            margin-left: 16px;
+        }
+
+        .auth-footer {
+            text-align: center;
+            color: #6e6e6e;
+            font-size: 12px;
+            margin-top: 32px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.8;
+                transform: scale(1.05);
+            }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .auth-modal-content {
+                padding: 32px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Close any remaining open containers to ensure proper document structure -->
+    </div>
 </body>
 </html>

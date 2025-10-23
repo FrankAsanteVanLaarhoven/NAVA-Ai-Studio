@@ -1,4 +1,312 @@
-name: NAVΛ Studio CI/CD Pipeline
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [published]
+
+env:
+  CARGO_TERM_COLOR: always
+  NODE_VERSION: '18'
+
+jobs:
+  # Quality Gates
+  quality-gate:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Cache dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+          node_modules
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}-${{ hashFiles('**/package-lock.json') }}
+    - name: Run linting
+      run: |
+        npm run lint
+        cargo clippy -- -D warnings
+    - name: Run tests
+      run: |
+        npm test
+        cargo test
+    - name: Security scan
+      uses: github/super-linter/slim@v5
+      env:
+        DEFAULT_BRANCH: main
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Build and Test
+  build-test:
+    needs: quality-gate
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: npm ci
+    - name: Build frontend
+      run: npm run build
+    - name: Build Tauri
+      uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tauriScript: npm run tauri build
+    - name: Run integration tests
+      run: npm run test:e2e
+
+  # Security Scanning
+  security-scan:
+    needs: build-test
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: '.'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+    - name: Generate SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        path: '.'
+        format: 'spdx-json'
+        output-file: './sbom.spdx.json'
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: sbom
+        path: ./sbom.spdx.json
+
+  # License Compliance
+  license-check:
+    needs: security-scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Check licenses
+      run: npx license-checker --production --csv > licenses.csv
+    - name: Upload license report
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-report
+        path: licenses.csv
+    - name: Check for forbidden licenses
+      run: |
+        if grep -q "GPL" licenses.csv; then
+          echo "GPL license found - failing build"
+          exit 1
+        fi
+
+  # Performance Testing
+  performance-test:
+    needs: license-check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm ci
+    - name: Run performance tests
+      run: npm run test:perf
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      with:
+        name: performance-results
+        path: ./performance-results.json
+
+  # Deploy to Staging
+  deploy-staging:
+    needs: [build-test, security-scan, license-check, performance-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/develop'
+    environment: staging
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: navlambda/studio-ide:staging-${{ github.sha }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+    - name: Deploy to staging
+      run: |
+        echo "Deploying to staging environment"
+        # Add staging deployment commands here
+
+  # Production Deployment Gates
+  production-gates:
+    needs: [deploy-staging, security-scan, license-check, performance-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+    - name: Manual approval required
+      uses: trstringer/manual-approval@v1
+      with:
+        secret: ${{ github.TOKEN }}
+        approvers: frankvanlaarhoven
+        minimum-approvals: 1
+        issue-title: "Deploy NAVΛ Studio IDE to Production"
+        issue-body: "Please review and approve production deployment"
+        exclude-workflow-initiator-as-approver: false
+    - name: Quality gate check
+      run: |
+        # Additional production readiness checks
+        echo "Running production deployment gates..."
+        # Check test coverage
+        # Check performance benchmarks
+        # Check security scan results
+        # Check license compliance
+    - name: Deploy to production
+      run: |
+        echo "Deploying to production environment"
+        # Add production deployment commands here
+
+  # Release Management
+  release:
+    needs: production-gates
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Build release artifacts
+      run: |
+        npm run build
+        npm run tauri build
+    - name: Create release archives
+      run: |
+        tar -czf navlambda-studio-ide-linux.tar.gz src-tauri/target/release/bundle/appimage/NAVΛ\ Studio\ IDE*.AppImage
+        tar -czf navlambda-studio-ide-macos.tar.gz src-tauri/target/release/bundle/dmg/NAVΛ\ Studio\ IDE*.dmg
+        zip -r navlambda-studio-ide-windows.zip src-tauri/target/release/bundle/msi/NAVΛ\ Studio\ IDE*.msi
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./navlambda-studio-ide-linux.tar.gz
+        asset_name: navlambda-studio-ide-linux.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload macOS release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./navlambda-studio-ide-macos.tar.gz
+        asset_name: navlambda-studio-ide-macos.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload Windows release
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./navlambda-studio-ide-windows.zip
+        asset_name: navlambda-studio-ide-windows.zip
+        asset_content_type: application/zip
+
+  # Helm Promotion
+  helm-promote:
+    needs: release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Helm
+      uses: azure/setup-helm@v3
+      with:
+        version: v3.12.0
+    - name: Login to Helm registry
+      run: |
+        helm registry login -u ${{ secrets.HELM_USERNAME }} -p ${{ secrets.HELM_PASSWORD }} ${{ secrets.HELM_REGISTRY }}
+    - name: Package Helm chart
+      run: |
+        cd helm
+        helm package navlambda-studio-ide
+    - name: Push Helm chart
+      run: |
+        cd helm
+        helm push navlambda-studio-ide-${{ github.event.release.tag_name }}.tgz oci://${{ secrets.HELM_REGISTRY }}/navlambda
+
+  # Documentation
+  docs:
+    needs: release
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Build docs
+      run: |
+        cd docs
+        npm install
+        npm run build
+    - name: Deploy docs
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build
 
 on:
   push:

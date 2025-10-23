@@ -1,6 +1,452 @@
 name: Release Management
 
 on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., v1.2.3)'
+        required: true
+      channel:
+        description: 'Release channel'
+        required: true
+        default: 'stable'
+        type: choice
+        options:
+        - stable
+        - beta
+        - alpha
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Pre-release Validation
+  pre-release-validation:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      channel: ${{ steps.get-version.outputs.channel }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Get version info
+      id: get-version
+      run: |
+        if [ "${{ github.event_name }}" = "release" ]; then
+          VERSION=${{ github.event.release.tag_name }}
+          CHANNEL="stable"
+        else
+          VERSION=${{ github.event.inputs.version }}
+          CHANNEL=${{ github.event.inputs.channel }}
+        fi
+
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "channel=$CHANNEL" >> $GITHUB_OUTPUT
+
+        echo "Release version: $VERSION"
+        echo "Release channel: $CHANNEL"
+    - name: Validate version format
+      run: |
+        VERSION="${{ steps.get-version.outputs.version }}"
+        if [[ ! $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9]+)?$ ]]; then
+          echo "❌ Invalid version format: $VERSION"
+          echo "Expected format: v1.2.3 or v1.2.3-beta"
+          exit 1
+        fi
+        echo "✅ Version format valid: $VERSION"
+    - name: Check changelog
+      run: |
+        VERSION="${{ steps.get-version.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        if [ ! -f "CHANGELOG.md" ]; then
+          echo "❌ CHANGELOG.md not found"
+          exit 1
+        fi
+
+        if ! grep -q "## \[$CLEAN_VERSION\]" CHANGELOG.md; then
+          echo "❌ Version $CLEAN_VERSION not found in CHANGELOG.md"
+          exit 1
+        fi
+
+        echo "✅ Changelog entry found for version $CLEAN_VERSION"
+
+  # Build Release Artifacts
+  build-artifacts:
+    needs: pre-release-validation
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Install dependencies
+      run: npm ci
+    - name: Update version in package.json
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+        npm version $CLEAN_VERSION --no-git-tag-version
+    - name: Build frontend
+      run: npm run build
+    - name: Build Tauri application
+      uses: tauri-apps/tauri-action@v0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tauriScript: npm run tauri build
+        args: --config '{"package":{"version":"${{ needs.pre-release-validation.outputs.version }}"}}'
+    - name: Create artifact archives
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CHANNEL="${{ needs.pre-release-validation.outputs.channel }}"
+
+        # Create versioned directory
+        mkdir -p release-artifacts/$VERSION
+
+        # Copy build artifacts
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          cp src-tauri/target/release/bundle/appimage/NAVΛ\ Studio\ IDE*.AppImage release-artifacts/$VERSION/
+          cp src-tauri/target/release/bundle/appimage/NAVΛ\ Studio\ IDE*.AppImage.sha256 release-artifacts/$VERSION/ 2>/dev/null || true
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          cp src-tauri/target/release/bundle/dmg/NAVΛ\ Studio\ IDE*.dmg release-artifacts/$VERSION/
+          cp src-tauri/target/release/bundle/dmg/NAVΛ\ Studio\ IDE*.dmg.sha256 release-artifacts/$VERSION/ 2>/dev/null || true
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          cp src-tauri/target/release/bundle/msi/NAVΛ\ Studio\ IDE*.msi release-artifacts/$VERSION/
+          cp src-tauri/target/release/bundle/msi/NAVΛ\ Studio\ IDE*.msi.sha256 release-artifacts/$VERSION/ 2>/dev/null || true
+        fi
+
+        # Create checksums
+        cd release-artifacts/$VERSION
+        if [ "$RUNNER_OS" = "Linux" ]; then
+          sha256sum NAVΛ\ Studio\ IDE*.AppImage > NAVΛ_Studio_IDE-$VERSION-$RUNNER_OS.sha256
+        elif [ "$RUNNER_OS" = "macOS" ]; then
+          shasum -a 256 NAVΛ\ Studio\ IDE*.dmg > NAVΛ_Studio_IDE-$VERSION-$RUNNER_OS.sha256
+        elif [ "$RUNNER_OS" = "Windows" ]; then
+          sha256sum NAVΛ\ Studio\ IDE*.msi > NAVΛ_Studio_IDE-$VERSION-$RUNNER_OS.sha256
+        fi
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifacts-${{ matrix.os }}-${{ needs.pre-release-validation.outputs.version }}
+        path: release-artifacts/
+
+  # Generate Release Notes
+  generate-release-notes:
+    needs: [pre-release-validation, build-artifacts]
+    runs-on: ubuntu-latest
+    outputs:
+      release-notes: ${{ steps.generate-notes.outputs.release-notes }}
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - name: Generate release notes
+      id: generate-notes
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        # Extract changelog entry
+        RELEASE_NOTES=$(sed -n "/## \[$CLEAN_VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d')
+
+        # Escape newlines for GitHub output
+        RELEASE_NOTES_ESCAPED=$(echo "$RELEASE_NOTES" | jq -Rs .)
+
+        echo "release-notes=$RELEASE_NOTES_ESCAPED" >> $GITHUB_OUTPUT
+
+        # Save to file for upload
+        echo "$RELEASE_NOTES" > release-notes.md
+    - name: Upload release notes
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-notes
+        path: release-notes.md
+
+  # Create GitHub Release
+  create-github-release:
+    needs: [pre-release-validation, build-artifacts, generate-release-notes]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+    - name: Create release archives
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+
+        # Create final release directory
+        mkdir -p final-release
+
+        # Combine all platform artifacts
+        cp -r release-artifacts-*/* final-release/ 2>/dev/null || true
+
+        # Create release archive
+        tar -czf NAVΛ_Studio_IDE-$VERSION.tar.gz -C final-release .
+
+        # Generate checksums for final archive
+        sha256sum NAVΛ_Studio_IDE-$VERSION.tar.gz > NAVΛ_Studio_IDE-$VERSION.sha256
+    - name: Create GitHub release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ needs.pre-release-validation.outputs.version }}
+        release_name: NAVΛ Studio IDE ${{ needs.pre-release-validation.outputs.version }}
+        body: ${{ needs.generate-release-notes.outputs.release-notes }}
+        draft: false
+        prerelease: ${{ contains(needs.pre-release-validation.outputs.version, '-') }}
+    - name: Upload release assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./NAVΛ_Studio_IDE-${{ needs.pre-release-validation.outputs.version }}.tar.gz
+        asset_name: NAVΛ_Studio_IDE-${{ needs.pre-release-validation.outputs.version }}.tar.gz
+        asset_content_type: application/gzip
+    - name: Upload checksums
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./NAVΛ_Studio_IDE-${{ needs.pre-release-validation.outputs.version }}.sha256
+        asset_name: NAVΛ_Studio_IDE-${{ needs.pre-release-validation.outputs.version }}.sha256
+        asset_content_type: text/plain
+
+  # Publish to Package Registries
+  publish-packages:
+    needs: [pre-release-validation, build-artifacts]
+    runs-on: ubuntu-latest
+    if: needs.pre-release-validation.outputs.channel == 'stable'
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Install dependencies
+      run: npm ci
+    - name: Build npm package
+      run: npm run build:package
+    - name: Publish to npm
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        if [[ $VERSION == *"-"* ]]; then
+          npm publish --tag beta
+        else
+          npm publish
+        fi
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+    - name: Publish to crates.io
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        # Update Cargo.toml version
+        sed -i "s/^version = .*/version = \"$CLEAN_VERSION\"/" Cargo.toml
+
+        cargo publish --allow-dirty
+      env:
+        CARGO_REGISTRY_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
+
+  # Update Documentation
+  update-docs:
+    needs: [pre-release-validation, create-github-release]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Build documentation
+      run: |
+        cd docs
+        npm install
+        npm run build
+    - name: Deploy documentation
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: docs/build
+        destination_dir: ${{ needs.pre-release-validation.outputs.version }}
+
+  # Update Homebrew Formula
+  update-homebrew:
+    needs: [pre-release-validation, create-github-release]
+    runs-on: ubuntu-latest
+    if: needs.pre-release-validation.outputs.channel == 'stable'
+    steps:
+    - name: Checkout homebrew-tap
+      uses: actions/checkout@v4
+      with:
+        repository: navlambda/homebrew-tap
+        token: ${{ secrets.HOMEBREW_TOKEN }}
+        path: homebrew-tap
+    - name: Update formula
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        cd homebrew-tap
+        sed -i "s/version \".*\"/version \"$CLEAN_VERSION\"/" Formula/navlambda-studio-ide.rb
+        sed -i "s|url \".*\"|url \"https://github.com/navlambda/navlambda-studio-ide/releases/download/$VERSION/NAVΛ_Studio_IDE-$VERSION.tar.gz\"|" Formula/navlambda-studio-ide.rb
+
+        # Update SHA256
+        SHA256=$(curl -sL https://github.com/navlambda/navlambda-studio-ide/releases/download/$VERSION/NAVΛ_Studio_IDE-$VERSION.sha256 | cut -d' ' -f1)
+        sed -i "s/sha256 \".*\"/sha256 \"$SHA256\"/" Formula/navlambda-studio-ide.rb
+    - name: Commit and push changes
+      run: |
+        cd homebrew-tap
+        git config user.name "GitHub Actions"
+        git config user.email "actions@github.com"
+        git add .
+        git commit -m "Update NAVΛ Studio IDE to $VERSION"
+        git push
+
+  # Docker Image Release
+  docker-release:
+    needs: [pre-release-validation, build-artifacts]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          navlambda/studio-ide:${{ needs.pre-release-validation.outputs.version }}
+          navlambda/studio-ide:latest
+          ghcr.io/navlambda/studio-ide:${{ needs.pre-release-validation.outputs.version }}
+          ghcr.io/navlambda/studio-ide:latest
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        labels: |
+          org.opencontainers.image.title=NAVΛ Studio IDE
+          org.opencontainers.image.description=Navigation Intelligence Framework IDE
+          org.opencontainers.image.version=${{ needs.pre-release-validation.outputs.version }}
+
+  # Notify Stakeholders
+  notify-release:
+    needs: [create-github-release, publish-packages, docker-release]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+    - name: Send Slack notification
+      uses: slackapi/slack-github-action@v1.25.0
+      with:
+        payload: |
+          {
+            "text": "🚀 NAVΛ Studio IDE ${{ needs.pre-release-validation.outputs.version }} released!",
+            "blocks": [
+              {
+                "type": "section",
+                "text": {
+                  "type": "mrkdwn",
+                  "text": "*NAVΛ Studio IDE ${{ needs.pre-release-validation.outputs.version }}* has been released! 🎉"
+                }
+              },
+              {
+                "type": "section",
+                "fields": [
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Release:* ${{ github.event.release.html_url }}"
+                  },
+                  {
+                    "type": "mrkdwn",
+                    "text": "*Channel:* ${{ needs.pre-release-validation.outputs.channel }}"
+                  }
+                ]
+              }
+            ]
+          }
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+    - name: Send Discord notification
+      uses: tsickert/discord-webhook@v6.0.0
+      with:
+        webhook-url: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        content: "🚀 NAVΛ Studio IDE ${{ needs.pre-release-validation.outputs.version }} released! Check it out: ${{ github.event.release.html_url }}"
+
+  # Post-release Validation
+  post-release-validation:
+    needs: [create-github-release, publish-packages, docker-release]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Validate GitHub release
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        RELEASE_URL="https://api.github.com/repos/${{ github.repository }}/releases/tags/$VERSION"
+
+        # Check if release exists
+        if ! curl -s "$RELEASE_URL" | jq -e '.assets | length > 0' > /dev/null; then
+          echo "❌ Release assets not found"
+          exit 1
+        fi
+
+        echo "✅ GitHub release validated"
+    - name: Validate npm package
+      run: |
+        VERSION="${{ needs.pre-release-validation.outputs.version }}"
+        CLEAN_VERSION=$(echo $VERSION | sed 's/^v//')
+
+        # Check if npm package exists
+        if ! npm view navlambda-studio-ide@$CLEAN_VERSION version > /dev/null 2>&1; then
+          echo "❌ NPM package not found"
+          exit 1
+        fi
+
+        echo "✅ NPM package validated"
+    - name: Validate Docker images
+      run: |
+        # Check if Docker images exist
+        if ! docker pull navlambda/studio-ide:${{ needs.pre-release-validation.outputs.version }} > /dev/null 2>&1; then
+          echo "❌ Docker image not found"
+          exit 1
+        fi
+
+        echo "✅ Docker images validated"
+
+on:
   push:
     tags:
       - 'v*'

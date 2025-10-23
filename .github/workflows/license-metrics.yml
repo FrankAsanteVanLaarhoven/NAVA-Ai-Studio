@@ -1,0 +1,308 @@
+name: License Metrics and Compliance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    # Run license checks weekly
+    - cron: '0 4 * * 1'
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # License Scanning and Analysis
+  license-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+    - name: Install dependencies
+      run: npm ci
+    - name: Run license-checker
+      run: |
+        npx license-checker --production --csv --excludePrivatePackages > license-report.csv
+        npx license-checker --production --json --excludePrivatePackages > license-report.json
+    - name: Analyze license compliance
+      run: |
+        # Check for forbidden licenses
+        FORBIDDEN_LICENSES=("GPL" "LGPL" "AGPL" "MS-PL" "WTFPL" "BSD-4-Clause" "CC-BY-NC")
+
+        echo "Scanning for forbidden licenses..."
+        VIOLATIONS=0
+
+        for license in "${FORBIDDEN_LICENSES[@]}"; do
+          COUNT=$(grep -c "$license" license-report.csv || echo "0")
+          if [ "$COUNT" -gt 0 ]; then
+            echo "❌ Found $COUNT packages with forbidden license: $license"
+            VIOLATIONS=$((VIOLATIONS + COUNT))
+          fi
+        done
+
+        if [ "$VIOLATIONS" -gt 0 ]; then
+          echo "❌ License compliance failed: $VIOLATIONS violations found"
+          exit 1
+        else
+          echo "✅ License compliance passed"
+        fi
+    - name: Generate license metrics
+      run: |
+        # Calculate license distribution
+        TOTAL_PACKAGES=$(wc -l < license-report.csv)
+        TOTAL_PACKAGES=$((TOTAL_PACKAGES - 1)) # Subtract header
+
+        # Count licenses
+        MIT_COUNT=$(grep -c "MIT" license-report.csv || echo "0")
+        ISC_COUNT=$(grep -c "ISC" license-report.csv || echo "0")
+        APACHE_COUNT=$(grep -c "Apache" license-report.csv || echo "0")
+        BSD_COUNT=$(grep -c "BSD" license-report.csv || echo "0")
+
+        # Generate metrics JSON
+        cat > license-metrics.json << EOF
+        {
+          "timestamp": "$(date -Iseconds)",
+          "total_packages": $TOTAL_PACKAGES,
+          "license_distribution": {
+            "MIT": $MIT_COUNT,
+            "ISC": $ISC_COUNT,
+            "Apache": $APACHE_COUNT,
+            "BSD": $BSD_COUNT
+          },
+          "compliance_status": "passed",
+          "scan_type": "automated"
+        }
+        EOF
+    - name: Upload license reports
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-reports
+        path: |
+          license-report.csv
+          license-report.json
+          license-metrics.json
+
+  # SPDX SBOM Generation
+  spdx-sbom:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Install dependencies
+      run: npm ci
+    - name: Generate SPDX SBOM
+      uses: anchore/sbom-action@v0
+      with:
+        path: '.'
+        format: 'spdx-json'
+        output-file: './sbom.spdx.json'
+    - name: Validate SPDX SBOM
+      run: |
+        # Basic validation of SPDX format
+        if ! jq -e '.SPDXID' sbom.spdx.json > /dev/null; then
+          echo "❌ Invalid SPDX SBOM format"
+          exit 1
+        fi
+
+        PACKAGE_COUNT=$(jq '.packages | length' sbom.spdx.json)
+        echo "✅ SPDX SBOM generated with $PACKAGE_COUNT packages"
+    - name: Upload SPDX SBOM
+      uses: actions/upload-artifact@v3
+      with:
+        name: spdx-sbom
+        path: sbom.spdx.json
+
+  # FOSS License Attribution
+  foss-attribution:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+    - name: Install dependencies
+      run: npm ci
+    - name: Generate FOSS attribution document
+      run: |
+        # Create FOSS attribution document
+        cat > FOSS_ATTRIBUTION.md << 'EOF'
+        # FOSS License Attribution
+
+        This document lists all Free and Open Source Software (FOSS) components used in NAVΛ Studio IDE.
+
+        ## Dependencies
+
+        EOF
+
+        # Parse license report and generate attribution
+        tail -n +2 license-report.csv | while IFS=, read -r package version license url; do
+          echo "### $package@$version" >> FOSS_ATTRIBUTION.md
+          echo "- **License:** $license" >> FOSS_ATTRIBUTION.md
+          echo "- **URL:** $url" >> FOSS_ATTRIBUTION.md
+          echo "" >> FOSS_ATTRIBUTION.md
+        done
+
+        cat >> FOSS_ATTRIBUTION.md << 'EOF'
+
+        ## License Texts
+
+        For the complete license texts of all dependencies, please refer to the `licenses` directory
+        or run `npm run licenses` to generate detailed license information.
+
+        ---
+
+        *This document was automatically generated on $(date)*
+        EOF
+    - name: Upload FOSS attribution
+      uses: actions/upload-artifact@v3
+      with:
+        name: foss-attribution
+        path: FOSS_ATTRIBUTION.md
+
+  # License Risk Assessment
+  license-risk-assessment:
+    runs-on: ubuntu-latest
+    needs: license-scan
+    steps:
+    - name: Download license reports
+      uses: actions/download-artifact@v3
+      with:
+        name: license-reports
+    - name: Assess license risks
+      run: |
+        # Risk assessment logic
+        HIGH_RISK_LICENSES=("GPL" "LGPL" "AGPL" "CC-BY-NC" "MS-PL")
+        MEDIUM_RISK_LICENSES=("BSD-4-Clause" "WTFPL" "Beerware")
+        LOW_RISK_LICENSES=("MIT" "ISC" "BSD-2-Clause" "BSD-3-Clause" "Apache-2.0")
+
+        HIGH_RISK_COUNT=0
+        MEDIUM_RISK_COUNT=0
+        LOW_RISK_COUNT=0
+
+        # Count risks
+        for license in "${HIGH_RISK_LICENSES[@]}"; do
+          COUNT=$(grep -c "$license" license-report.csv || echo "0")
+          HIGH_RISK_COUNT=$((HIGH_RISK_COUNT + COUNT))
+        done
+
+        for license in "${MEDIUM_RISK_LICENSES[@]}"; do
+          COUNT=$(grep -c "$license" license-report.csv || echo "0")
+          MEDIUM_RISK_COUNT=$((MEDIUM_RISK_COUNT + COUNT))
+        done
+
+        for license in "${LOW_RISK_LICENSES[@]}"; do
+          COUNT=$(grep -c "$license" license-report.csv || echo "0")
+          LOW_RISK_COUNT=$((LOW_RISK_COUNT + COUNT))
+        done
+
+        # Generate risk report
+        cat > license-risk-report.json << EOF
+        {
+          "assessment_date": "$(date -Iseconds)",
+          "risk_levels": {
+            "high_risk": $HIGH_RISK_COUNT,
+            "medium_risk": $MEDIUM_RISK_COUNT,
+            "low_risk": $LOW_RISK_COUNT
+          },
+          "recommendations": [
+            "Regular license audits recommended",
+            "Consider license compatibility matrix",
+            "Review high-risk license usage"
+          ]
+        }
+        EOF
+
+        # Determine overall risk level
+        if [ "$HIGH_RISK_COUNT" -gt 0 ]; then
+          RISK_LEVEL="HIGH"
+        elif [ "$MEDIUM_RISK_COUNT" -gt 5 ]; then
+          RISK_LEVEL="MEDIUM"
+        else
+          RISK_LEVEL="LOW"
+        fi
+
+        echo "License risk level: $RISK_LEVEL"
+        echo "RISK_LEVEL=$RISK_LEVEL" >> $GITHUB_ENV
+    - name: Upload risk assessment
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-risk-assessment
+        path: license-risk-report.json
+
+  # License Metrics Dashboard
+  license-dashboard:
+    runs-on: ubuntu-latest
+    needs: [license-scan, spdx-sbom, foss-attribution, license-risk-assessment]
+    if: always()
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Download all license artifacts
+      uses: actions/download-artifact@v3
+    - name: Generate license dashboard
+      run: |
+        echo "# License Compliance Dashboard" > license-dashboard.md
+        echo "" >> license-dashboard.md
+        echo "## Compliance Status" >> license-dashboard.md
+        echo "- License Scan: ${{ needs.license-scan.result }}" >> license-dashboard.md
+        echo "- SPDX SBOM: ${{ needs.spdx-sbom.result }}" >> license-dashboard.md
+        echo "- FOSS Attribution: ${{ needs.foss-attribution.result }}" >> license-dashboard.md
+        echo "- Risk Assessment: ${{ needs.license-risk-assessment.result }}" >> license-dashboard.md
+        echo "" >> license-dashboard.md
+
+        # Add metrics from license-metrics.json
+        if [ -f "license-metrics.json" ]; then
+          TOTAL_PACKAGES=$(jq '.total_packages' license-metrics.json)
+          MIT_COUNT=$(jq '.license_distribution.MIT' license-metrics.json)
+          echo "## License Metrics" >> license-dashboard.md
+          echo "- Total Packages: $TOTAL_PACKAGES" >> license-dashboard.md
+          echo "- MIT Licensed: $MIT_COUNT" >> license-dashboard.md
+          echo "" >> license-dashboard.md
+        fi
+
+        # Add risk assessment
+        if [ -f "license-risk-report.json" ]; then
+          HIGH_RISK=$(jq '.risk_levels.high_risk' license-risk-report.json)
+          MEDIUM_RISK=$(jq '.risk_levels.medium_risk' license-risk-report.json)
+          LOW_RISK=$(jq '.risk_levels.low_risk' license-risk-report.json)
+
+          echo "## Risk Assessment" >> license-dashboard.md
+          echo "- High Risk Licenses: $HIGH_RISK" >> license-dashboard.md
+          echo "- Medium Risk Licenses: $MEDIUM_RISK" >> license-dashboard.md
+          echo "- Low Risk Licenses: $LOW_RISK" >> license-dashboard.md
+          echo "" >> license-dashboard.md
+        fi
+
+        echo "## Generated: $(date)" >> license-dashboard.md
+    - name: Upload license dashboard
+      uses: actions/upload-artifact@v3
+      with:
+        name: license-dashboard
+        path: license-dashboard.md
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const fs = require('fs');
+          const dashboard = fs.readFileSync('license-dashboard.md', 'utf8');
+
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: dashboard
+          });

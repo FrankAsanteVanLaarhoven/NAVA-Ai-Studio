@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { availableWidgets, type Widget } from './index';
 import './WidgetManager.css';
 
@@ -15,11 +15,28 @@ interface WidgetManagerProps {
 }
 
 export const WidgetManager: React.FC<WidgetManagerProps> = ({ onClose }) => {
-  const [openWidgets, setOpenWidgets] = useState<OpenWidget[]>([]);
+  const [openWidgets, setOpenWidgets] = useState<OpenWidget[]>(() => {
+    // Load saved widget positions from localStorage
+    const savedWidgets = localStorage.getItem('navlambda-widgets');
+    return savedWidgets ? JSON.parse(savedWidgets) : [];
+  });
   const [nextZIndex, setNextZIndex] = useState(1000);
   const [showWidgetPicker, setShowWidgetPicker] = useState(false);
 
+  // Save widget positions to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('navlambda-widgets', JSON.stringify(openWidgets));
+  }, [openWidgets]);
+
   const openWidget = (widget: Widget) => {
+    // Check if widget is already open
+    const existingWidget = openWidgets.find(w => w.widgetId === widget.id);
+    if (existingWidget) {
+      // Bring existing widget to front
+      bringToFront(existingWidget.id);
+      return;
+    }
+
     const newWidget: OpenWidget = {
       id: `${widget.id}-${Date.now()}`,
       widgetId: widget.id,

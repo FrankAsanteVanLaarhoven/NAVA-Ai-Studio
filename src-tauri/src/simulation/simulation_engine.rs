@@ -149,6 +149,242 @@ impl SimulatorAdapter for CarlaAdapter {
         self.vehicles.clear();
         Ok(())
     }
+pub struct IsaacSimAdapter {
+    host: String,
+    port: u16,
+    client: Option<reqwest::Client>,
+    robots: std::collections::HashMap<String, VehicleState>,
+}
+
+impl IsaacSimAdapter {
+    pub fn new(host: String, port: u16) -> Self {
+        IsaacSimAdapter {
+            host,
+            port,
+            client: None,
+            robots: std::collections::HashMap::new(),
+        }
+    }
+}
+
+impl SimulatorAdapter for IsaacSimAdapter {
+    async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        println!("Initializing Isaac Sim adapter at {}:{}", self.host, self.port);
+
+        // Check if Isaac Sim is running
+        let output = Command::new("pgrep")
+            .arg("-f")
+            .arg("isaac-sim")
+            .output()
+            .await?;
+
+        if !output.status.success() || String::from_utf8_lossy(&output.stdout).trim().is_empty() {
+            println!("Isaac Sim not running - starting it...");
+            Command::new("bash")
+                .arg("-c")
+                .arg(format!("cd /isaac-sim && ./python.sh -m omni.isaac.kit --port={}", self.port))
+                .spawn()?;
+
+            // Wait for startup
+            tokio::time::sleep(Duration::from_secs(15)).await;
+        }
+
+        self.client = Some(reqwest::Client::new());
+        println!("Isaac Sim adapter initialized successfully");
+        Ok(())
+    }
+
+    async fn spawn_vehicle(&mut self, robot_type: &str, position: [f32; 3]) -> Result<String, Box<dyn std::error::Error>> {
+        let robot_id = format!("robot_{}_{}", robot_type, self.robots.len());
+
+        let robot_state = VehicleState {
+            id: robot_id.clone(),
+            position,
+            rotation: [0.0, 0.0, 0.0],
+            velocity: [0.0, 0.0, 0.0],
+        };
+
+        self.robots.insert(robot_id.clone(), robot_state);
+
+        // In a real implementation, this would send commands to Isaac Sim
+        println!("Spawned {} robot at position {:?}", robot_type, position);
+
+        Ok(robot_id)
+    }
+
+    async fn control_vehicle(&mut self, robot_id: &str, joint1: f32, joint2: f32, joint3: f32) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(robot) = self.robots.get_mut(robot_id) {
+            // Update robot joint positions (simplified)
+            robot.rotation[0] = joint1;
+            robot.rotation[1] = joint2;
+            robot.rotation[2] = joint3;
+            println!("Controlling robot {}: joints={}, {}, {}", robot_id, joint1, joint2, joint3);
+        }
+        Ok(())
+    }
+
+    async fn get_vehicle_state(&self, robot_id: &str) -> Result<VehicleState, Box<dyn std::error::Error>> {
+        if let Some(robot) = self.robots.get(robot_id) {
+            Ok(robot.clone())
+        } else {
+            Err(format!("Robot {} not found", robot_id).into())
+        }
+    }
+
+    async fn get_sensor_data(&self, robot_id: &str, sensor_type: &str) -> Result<SensorData, Box<dyn std::error::Error>> {
+        // Mock sensor data for robotics
+        let data = match sensor_type {
+            "camera" => vec![255; 640 * 480 * 3], // RGB image
+            "force_torque" => vec![0; 6 * 4], // Force/torque data (6 floats)
+            _ => vec![0; 100],
+        };
+
+        Ok(SensorData {
+            sensor_type: sensor_type.to_string(),
+            data,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        })
+    }
+
+    async fn step(&mut self, delta_time: f32) -> Result<(), Box<dyn std::error::Error>> {
+        // Update robot states
+        for robot in self.robots.values_mut() {
+            // Simple joint movement simulation
+            robot.rotation[0] += delta_time * 0.1;
+            robot.rotation[1] += delta_time * 0.05;
+        }
+        Ok(())
+    }
+
+    async fn shutdown(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        println!("Shutting down Isaac Sim adapter");
+        self.robots.clear();
+        Ok(())
+    }
+}
+
+pub struct GazeboAdapter {
+    host: String,
+    port: u16,
+    client: Option<reqwest::Client>,
+    models: std::collections::HashMap<String, VehicleState>,
+}
+
+impl GazeboAdapter {
+    pub fn new(host: String, port: u16) -> Self {
+        GazeboAdapter {
+            host,
+            port,
+            client: None,
+            models: std::collections::HashMap::new(),
+        }
+    }
+}
+
+impl SimulatorAdapter for GazeboAdapter {
+    async fn initialize(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        println!("Initializing Gazebo adapter at {}:{}", self.host, self.port);
+
+        // Check if Gazebo is running
+        let output = Command::new("pgrep")
+            .arg("-f")
+            .arg("gzserver")
+            .output()
+            .await?;
+
+        if !output.status.success() || String::from_utf8_lossy(&output.stdout).trim().is_empty() {
+            println!("Gazebo not running - starting it...");
+            Command::new("gzserver")
+                .arg("--verbose")
+                .spawn()?;
+
+            // Wait for startup
+            tokio::time::sleep(Duration::from_secs(10)).await;
+        }
+
+        self.client = Some(reqwest::Client::new());
+        println!("Gazebo adapter initialized successfully");
+        Ok(())
+    }
+
+    async fn spawn_vehicle(&mut self, model_type: &str, position: [f32; 3]) -> Result<String, Box<dyn std::error::Error>> {
+        let model_id = format!("model_{}_{}", model_type, self.models.len());
+
+        let model_state = VehicleState {
+            id: model_id.clone(),
+            position,
+            rotation: [0.0, 0.0, 0.0],
+            velocity: [0.0, 0.0, 0.0],
+        };
+
+        self.models.insert(model_id.clone(), model_state);
+
+        // In a real implementation, this would spawn a model in Gazebo
+        println!("Spawned {} model at position {:?}", model_type, position);
+
+        Ok(model_id)
+    }
+
+    async fn control_vehicle(&mut self, model_id: &str, linear_x: f32, linear_y: f32, angular_z: f32) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(model) = self.models.get_mut(model_id) {
+            // Update model velocity (simplified)
+            model.velocity[0] = linear_x;
+            model.velocity[1] = linear_y;
+            model.rotation[2] = angular_z;
+            println!("Controlling model {}: linear_x={}, linear_y={}, angular_z={}", model_id, linear_x, linear_y, angular_z);
+        }
+        Ok(())
+    }
+
+    async fn get_vehicle_state(&self, model_id: &str) -> Result<VehicleState, Box<dyn std::error::Error>> {
+        if let Some(model) = self.models.get(model_id) {
+            Ok(model.clone())
+        } else {
+            Err(format!("Model {} not found", model_id).into())
+        }
+    }
+
+    async fn get_sensor_data(&self, model_id: &str, sensor_type: &str) -> Result<SensorData, Box<dyn std::error::Error>> {
+        // Mock sensor data for ROS/Gazebo
+        let data = match sensor_type {
+            "laser" => vec![0; 360 * 4], // Laser scan data
+            "imu" => vec![0; 9 * 4], // IMU data (accel, gyro, orientation)
+            _ => vec![0; 100],
+        };
+
+        Ok(SensorData {
+            sensor_type: sensor_type.to_string(),
+            data,
+            timestamp: std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_secs(),
+        })
+    }
+
+    async fn step(&mut self, delta_time: f32) -> Result<(), Box<dyn std::error::Error>> {
+        // Update model positions based on velocity
+        for model in self.models.values_mut() {
+            model.position[0] += model.velocity[0] * delta_time;
+            model.position[1] += model.velocity[1] * delta_time;
+            model.rotation[2] += model.velocity[2] * delta_time;
+
+            // Apply friction
+            model.velocity[0] *= 0.98;
+            model.velocity[1] *= 0.98;
+            model.velocity[2] *= 0.95;
+        }
+        Ok(())
+    }
+
+    async fn shutdown(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        println!("Shutting down Gazebo adapter");
+        self.models.clear();
+        Ok(())
+    }
 }
 
 pub struct SimulationEngine {
