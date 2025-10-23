@@ -433,15 +433,7 @@ function App() {
         </div>
       </div>
 
-      {/* AI Pane Overlay - Fixed at bottom, above status bar */}
-      {showAIPane && (
-        <div className={`ai-pane-overlay ${showAIPane ? 'visible' : 'hidden'}`}>
-          <div className="ai-pane-resize-handle" />
-          <div className="ai-pane-container">
-            <AIPanePanel />
-          </div>
-        </div>
-      )}
+
 
       <StatusBar
         line={cursorLine}
