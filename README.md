@@ -7,7 +7,20 @@
 [![React](https://img.shields.io/badge/React-18.3+-61DAFB.svg)](https://react.dev/)
 [![Tauri](https://img.shields.io/badge/Tauri-1.6+-FFC131.svg)](https://tauri.app/)
 
-## 🤖 NEW: Free ROS Learning Courses + Live Terminal!
+## 🔷 NEW: ROBOTIS-SYSTEMIC Integration (Univarm Platform)
+
+**NAVΛ Studio now includes full integration with ROBOTIS-SYSTEMIC (Univarm)** - a Fortune-500/IPO-grade robotics control and trust platform!
+
+- ✅ **WebXR Robot Control** - XR Bench interface with virtual joystick and haptics
+- ✅ **Digital Twin** - Kobuki (TurtleBot2) robot simulation
+- ✅ **Trust & Security** - Ed25519 signatures, SBOM, attestations, evidence packs
+- ✅ **Real-Time Telemetry** - SSE streaming, Prometheus metrics, live charts
+- ✅ **Enterprise Features** - RBAC, audit trails, command palette
+- ✅ **One Command Start** - `./start-robotis-system.sh` launches everything
+
+**📚 [Integration Quick Start](START_ROBOTIS.md)** | **📖 [Complete Guide](ROBOTIS_INTEGRATION_COMPLETE.md)** | **✅ [Status](INTEGRATION_STATUS.md)**
+
+## 🤖 FREE: ROS Learning Courses + Live Terminal
 
 **NAVΛ Studio now includes comprehensive, free ROS (Robot Operating System) education with a FULLY FUNCTIONAL TERMINAL!**
 
