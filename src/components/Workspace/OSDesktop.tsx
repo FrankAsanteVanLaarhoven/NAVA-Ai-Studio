@@ -55,6 +55,7 @@ export const OSDesktop: React.FC = () => {
   ];
 
   // Dock apps matching screenshot exactly: House, Factory, Lambda, Folder, Books, Robot, Monitor, Globe, Grid (9 icons)
+  // Added Univarm Starter (⚡) as 10th icon
   const dockApps = [
     { id: 'home', icon: '🏠', name: 'Home', route: '/app.html?activity=workspace', description: 'NAVA OS Desktop - Main Hub' },
     { id: 'factory', icon: '🏭', name: 'Factory', route: '/app.html?activity=simulation', description: 'Simulation & Factory Tools' },
@@ -64,6 +65,7 @@ export const OSDesktop: React.FC = () => {
     { id: 'robot', icon: '🤖', name: 'Simulation', route: '/app.html?activity=simulation', description: 'Robot Simulation' },
     { id: 'monitor', icon: '🖥️', name: 'CLI', route: '/app.html?activity=explorer', description: 'Command Line Interface' },
     { id: 'globe', icon: '🌐', name: 'Browser', route: '/app.html', description: 'Web Browser' },
+    { id: 'univarm-starter', icon: '⚡', name: 'Univarm ⋋', route: '/app.html?activity=univarm-starter', description: 'Path Optimizer & Code Generator' },
     { id: 'grid', icon: '⊞', name: 'Extensions', route: '/app.html?activity=extensions', description: 'Extensions Manager' },
   ];
 

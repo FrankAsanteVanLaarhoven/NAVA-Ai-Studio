@@ -1,0 +1,72 @@
+{
+  "version": 1,
+  "groups": [
+    {
+      "name": "Optimization",
+      "actions": [
+        {
+          "id": "lambda-optimal-path",
+          "title": "Find optimal path (\u22cb)",
+          "prefix": "\u03bbopt",
+          "template": "optimal_route\u22cb \u2190 \u22cb(minimize ${objective} from ${start} to ${goal} subject to ${constraints})",
+          "params": [
+            "objective",
+            "start",
+            "goal",
+            "constraints"
+          ]
+        },
+        {
+          "id": "lambda-grad",
+          "title": "Gradient (\u2207\u22cb)",
+          "prefix": "\u03bbgrad",
+          "template": "gradient\u22cb \u2190 \u2207\u22cb${fn}",
+          "params": [
+            "fn"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Codegen",
+      "actions": [
+        {
+          "id": "lambda-build-ts",
+          "title": "Compile \u2192 TypeScript",
+          "prefix": "\u03bbts",
+          "template": "!codegen target=typescript file=${file}",
+          "params": [
+            "file"
+          ]
+        },
+        {
+          "id": "lambda-build-rs",
+          "title": "Compile \u2192 Rust",
+          "prefix": "\u03bbrs",
+          "template": "!codegen target=rust file=${file}",
+          "params": [
+            "file"
+          ]
+        },
+        {
+          "id": "lambda-build-cpp",
+          "title": "Compile \u2192 C++",
+          "prefix": "\u03bbcpp",
+          "template": "!codegen target=cpp file=${file}",
+          "params": [
+            "file"
+          ]
+        },
+        {
+          "id": "lambda-build-py",
+          "title": "Compile \u2192 Python",
+          "prefix": "\u03bbpy",
+          "template": "!codegen target=python file=${file}",
+          "params": [
+            "file"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+⋋-language NAVΛ
+
+module Univarm.Navigation
+
+let start⋋ ← Point3D⋋(0.0,0.0,0.0)
+let goal⋋  ← Point3D⋋(5.0,5.0,5.0)
+
+let path⋋ ← ⋋(
+  minimize energy_cost from start⋋ to goal⋋
+  subject to obstacle_constraints⋋
+)
+
+let gradient⋋ ← ∇⋋energy_cost
+
+export path⋋, gradient⋋
