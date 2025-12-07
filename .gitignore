@@ -47,3 +47,14 @@ coverage/
 wasm-preview/pkg/
 wasm-preview/target/
 
+# Next.js build artifacts
+.next/
+*.next
+next-env.d.ts
+
+# Vercel
+vercel.json
+
+# Desktop apps
+apps/
+desktop/
