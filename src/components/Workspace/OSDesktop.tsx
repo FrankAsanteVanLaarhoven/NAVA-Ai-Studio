@@ -39,6 +39,13 @@ export const OSDesktop: React.FC = () => {
   const [hoveredDockApp, setHoveredDockApp] = useState<string | null>(null);
   const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
+  // ROBOTIS & Univarm Featured Apps (shown prominently)
+  const robotisApps: AppIcon[] = [
+    { id: 'robotis-systemic', name: 'ROBOTIS-SYSTEMIC', icon: '🔷', color: '#3b82f6', route: 'http://localhost:3000', onClick: () => window.open('http://localhost:3000', '_blank') },
+    { id: 'univarm-starter', name: 'Univarm Starter', icon: '⚡', color: '#facc15', route: '/app.html?activity=univarm-starter' },
+    { id: 'univarm-advanced', name: 'Univarm Advanced', icon: '🦀', color: '#f97316', route: '/app.html?activity=univarm-advanced' },
+  ];
+
   const desktopApps: AppIcon[] = [
     { id: 'record', name: 'Record', icon: '🔴', color: '#ef4444', route: '/app.html?activity=simulation' },
     { id: 'camera', name: 'Camera', icon: '📷', route: '/app.html?activity=simulation' },
@@ -710,6 +717,66 @@ export const OSDesktop: React.FC = () => {
             </div>
           </div>
 
+          {/* ROBOTIS & Univarm Featured Section */}
+          <div className="robotis-featured-section" style={{ 
+            padding: '24px', 
+            marginBottom: '24px',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%)',
+            border: '2px solid rgba(59, 130, 246, 0.4)',
+            borderRadius: '16px',
+            boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)'
+          }}>
+            <h2 style={{ 
+              margin: '0 0 20px 0', 
+              fontSize: '24px', 
+              fontWeight: '700',
+              color: '#a7f3d0',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '12px'
+            }}>
+              <span style={{ fontSize: '32px' }}>🤖</span>
+              ROBOTIS & Univarm Systems
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              {robotisApps.map((app) => (
+                <button
+                  key={app.id}
+                  onClick={() => app.onClick ? app.onClick() : handleAppClick(app)}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(14, 20, 28, 0.95) 0%, rgba(10, 15, 26, 0.95) 100%)',
+                    border: `2px solid ${app.color || '#3b82f6'}`,
+                    borderRadius: '12px',
+                    padding: '24px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'center',
+                  }}
+                  className="robotis-app-button"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 12px 24px ${app.color}40`;
+                    e.currentTarget.style.borderColor = app.color || '#3b82f6';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ fontSize: '56px', marginBottom: '12px' }}>{app.icon}</div>
+                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#e6f1ff', marginBottom: '8px' }}>
+                    {app.name}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#a9c1db', lineHeight: '1.4' }}>
+                    {app.id === 'robotis-systemic' ? 'Enterprise Robot Control Platform' : 
+                     app.id === 'univarm-starter' ? 'Multi-Language Code Generation' :
+                     'Real-Time Path Planning & SSE'}
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+
           {/* Blueprint Canvas/Grid Area */}
           <div className="blueprint-canvas">
             <div className="canvas-grid">
@@ -734,6 +801,59 @@ export const OSDesktop: React.FC = () => {
                 <circle cx="350" cy="300" r="5" fill="#3b82f6" />
                 <circle cx="600" cy="500" r="5" fill="#22c55e" />
               </svg>
+            </div>
+          </div>
+
+          {/* ROBOTIS & Univarm Featured Section */}
+          <div className="robotis-featured-section" style={{ 
+            padding: '24px', 
+            marginBottom: '24px',
+            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%)',
+            border: '1px solid rgba(59, 130, 246, 0.3)',
+            borderRadius: '16px'
+          }}>
+            <h2 style={{ 
+              margin: '0 0 16px 0', 
+              fontSize: '20px', 
+              fontWeight: '600',
+              color: '#a7f3d0'
+            }}>
+              🤖 ROBOTIS & Univarm Systems
+            </h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
+              {robotisApps.map((app) => (
+                <button
+                  key={app.id}
+                  onClick={() => app.onClick ? app.onClick() : handleAppClick(app)}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(14, 20, 28, 0.9) 0%, rgba(10, 15, 26, 0.9) 100%)',
+                    border: `2px solid ${app.color || '#3b82f6'}`,
+                    borderRadius: '12px',
+                    padding: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    textAlign: 'center',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-4px)';
+                    e.currentTarget.style.boxShadow = `0 8px 16px rgba(59, 130, 246, 0.3)`;
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'none';
+                  }}
+                >
+                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>{app.icon}</div>
+                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#e6f1ff', marginBottom: '4px' }}>
+                    {app.name}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#88a2bf' }}>
+                    {app.id === 'robotis-systemic' ? 'WebXR Control Platform' : 
+                     app.id === 'univarm-starter' ? 'Path Optimization & Codegen' :
+                     'Production Path Planning'}
+                  </div>
+                </button>
+              ))}
             </div>
           </div>
 
