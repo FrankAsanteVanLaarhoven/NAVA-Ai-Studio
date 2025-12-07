@@ -882,63 +882,109 @@ export const OSDesktop: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Dock - 9 icons */}
-      <div className="desktop-dock" style={{ display: 'flex', visibility: 'visible', opacity: 1 }}>
-        {dockApps.map((app, index) => {
-          console.log(`[OS DESKTOP] Rendering dock icon ${index + 1}/${dockApps.length}: ${app.name}`);
-          return (
-            <div
-              key={app.id}
-              className={`dock-icon ${activeDockApp === app.id ? 'active' : ''} ${hoveredDockApp === app.id ? 'hovered' : ''}`}
-              title={app.name}
-              style={{ display: 'flex', visibility: 'visible', opacity: 1, cursor: 'pointer' }}
-              onClick={(e) => {
-                console.log(`[DOCK] Click detected on: ${app.name}`);
-                handleDockClick(app, e);
-              }}
-              onMouseDown={(e) => {
-                console.log(`[DOCK] MouseDown on: ${app.name}`);
-              }}
-              onMouseEnter={() => {
-                setHoveredDockApp(app.id);
-                console.log(`[DOCK] MouseEnter: ${app.name}`);
-              }}
-              onMouseLeave={() => {
-                setHoveredDockApp(null);
-              }}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  console.log(`[DOCK] Keyboard activation: ${app.name}`);
-                  handleDockClick(app, e);
-                }
-              }}
-            >
-            <div className="dock-icon-badge">
-              <span className="dock-icon-emoji">{app.icon}</span>
-            </div>
-            {activeDockApp === app.id && <div className="dock-active-indicator" />}
-            <div className="dock-tooltip">{app.name}</div>
+      {/* Bottom Container - Separated sections */}
+      <div className="desktop-bottom-container" style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 1000,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 0,
+        pointerEvents: 'none'
+      }}>
+        {/* Dock Section - Circular icons */}
+        <div className="desktop-dock-wrapper" style={{
+          background: 'rgba(10, 15, 26, 0.85)',
+          backdropFilter: 'blur(20px)',
+          borderTop: '1px solid rgba(59, 130, 246, 0.3)',
+          padding: '8px 0',
+          pointerEvents: 'auto'
+        }}>
+          <div className="desktop-dock" style={{ 
+            display: 'flex', 
+            justifyContent: 'center',
+            alignItems: 'center',
+            gap: '8px',
+            visibility: 'visible', 
+            opacity: 1,
+            padding: '4px 16px'
+          }}>
+            {dockApps.map((app, index) => {
+              console.log(`[OS DESKTOP] Rendering dock icon ${index + 1}/${dockApps.length}: ${app.name}`);
+              return (
+                <div
+                  key={app.id}
+                  className={`dock-icon ${activeDockApp === app.id ? 'active' : ''} ${hoveredDockApp === app.id ? 'hovered' : ''}`}
+                  title={app.name}
+                  style={{ 
+                    display: 'flex', 
+                    visibility: 'visible', 
+                    opacity: 1, 
+                    cursor: 'pointer',
+                    position: 'relative'
+                  }}
+                  onClick={(e) => {
+                    console.log(`[DOCK] Click detected on: ${app.name}`);
+                    handleDockClick(app, e);
+                  }}
+                  onMouseDown={(e) => {
+                    console.log(`[DOCK] MouseDown on: ${app.name}`);
+                  }}
+                  onMouseEnter={() => {
+                    setHoveredDockApp(app.id);
+                    console.log(`[DOCK] MouseEnter: ${app.name}`);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredDockApp(null);
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      console.log(`[DOCK] Keyboard activation: ${app.name}`);
+                      handleDockClick(app, e);
+                    }
+                  }}
+                >
+                  <div className="dock-icon-badge">
+                    <span className="dock-icon-emoji">{app.icon}</span>
+                  </div>
+                  {activeDockApp === app.id && <div className="dock-active-indicator" />}
+                  <div className="dock-tooltip">{app.name}</div>
+                </div>
+              );
+            })}
           </div>
-          );
-        })}
-      </div>
+        </div>
 
-      {/* Bottom Status Bar */}
-      <div className="desktop-status-bar">
-        <div className="status-bar-left">
-          <span className="status-icon">💡</span>
-          <span className="status-icon">⚙️</span>
-        </div>
-        <div className="status-bar-center">
-          <span className="status-time">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
-          <span className="status-date">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
-        </div>
-        <div className="status-bar-right">
-          <span className="status-language">EN</span>
-          <span className="status-icon">⚡</span>
+        {/* Status Bar Section - Separated below dock */}
+        <div className="desktop-status-bar" style={{
+          background: 'rgba(6, 10, 18, 0.95)',
+          backdropFilter: 'blur(10px)',
+          borderTop: '1px solid rgba(59, 130, 246, 0.2)',
+          height: '32px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '0 16px',
+          fontSize: '12px',
+          pointerEvents: 'auto'
+        }}>
+          <div className="status-bar-left" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span className="status-icon">💡</span>
+            <span className="status-icon">⚙️</span>
+          </div>
+          <div className="status-bar-center" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <span className="status-time">{new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+            <span className="status-date">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' })}</span>
+          </div>
+          <div className="status-bar-right" style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+            <span className="status-language">EN</span>
+            <span className="status-icon">⚡</span>
+          </div>
         </div>
       </div>
 
