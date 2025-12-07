@@ -1,0 +1,32 @@
+syntax = "proto3";
+package univarm.drive;
+
+message Pose2 {
+  double x = 1;
+  double y = 2;
+  double yaw = 3;
+}
+
+message SolvePathRequest {
+  Pose2 start = 1;
+  Pose2 goal = 2;
+  repeated string objectives = 3;
+}
+
+message PathPoint {
+  double x = 1;
+  double y = 2;
+  double curvature = 3;
+}
+
+message SolvePathResponse {
+  repeated PathPoint points = 1;
+  double length = 2;
+  string planner_id = 3;
+  double risk_max = 4;
+  string preset = 5;
+}
+
+service Drive {
+  rpc SolvePath(SolvePathRequest) returns (SolvePathResponse);
+}

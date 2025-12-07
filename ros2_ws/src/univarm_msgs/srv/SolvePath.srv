@@ -1,0 +1,7 @@
+geometry_msgs/PoseStamped start
+geometry_msgs/PoseStamped goal
+string[] objectives
+---
+bool ok
+nav_msgs/Path path
+univarm_msgs/PathWithMeta meta

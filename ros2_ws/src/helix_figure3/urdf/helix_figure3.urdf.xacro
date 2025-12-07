@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<robot name="helix_figure3" xmlns:xacro="http://www.ros.org/wiki/xacro">
+  <!-- Simplified humanoid skeleton for IK/trajectory demos -->
+  <link name="base_link"/>
+  <link name="pelvis"/>
+  <joint name="pelvis_joint" type="fixed">
+    <parent link="base_link"/><child link="pelvis"/>
+  </joint>
+
+  <link name="torso"/>
+  <joint name="waist_yaw" type="revolute">
+    <origin xyz="0 0 0.9" rpy="0 0 0"/>
+    <parent link="pelvis"/><child link="torso"/>
+    <axis xyz="0 0 1"/><limit lower="-1.57" upper="1.57" effort="50" velocity="2"/>
+  </joint>
+
+  <!-- Arms (6-DoF each, simplified) -->
+  <link name="l_shoulder"/><joint name="l_shoulder_pitch" type="revolute">
+    <origin xyz="0.0 0.15 1.1" rpy="0 0 0"/><parent link="torso"/><child link="l_shoulder"/>
+    <axis xyz="1 0 0"/><limit lower="-2.0" upper="2.0" effort="50" velocity="3"/>
+  </joint>
+  <link name="l_upperarm"/><joint name="l_shoulder_yaw" type="revolute">
+    <origin xyz="0 0 0" rpy="0 0 0"/><parent link="l_shoulder"/><child link="l_upperarm"/>
+    <axis xyz="0 0 1"/><limit lower="-2.0" upper="2.0" effort="50" velocity="3"/>
+  </joint>
+  <link name="l_forearm"/><joint name="l_elbow_pitch" type="revolute">
+    <origin xyz="0.25 0 0" rpy="0 0 0"/><parent link="l_upperarm"/><child link="l_forearm"/>
+    <axis xyz="1 0 0"/><limit lower="-2.0" upper="2.0" effort="50" velocity="3"/>
+  </joint>
+  <link name="l_wrist"/><joint name="l_wrist_yaw" type="revolute">
+    <origin xyz="0.25 0 0" rpy="0 0 0"/><parent link="l_forearm"/><child link="l_wrist"/>
+    <axis xyz="0 0 1"/><limit lower="-2.0" upper="2.0" effort="30" velocity="3"/>
+  </joint>
+  <link name="l_ee"/>
+  <joint name="l_wrist_pitch" type="revolute">
+    <origin xyz="0.05 0 0" rpy="0 0 0"/><parent link="l_wrist"/><child link="l_ee"/>
+    <axis xyz="1 0 0"/><limit lower="-2.0" upper="2.0" effort="30" velocity="3"/>
+  </joint>
+
+  <!-- Right arm symmetrical (names r_*) omitted for brevity; copy in production -->
+
+</robot>
