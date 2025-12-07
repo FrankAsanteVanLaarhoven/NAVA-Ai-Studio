@@ -77,6 +77,13 @@ export function getAllApps(): AppManifest[] {
 }
 
 /**
+ * List all apps (alias for getAllApps)
+ */
+export function list(): AppManifest[] {
+  return getAllApps();
+}
+
+/**
  * Get apps by category
  */
 export function getAppsByCategory(category: string): AppManifest[] {
