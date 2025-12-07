@@ -1,0 +1,19 @@
+syntax = "proto3";
+package drive;
+
+message Vec2 { double x = 1; double y = 2; }
+
+message SolvePathRequest {
+  Vec2 start = 1;
+  Vec2 goal = 2;
+  int32 samples = 3;
+}
+
+message SolvePathResponse {
+  repeated Vec2 points = 1;
+}
+
+service Drive {
+  rpc SolvePath(SolvePathRequest) returns (SolvePathResponse);
+  // Future: SubmitPath for execution
+}

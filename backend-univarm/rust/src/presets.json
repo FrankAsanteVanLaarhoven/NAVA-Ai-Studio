@@ -1,0 +1,30 @@
+{
+  "presets": [
+    {
+      "id": "demo_hall",
+      "label": "Demo Hall",
+      "start": [
+        0,
+        0
+      ],
+      "goal": [
+        5,
+        5
+      ],
+      "samples": 200
+    },
+    {
+      "id": "factory_aisle",
+      "label": "Factory Aisle",
+      "start": [
+        0,
+        0
+      ],
+      "goal": [
+        10,
+        2
+      ],
+      "samples": 300
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+html, body, #root { height: 100%; margin: 0; background: #0b0f14; color: #cbd5e1; font-family: ui-sans-serif, system-ui; }
+button { background:#10b981; border:none; color:#001016; padding:.5rem .75rem; border-radius:.5rem; font-weight:600; cursor:pointer }
+.panel { border:1px solid #1f2937; border-radius: .75rem; padding: 1rem; background:#0f172a }
+.flex { display:flex; gap:1rem }
+.row { display:flex; gap: .75rem; align-items:center }
+.badge { padding:.2rem .5rem; border-radius:999px; background:#111827; border:1px solid #1f2937; }
+.led { width:16px; height:16px; border-radius:999px; border:1px solid #0ea5e9; display:inline-block; }
+canvas { display:block; border-radius:.75rem; border:1px solid #1f2937; background:#0b1220 }
