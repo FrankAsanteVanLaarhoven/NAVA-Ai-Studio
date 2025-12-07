@@ -1,0 +1,32 @@
+site_name: NAVΛ Documentation
+theme:
+  name: material
+nav:
+  - Overview: docs/OVERVIEW.md
+  - Manual:
+      - Intro: docs/NAVLA-MANUAL/INTRO.md
+      - Runtime: docs/NAVLA-MANUAL/RUNTIME.md
+      - SDK: docs/NAVLA-MANUAL/SDK.md
+      - Symbols: docs/NAVLA-MANUAL/SYMBOLS-ACRONYMS.md
+      - Tutorials:
+          - Hello Intent: docs/NAVLA-MANUAL/TUTORIALS/01-hello-intent.md
+  - Language:
+      - Spec: docs/NAVLA-LANGUAGE/SPEC.md
+      - DSL→Constraints: docs/NAVLA-LANGUAGE/DSL-TO-CONSTRAINTS.md
+      - Codegen: docs/NAVLA-LANGUAGE/CODEGEN.md
+  - Mathematics:
+      - Foundations: docs/NAVLA-MATHS/FOUNDATIONS.md
+      - Spatial4D Calculus: docs/NAVLA-MATHS/SPATIAL4D-CALCULUS.md
+      - IK (DLS): docs/NAVLA-MATHS/IK-JACOBIAN-DLS.md
+      - Timing Contracts: docs/NAVLA-MATHS/TIMING-CONTRACTS.md
+      - Safety Theorems: docs/NAVLA-MATHS/SAFETY-THEOREMS.md
+      - Intent as Markov: docs/NAVLA-MATHS/INTENT-MARKOV.md
+  - Validation:
+      - Traceability: docs/VALIDATION/CLAIMS-TRACEABILITY.md
+      - V&V Plan: docs/VALIDATION/VV-PLAN.md
+      - Benchmarks: docs/VALIDATION/BENCHMARKS.md
+      - Evidence Packs: docs/VALIDATION/EVIDENCE-PACKS.md
+  - Appendix:
+      - Theorems Reference: docs/APPENDIX/THEOREMS-REFERENCE.md
+      - References: docs/APPENDIX/REFERENCES.md
+      - Licenses: docs/APPENDIX/LICENSES.md

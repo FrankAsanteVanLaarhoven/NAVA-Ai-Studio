@@ -1,0 +1,21 @@
+{
+  "name": "nava-docs",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve build",
+    "deploy": "docusaurus deploy",
+    "version:make": "docusaurus docs:version 1.0.0"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.3.2",
+    "@docusaurus/preset-classic": "^3.3.2",
+    "@docusaurus/plugin-content-docs": "^3.3.2",
+    "docusaurus-plugin-search-local": "^0.42.0",
+    "prism-react-renderer": "^2.3.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  }
+}

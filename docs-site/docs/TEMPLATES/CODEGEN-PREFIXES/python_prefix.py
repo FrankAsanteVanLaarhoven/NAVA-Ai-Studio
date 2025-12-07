@@ -1,0 +1,3 @@
+# NAVΛ prefix (Python)
+class RtScope:
+    def record(self, k: str, v: float): ...
