@@ -63,3 +63,83 @@
   font-family: 'JetBrains Mono', monospace;
 }
 
+.timeline-empty {
+  padding: 20px;
+  text-align: center;
+  color: #858585;
+}
+
+.timeline-empty p {
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.timeline-hint {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+}
+
+.timeline-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.timeline-clear-btn {
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+  margin-left: auto;
+}
+
+.timeline-clear-btn:hover {
+  background: rgba(244, 67, 54, 0.1);
+  color: #f44336;
+}
+
+.timeline-event {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.timeline-event:hover {
+  background-color: rgba(0, 122, 204, 0.1);
+}
+
+.timeline-event.file {
+  border-left-color: #4ec9b0;
+}
+
+.timeline-event.server {
+  border-left-color: #00ff00;
+}
+
+.timeline-event.config {
+  border-left-color: #ffaa00;
+}
+
+.timeline-event.build {
+  border-left-color: #007acc;
+}
+
+.timeline-event.git {
+  border-left-color: #f14e32;
+}
+
+.timeline-file {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.timeline-file:hover {
+  color: #00ff00;
+}
+

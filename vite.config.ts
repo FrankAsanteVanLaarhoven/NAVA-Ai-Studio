@@ -29,7 +29,11 @@ export default defineConfig({
     },
     hmr: {
       overlay: true
-    }
+    },
+    // Serve SDK installers
+    fs: {
+      allow: ['..'],
+    },
   },
   envPrefix: ['VITE_', 'TAURI_'],
   build: {

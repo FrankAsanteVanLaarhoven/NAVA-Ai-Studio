@@ -1,27 +1,48 @@
 /**
- * NAVA OS Desktop Workspace
+ * NAVΛ OS Desktop Workspace
  * 
  * The complete OS desktop workspace matching the screenshots:
- * - NAVA OS branding and app icons
+ * - NAVΛ OS branding and app icons
  * - Left sidebar with navigation
  * - Right sidebar with widgets (Weather, World Clock, News, Currency, Stocks)
  * - Bottom dock
  * - Top menu bar with dropdown menus
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { WorldWidgets } from './WorldWidgets';
 import { WindowManager } from '../WindowManager';
 import { BlurOverlay } from '../WindowManager';
-import CIIndicatorWidget from '../../apps/ci-indicator/Widget';
+import { MediaCentre } from '../MediaCentre/MediaCentre';
+import { FinderSidebar } from './FinderSidebar';
+import { DesktopBranding } from './DesktopBranding';
+import { TrashBin } from '../TrashBin/TrashBin';
+import { DownloadsStack } from './DownloadsStack';
+import { DockContextMenu, type DockAppPreferences } from './DockContextMenu';
+import { IDEDownloadButton } from './IDEDownloadButton';
+import { initializeBrowserCompatibility, safeLocalStorage, safeWindowOpen } from '../../utils/browser-compatibility';
+import { hasTrashItems } from '../../utils/trashStorage';
+import { removeFromDock } from '../../utils/appStorage';
+import { getDownloadCount } from '../../utils/downloadStorage';
 import './OSDesktop.css';
+
+// CIIndicatorWidget - Removed per user request
 
 interface AppIcon {
   id: string;
   name: string;
   icon: string;
   color?: string;
-  route?: string;
+  route?: string | null;
+  onClick?: () => void;
+}
+
+interface DockApp {
+  id: string;
+  icon: string;
+  name: string;
+  route?: string | null;
+  description: string;
   onClick?: () => void;
 }
 
@@ -30,64 +51,802 @@ interface MenuItem {
   action?: () => void;
   route?: string;
   divider?: boolean;
+  submenu?: MenuItem[];
+  shortcut?: string;
 }
+
+// Branding Controls Panel Component
+const BrandingControlsPanel: React.FC<{ onClose: () => void; onUpdate: () => void }> = ({ onClose, onUpdate }) => {
+  const [elements, setElements] = useState<{ [key: string]: { visible: boolean } }>(() => {
+    try {
+      const saved = localStorage.getItem('nava-desktop-branding');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        return {
+          logo: { visible: parsed.logo?.visible !== false },
+          career: { visible: parsed.career?.visible !== false },
+          display: { visible: parsed.display?.visible !== false },
+        };
+      }
+    } catch {}
+    return {
+      logo: { visible: true },
+      career: { visible: true },
+      display: { visible: true },
+    };
+  });
+
+  const videoOptions = [
+    { url: 'https://www.youtube.com/embed/Eu5mYMavctM', label: 'Figure 03', id: 'Eu5mYMavctM' },
+    { url: 'https://www.youtube.com/embed/W1Ftle-w8HQ', label: 'Tesla Optimus Gen 3', id: 'W1Ftle-w8HQ' },
+    { url: 'https://www.youtube.com/embed/6c8M0_EYa1c', label: 'Unitree Robots Full Lineup', id: '6c8M0_EYa1c' },
+  ];
+
+  const [displaySettings, setDisplaySettings] = useState<{
+    videoUrl: string;
+    autoplay: boolean;
+    loop: boolean;
+    muted: boolean;
+    showControls: boolean;
+  }>(() => {
+    try {
+      const saved = localStorage.getItem('nava-display-settings');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return {
+      videoUrl: 'https://www.youtube.com/embed/Eu5mYMavctM',
+      autoplay: true,
+      loop: true,
+      muted: false,
+      showControls: true,
+    };
+  });
+
+  const toggleElement = (id: string) => {
+    try {
+      const saved = localStorage.getItem('nava-desktop-branding');
+      const parsed = saved ? JSON.parse(saved) : {};
+      
+      if (!parsed[id]) {
+        // Create default element if it doesn't exist
+        const width = window.innerWidth;
+        const height = window.innerHeight;
+        if (id === 'logo') {
+          parsed[id] = { id, x: 50, y: 80, visible: true };
+        } else if (id === 'career') {
+          parsed[id] = { id, x: Math.max(50, width - 400), y: Math.max(80, height - 200), visible: true };
+        } else if (id === 'display') {
+          parsed[id] = { id, x: Math.max(50, width / 2 - 400), y: Math.max(80, height / 2 - 225), visible: true };
+        }
+      }
+      
+      parsed[id].visible = !parsed[id].visible;
+      localStorage.setItem('nava-desktop-branding', JSON.stringify(parsed));
+      
+      setElements({
+        logo: { visible: parsed.logo?.visible !== false },
+        career: { visible: parsed.career?.visible !== false },
+        display: { visible: parsed.display?.visible !== false },
+      });
+      
+      // Dispatch custom event to update DesktopBranding
+      window.dispatchEvent(new CustomEvent('nava:branding-update'));
+      
+      // Trigger update in parent
+      onUpdate();
+    } catch (error) {
+      console.error('Error toggling element:', error);
+    }
+  };
+
+  const resetPositions = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const defaultElements = {
+      logo: { id: 'logo', x: 50, y: 80, visible: true },
+      career: { id: 'career', x: Math.max(50, width - 400), y: Math.max(80, height - 200), visible: true },
+      display: { id: 'display', x: Math.max(50, width / 2 - 400), y: Math.max(80, height / 2 - 225), visible: true },
+    };
+    localStorage.setItem('nava-desktop-branding', JSON.stringify(defaultElements));
+    setElements({
+      logo: { visible: true },
+      career: { visible: true },
+      display: { visible: true },
+    });
+    
+    // Dispatch custom event to update DesktopBranding
+    window.dispatchEvent(new CustomEvent('nava:branding-update'));
+    
+    onUpdate();
+  };
+
+  return (
+    <div className="branding-controls-panel">
+      <div className="branding-controls-content">
+        <div className="branding-controls-header">
+          <h3>Branding Controls</h3>
+          <button 
+            className="branding-controls-close"
+            onClick={onClose}
+          >
+            ×
+          </button>
+        </div>
+        <div className="branding-controls-body">
+          <p style={{ color: '#94a3b8', fontSize: '13px', marginBottom: '16px' }}>
+            Drag elements on the desktop to reposition them. Use these controls to show/hide elements.
+          </p>
+          <div className="branding-control-item">
+            <label>
+              <input 
+                type="checkbox" 
+                checked={elements.logo.visible}
+                onChange={() => toggleElement('logo')}
+              />
+              <span>NAVA Navigation Institute Logo</span>
+            </label>
+          </div>
+          <div className="branding-control-item">
+            <label>
+              <input 
+                type="checkbox" 
+                checked={elements.career.visible}
+                onChange={() => toggleElement('career')}
+              />
+              <span>Career Happens Text</span>
+            </label>
+          </div>
+          <div className="branding-control-item">
+            <label>
+              <input 
+                type="checkbox" 
+                checked={elements.display.visible}
+                onChange={() => toggleElement('display')}
+              />
+              <span>Display Screen (16:9)</span>
+            </label>
+          </div>
+
+          {/* Video Controls Section */}
+          {elements.display.visible && (
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              <h4 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+                Video Settings
+              </h4>
+              
+              <div className="branding-control-item" style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#e2e8f0', fontSize: '13px' }}>Select Video</span>
+                  <select
+                    value={displaySettings.videoUrl}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, videoUrl: e.target.value };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                    style={{
+                      padding: '8px 12px',
+                      background: 'rgba(15, 23, 42, 0.6)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {videoOptions.map((option) => (
+                      <option key={option.id} value={option.url}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              <div className="branding-control-item" style={{ marginBottom: '12px' }}>
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ color: '#e2e8f0', fontSize: '13px' }}>Or Enter Custom YouTube URL</span>
+                  <input
+                    type="text"
+                    value={displaySettings.videoUrl}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, videoUrl: e.target.value };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                    placeholder="https://www.youtube.com/embed/..."
+                    style={{
+                      padding: '8px 12px',
+                      background: 'rgba(15, 23, 42, 0.6)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '6px',
+                      color: '#ffffff',
+                      fontSize: '12px',
+                    }}
+                  />
+                </label>
+              </div>
+
+              <div className="branding-control-item">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={displaySettings.autoplay}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, autoplay: e.target.checked };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                  />
+                  <span>Autoplay</span>
+                </label>
+              </div>
+
+              <div className="branding-control-item">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={displaySettings.loop}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, loop: e.target.checked };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                  />
+                  <span>Loop</span>
+                </label>
+              </div>
+
+              <div className="branding-control-item">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={displaySettings.muted}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, muted: e.target.checked };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                  />
+                  <span>Muted</span>
+                </label>
+              </div>
+
+              <div className="branding-control-item">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={displaySettings.showControls}
+                    onChange={(e) => {
+                      const newSettings = { ...displaySettings, showControls: e.target.checked };
+                      setDisplaySettings(newSettings);
+                      localStorage.setItem('nava-display-settings', JSON.stringify(newSettings));
+                      window.dispatchEvent(new CustomEvent('nava:display-update'));
+                    }}
+                  />
+                  <span>Show Video Controls</span>
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* Picture-in-Picture Controls Section */}
+          {elements.display.visible && (
+            <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+              <h4 style={{ color: '#ffffff', fontSize: '14px', fontWeight: '600', marginBottom: '12px' }}>
+                Picture-in-Picture Settings
+              </h4>
+              
+              <div className="branding-control-item">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    checked={(() => {
+                      try {
+                        const saved = localStorage.getItem('nava-pip-settings');
+                        return saved ? JSON.parse(saved).enabled : false;
+                      } catch {
+                        return false;
+                      }
+                    })()}
+                    onChange={(e) => {
+                      try {
+                        const saved = localStorage.getItem('nava-pip-settings');
+                        const pip = saved ? JSON.parse(saved) : {
+                          enabled: false,
+                          videoUrl: 'https://www.youtube.com/embed/Eu5mYMavctM',
+                          x: window.innerWidth - 420,
+                          y: 100,
+                          width: 400,
+                          height: 225,
+                          autoplay: true,
+                          loop: true,
+                          muted: false,
+                          showControls: true,
+                        };
+                        pip.enabled = e.target.checked;
+                        localStorage.setItem('nava-pip-settings', JSON.stringify(pip));
+                        window.dispatchEvent(new CustomEvent('nava:display-update'));
+                        window.location.reload();
+                      } catch {}
+                    }}
+                  />
+                  <span>Enable Picture-in-Picture</span>
+                </label>
+              </div>
+
+              {(() => {
+                try {
+                  const saved = localStorage.getItem('nava-pip-settings');
+                  const pip = saved ? JSON.parse(saved) : null;
+                  if (!pip || !pip.enabled) return null;
+                  
+                  return (
+                    <>
+                      <div className="branding-control-item" style={{ marginTop: '12px', marginBottom: '12px' }}>
+                        <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          <span style={{ color: '#e2e8f0', fontSize: '13px' }}>PiP Video</span>
+                          <select
+                            value={pip.videoUrl || 'https://www.youtube.com/embed/Eu5mYMavctM'}
+                            onChange={(e) => {
+                              pip.videoUrl = e.target.value;
+                              localStorage.setItem('nava-pip-settings', JSON.stringify(pip));
+                              window.dispatchEvent(new CustomEvent('nava:display-update'));
+                              window.location.reload();
+                            }}
+                            style={{
+                              padding: '8px 12px',
+                              background: 'rgba(15, 23, 42, 0.6)',
+                              border: '1px solid rgba(59, 130, 246, 0.3)',
+                              borderRadius: '6px',
+                              color: '#ffffff',
+                              fontSize: '12px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {videoOptions.map((option) => (
+                              <option key={option.id} value={option.url}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      </div>
+
+                      <div className="branding-control-item">
+                        <label>
+                          <input 
+                            type="checkbox" 
+                            checked={pip.autoplay !== false}
+                            onChange={(e) => {
+                              pip.autoplay = e.target.checked;
+                              localStorage.setItem('nava-pip-settings', JSON.stringify(pip));
+                              window.dispatchEvent(new CustomEvent('nava:display-update'));
+                              window.location.reload();
+                            }}
+                          />
+                          <span>PiP Autoplay</span>
+                        </label>
+                      </div>
+
+                      <div className="branding-control-item">
+                        <label>
+                          <input 
+                            type="checkbox" 
+                            checked={pip.muted !== false}
+                            onChange={(e) => {
+                              pip.muted = e.target.checked;
+                              localStorage.setItem('nava-pip-settings', JSON.stringify(pip));
+                              window.dispatchEvent(new CustomEvent('nava:display-update'));
+                              window.location.reload();
+                            }}
+                          />
+                          <span>PiP Muted</span>
+                        </label>
+                      </div>
+                    </>
+                  );
+                } catch {
+                  return null;
+                }
+              })()}
+            </div>
+          )}
+
+          <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid rgba(59, 130, 246, 0.2)' }}>
+            <button
+              onClick={resetPositions}
+              style={{
+                width: '100%',
+                padding: '10px 16px',
+                background: 'rgba(59, 130, 246, 0.2)',
+                border: '1px solid rgba(59, 130, 246, 0.4)',
+                borderRadius: '8px',
+                color: '#60a5fa',
+                fontSize: '13px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+              }}
+            >
+              Reset Positions
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const OSDesktop: React.FC = () => {
   const [selectedApp, setSelectedApp] = useState<string | null>(null);
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [activeDockApp, setActiveDockApp] = useState<string | null>(null);
   const [hoveredDockApp, setHoveredDockApp] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{
+    appId: string;
+    appName: string;
+    position: { x: number; y: number };
+  } | null>(null);
+  const [dockPreferences, setDockPreferences] = useState<Map<string, DockAppPreferences>>(new Map());
+  const [showNavaMenu, setShowNavaMenu] = useState(false);
+  const [hoveredSubmenu, setHoveredSubmenu] = useState<string | null>(null);
+  // LOCKED: NAVΛ RS1 overlay state - always available
+  const [showRobotisOverlay, setShowRobotisOverlay] = useState(false);
+  
+  // LOCKED: NAVΛ RS1 open handler - guaranteed to work
+  const handleOpenNavARS1 = useCallback(() => {
+    console.log('[NAVΛ RS1] Opening overlay - LOCKED ROUTE');
+    setShowRobotisOverlay(true);
+    setRobotisError(null);
+    setRobotisLoading(true);
+    // Force state update
+    setTimeout(() => {
+      setShowRobotisOverlay(true);
+    }, 0);
+  }, []);
+  const [robotisError, setRobotisError] = useState<string | null>(null);
+  const [robotisLoading, setRobotisLoading] = useState(true);
+  const [robotisRetryCount, setRobotisRetryCount] = useState(0);
+  const robotisCheckIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const [showMediaCentre, setShowMediaCentre] = useState(false);
+  const [showBrandingControls, setShowBrandingControls] = useState(false);
+  const [showTrashBin, setShowTrashBin] = useState(false);
+  const [trashHasItems, setTrashHasItems] = useState(false);
+  const [showDownloadsStack, setShowDownloadsStack] = useState(false);
+  const [downloadsCount, setDownloadsCount] = useState(0);
+  const [rightSidebarCollapsed, setRightSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('nava-right-sidebar-collapsed');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [leftSidebarCollapsed, setLeftSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem('nava-left-sidebar-collapsed');
+      return saved === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [robotisTheme, setRobotisTheme] = useState<'dark' | 'light'>(() => {
+    try {
+      const saved = localStorage.getItem('robotis-overlay-theme');
+      return (saved === 'light' || saved === 'dark') ? saved : 'dark';
+    } catch {
+      return 'dark';
+    }
+  });
   const menuRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // ROBOTIS & Univarm Featured Apps (shown prominently)
-  const robotisApps: AppIcon[] = [
-    { id: 'robotis-systemic', name: 'ROBOTIS-SYSTEMIC', icon: '🔷', color: '#3b82f6', route: 'http://localhost:3000', onClick: () => window.open('http://localhost:3000', '_blank') },
-    { id: 'univarm-starter', name: 'Univarm Starter', icon: '⚡', color: '#facc15', route: '/app.html?activity=univarm-starter' },
-    { id: 'univarm-advanced', name: 'Univarm Advanced', icon: '🦀', color: '#f97316', route: '/app.html?activity=univarm-advanced' },
-  ];
+  // Apps are now managed in App Centre - removed from desktop
+  // Media apps are now managed in Media Centre
 
-  const desktopApps: AppIcon[] = [
-    { id: 'record', name: 'Record', icon: '🔴', color: '#ef4444', route: '/app.html?activity=simulation' },
-    { id: 'camera', name: 'Camera', icon: '📷', route: '/app.html?activity=simulation' },
-    { id: 'blueprint', name: 'Blueprint', icon: '📐', color: '#3b82f6', route: '/app.html?activity=explorer' },
-    { id: 'go-live', name: 'Go Live', icon: '▶️', color: '#22c55e', route: '/app.html?activity=simulation' },
-    { id: 'ad-manager', name: 'Ad Manager', icon: '📊', route: '/app.html' },
-    { id: 'youtube', name: 'YouTube', icon: '▶️', color: '#ff0000', route: 'https://youtube.com' },
-    { id: 'twitch', name: '.twitch Twitch', icon: '🎮', color: '#9146ff', route: 'https://twitch.tv' },
-    { id: 'video-editor', name: 'Video Editor', icon: '🎬', route: '/app.html' },
-    { id: 'image-editor', name: 'Image Editor', icon: '🖼️', route: '/app.html' },
-    { id: 'web-builder', name: 'Web Builder', icon: '🌐', route: '/app.html' },
-    { id: 'slides', name: 'Slides', icon: '📊', route: '/app.html' },
-    { id: 'calculator', name: 'Calculator', icon: '🔢', color: '#3b82f6', route: '/app.html?activity=explorer' },
-  ];
-
-  // Dock apps matching screenshot exactly: House, Factory, Lambda, Folder, Books, Robot, Monitor, Globe, Grid (9 icons)
-  // Added Univarm Starter (⚡) as 10th icon, Univarm Advanced (🦀) as 11th
-  const dockApps = [
-    { id: 'home', icon: '🏠', name: 'Home', route: '/app.html?activity=workspace', description: 'NAVA OS Desktop - Main Hub' },
+  // Dock apps - Unified with all latest features
+  const dockApps: DockApp[] = [
+    { id: 'home', icon: '🏠', name: 'Home', route: '/app.html?activity=workspace', description: 'NAVΛ OS Desktop - Main Hub' },
     { id: 'factory', icon: '🏭', name: 'Factory', route: '/app.html?activity=simulation', description: 'Simulation & Factory Tools' },
-    { id: 'nava', icon: '⋋', name: 'NAVA IDE', route: '/app.html', description: 'Full IDE with Code Editor' },
+    { id: 'nava', icon: '⋋', name: 'NAVΛ IDE', route: '/app.html?activity=explorer', description: 'Full IDE with Code Editor & Notebook Support' },
     { id: 'folder', icon: '📁', name: 'Explorer', route: '/app.html?activity=explorer', description: 'File Explorer' },
     { id: 'books', icon: '📚', name: 'ROS Learning', route: '/app.html?activity=ros-learning', description: 'ROS Learning Center' },
     { id: 'robot', icon: '🤖', name: 'Simulation', route: '/app.html?activity=simulation', description: 'Robot Simulation' },
-    { id: 'monitor', icon: '🖥️', name: 'CLI', route: '/app.html?activity=explorer', description: 'Command Line Interface' },
+    { 
+      id: 'monitor', 
+      icon: '🖥️', 
+      name: 'CLI', 
+      route: '/app.html?activity=explorer', 
+      description: 'Command Line Interface',
+      onClick: () => {
+        // Open terminal/CLI in a new window or overlay
+        const event = new CustomEvent('nava:open-terminal');
+        window.dispatchEvent(event);
+        // Also navigate to explorer for file access
+        navigate('/app.html?activity=explorer');
+      }
+    },
     { id: 'globe', icon: '🌐', name: 'Browser', route: '/app.html', description: 'Web Browser' },
+    { id: 'app-centre', icon: '📱', name: 'App Centre', route: '/app.html?activity=app-centre', description: 'NAVΛ App Centre - Manage All Apps' },
+    { 
+      id: 'robotis-systemic', 
+      icon: '🔷', 
+      name: 'NAVΛ RS1', 
+      route: null, 
+      description: 'NAVΛ RS1 Platform', 
+      onClick: handleOpenNavARS1 // LOCKED: Always uses the guaranteed handler
+    },
     { id: 'univarm-starter', icon: '⚡', name: 'Univarm ⋋', route: '/app.html?activity=univarm-starter', description: 'Path Optimizer & Code Generator' },
     { id: 'univarm-advanced', icon: '🦀', name: 'Univarm Pro', route: '/app.html?activity=univarm-advanced', description: 'Production Path Planning with Rust Backend' },
     { id: 'grid', icon: '⊞', name: 'Extensions', route: '/app.html?activity=extensions', description: 'Extensions Manager' },
+    { 
+      id: 'downloads', 
+      icon: '📥', 
+      name: 'Downloads', 
+      route: null, 
+      description: 'Recent Downloads',
+      onClick: () => {
+        setShowDownloadsStack(true);
+      }
+    },
+    { 
+      id: 'trash', 
+      icon: trashHasItems ? '🗑️' : '🗑️', 
+      name: 'Trash', 
+      route: null, 
+      description: trashHasItems ? 'Trash Bin - Contains Items' : 'Trash Bin - Empty',
+      onClick: () => {
+        setShowTrashBin(true);
+      }
+    },
   ];
+
+  // Initialize browser compatibility checks
+  useEffect(() => {
+    initializeBrowserCompatibility();
+  }, []);
+
+  // Load dock app preferences
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('nava-dock-preferences');
+      if (saved) {
+        const prefs = JSON.parse(saved);
+        const prefsMap = new Map<string, DockAppPreferences>();
+        Object.entries(prefs).forEach(([appId, pref]) => {
+          prefsMap.set(appId, pref as DockAppPreferences);
+        });
+        setDockPreferences(prefsMap);
+      }
+    } catch (error) {
+      console.error('[OSDesktop] Error loading dock preferences:', error);
+    }
+  }, []);
+
+  // Save dock preferences
+  const saveDockPreferences = (appId: string, preferences: DockAppPreferences) => {
+    const newPrefs = new Map(dockPreferences);
+    newPrefs.set(appId, preferences);
+    setDockPreferences(newPrefs);
+    try {
+      const prefsObj: Record<string, DockAppPreferences> = {};
+      newPrefs.forEach((pref, id) => {
+        prefsObj[id] = pref;
+      });
+      localStorage.setItem('nava-dock-preferences', JSON.stringify(prefsObj));
+    } catch (error) {
+      console.error('[OSDesktop] Error saving dock preferences:', error);
+    }
+  };
+
+  // Get preferences for an app (with defaults)
+  const getAppPreferences = (appId: string): DockAppPreferences => {
+    return dockPreferences.get(appId) || {
+      openAtLogin: false,
+      assignToDesktop: 'none',
+    };
+  };
+
+  // Track downloads count for badge
+  useEffect(() => {
+    const updateDownloadsCount = () => {
+      setDownloadsCount(getDownloadCount());
+    };
+    updateDownloadsCount();
+    
+    const handleDownload = () => {
+      updateDownloadsCount();
+    };
+    window.addEventListener('nava:download-complete', handleDownload as EventListener);
+    return () => {
+      window.removeEventListener('nava:download-complete', handleDownload as EventListener);
+    };
+  }, []);
+
+  // ROBOTIS Backend Health Check Function
+  // Uses no-cors mode to avoid CORS issues - if fetch succeeds, backend is running
+  const checkRobotisBackend = useCallback(async (): Promise<boolean> => {
+    try {
+      // Use no-cors mode to avoid CORS policy issues
+      // If the fetch doesn't throw an error, the backend is reachable
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000); // 2 second timeout
+      
+      try {
+        // Use no-cors mode - we can't read the response, but if it doesn't error, server is up
+        await fetch('http://localhost:3000', { 
+          method: 'HEAD',
+          mode: 'no-cors',
+          cache: 'no-cache',
+          signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
+        return true; // No error means backend is reachable
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        // Check if it's a network error (backend down) vs CORS error (backend up but CORS issue)
+        // In no-cors mode, CORS errors don't throw - only network errors do
+        if (fetchError.name === 'AbortError' || fetchError.message?.includes('Failed to fetch')) {
+          return false; // Network error - backend not running
+        }
+        // If we get here, it might be a different error, but assume backend is down
+        return false;
+      }
+    } catch (error) {
+      // Any other error - assume backend not running
+      return false;
+    }
+  }, []);
+
+  // Auto-retry ROBOTIS backend connection with persistent checking
+  useEffect(() => {
+    if (!showRobotisOverlay) {
+      // Clear any running checks when overlay is closed
+      if (robotisCheckIntervalRef.current) {
+        clearInterval(robotisCheckIntervalRef.current);
+        robotisCheckIntervalRef.current = null;
+      }
+      return;
+    }
+
+    // Start checking immediately
+    const startChecking = async () => {
+      setRobotisLoading(true);
+      setRobotisError(null);
+      setRobotisRetryCount(0);
+
+      // Check immediately
+      const isRunning = await checkRobotisBackend();
+      if (isRunning) {
+        setRobotisLoading(false);
+        setRobotisError(null);
+        return; // Backend is running, stop checking
+      }
+
+      // If not running, start persistent retry loop (check indefinitely)
+      let retryCount = 0;
+      const maxRetriesBeforeError = 30; // Show error after 60 seconds (30 * 2 seconds)
+      let hasShownError = false;
+
+      robotisCheckIntervalRef.current = setInterval(async () => {
+        retryCount++;
+        setRobotisRetryCount(retryCount);
+
+        const isRunning = await checkRobotisBackend();
+        if (isRunning) {
+          // Backend is now running!
+          setRobotisLoading(false);
+          setRobotisError(null);
+          hasShownError = false;
+          // Reload iframe to connect
+          const iframe = document.querySelector('iframe[title="ROBOTIS-SYSTEMIC Platform"]') as HTMLIFrameElement;
+          if (iframe) {
+            iframe.src = iframe.src;
+          }
+          if (robotisCheckIntervalRef.current) {
+            clearInterval(robotisCheckIntervalRef.current);
+            robotisCheckIntervalRef.current = null;
+          }
+        } else if (retryCount >= maxRetriesBeforeError && !hasShownError) {
+          // Show error after max retries, but keep checking in background
+          setRobotisError('The NAVΛ RS1 backend server is not running on http://localhost:3000. The system is automatically trying to start it. Please wait...');
+          setRobotisLoading(true); // Keep loading state to show we're still trying
+          hasShownError = true;
+        }
+        // Continue checking indefinitely - don't stop
+      }, 2000); // Check every 2 seconds
+    };
+
+    startChecking();
+
+    // Cleanup on unmount or when overlay closes
+    return () => {
+      if (robotisCheckIntervalRef.current) {
+        clearInterval(robotisCheckIntervalRef.current);
+        robotisCheckIntervalRef.current = null;
+      }
+    };
+  }, [showRobotisOverlay, checkRobotisBackend]);
+
+  // LOCKED: Listen for App Centre events to open NAVΛ RS1 overlay
+  useEffect(() => {
+    const handleOpenRobotis = () => {
+      console.log('[NAVΛ RS1] Received request to open overlay from App Centre - LOCKED ROUTE');
+      handleOpenNavARS1();
+    };
+
+    window.addEventListener('nava:open-robotis-overlay', handleOpenRobotis);
+    return () => {
+      window.removeEventListener('nava:open-robotis-overlay', handleOpenRobotis);
+    };
+  }, [handleOpenNavARS1]);
 
   // Debug: Log counts on mount (after arrays are defined)
   useEffect(() => {
     console.log('[OS DESKTOP] ========== COMPONENT MOUNTED ==========');
-    console.log(`[OS DESKTOP] Desktop Apps: ${desktopApps.length} (should be 12)`);
-    console.log(`[OS DESKTOP] Dock Apps: ${dockApps.length} (should be 9)`);
+    console.log(`[OS DESKTOP] Dock Apps: ${dockApps.length}`);
     console.log(`[OS DESKTOP] Sidebar sections: 6 (Community Projects, My Rosjects, Favorites, Achievements, ROS 2 Learning Center, My Portfolio)`);
     console.log(`[OS DESKTOP] Total sidebar items: 18`);
     console.log(`[OS DESKTOP] Widgets: 5 types (World Clocks, Weather, News, Currency, Stocks)`);
-    console.log('[OS DESKTOP] All features should be visible!');
+    console.log('[OS DESKTOP] Apps in App Centre, Media in Media Centre');
     console.log('[OS DESKTOP] ======================================');
   }, []);
+
+  // Recent items for the NAVA menu
+  const recentItems: MenuItem[] = [
+    { label: 'Show "App Centre.app" in Finder', action: () => navigate('/app.html?activity=app-centre') },
+    { label: 'Show "Media Centre.app" in Finder', action: () => navigate('/app.html?activity=media-centre') },
+      { label: 'Show "NAVΛ IDE.app" in Finder', action: () => navigate('/app.html?activity=explorer') },
+    { label: 'Show "NAVΛ RS1.app" in Finder', action: () => setShowRobotisOverlay(true) },
+    { label: 'Show "Univarm.app" in Finder', action: () => navigate('/app.html?activity=univarm') },
+    { label: 'Show "Simulation.app" in Finder', action: () => navigate('/app.html?activity=simulation') },
+  ];
+
+  const navaMenuItems: MenuItem[] = [
+    { label: 'About NAVΛ Studio', action: () => alert('NAVΛ Studio IDE\nVersion 1.0.0\n\nThe Future of AI Desktop Computing') },
+    { label: 'System Settings...', action: () => console.log('System Settings') },
+    { label: 'App Store', action: () => navigate('/app.html?activity=app-centre') },
+    { 
+      label: 'Recent Items', 
+      submenu: recentItems,
+    },
+    { divider: true },
+    { label: 'Force Quit Applications...', shortcut: '⌥⌘⎋', action: () => console.log('Force Quit') },
+    { divider: true },
+    { label: 'Sleep', action: () => console.log('Sleep') },
+    { label: 'Restart...', action: () => {
+      if (confirm('Are you sure you want to restart NAVΛ Studio?')) {
+        window.location.reload();
+      }
+    }},
+    { label: 'Shut Down...', action: () => {
+      if (confirm('Are you sure you want to shut down NAVA Studio?')) {
+        window.close();
+      }
+    }},
+    { divider: true },
+    { label: 'Lock Screen', shortcut: '⌃⌘Q', action: () => console.log('Lock Screen') },
+    { label: 'Log Out...', shortcut: '⇧⌘Q', action: () => {
+      if (confirm('Are you sure you want to log out?')) {
+        localStorage.clear();
+        window.location.reload();
+      }
+    }},
+  ];
 
   const menuItems: { [key: string]: MenuItem[] } = {
     file: [
@@ -119,7 +878,7 @@ export const OSDesktop: React.FC = () => {
       { label: 'Search', route: '/app.html?activity=search', action: () => navigate('/app.html?activity=search') },
       { label: 'Source Control', route: '/app.html?activity=source-control', action: () => navigate('/app.html?activity=source-control') },
       { divider: true },
-      { label: 'NAVA IDE', route: '/app.html?activity=explorer', action: () => navigate('/app.html?activity=explorer') },
+      { label: 'NAVΛ IDE (with Notebook)', route: '/app.html?activity=explorer', action: () => navigate('/app.html?activity=explorer') },
       { label: 'CLI', route: '/app.html?activity=explorer', action: () => navigate('/app.html?activity=explorer') },
       { label: 'Browser', route: '/app.html', action: () => navigate('/app.html') },
       { divider: true },
@@ -137,7 +896,7 @@ export const OSDesktop: React.FC = () => {
       { label: 'Zoom', action: () => console.log('Zoom') },
       { divider: true },
       { label: 'Workspace', route: '/app.html?activity=workspace', action: () => navigate('/app.html?activity=workspace') },
-      { label: 'IDE', route: '/app.html', action: () => navigate('/app.html') },
+      { label: 'NAVΛ IDE (with Notebook)', route: '/app.html?activity=explorer', action: () => navigate('/app.html?activity=explorer') },
     ],
     help: [
       { label: 'Welcome', route: '/app.html?activity=ros-learning', action: () => navigate('/app.html?activity=ros-learning') },
@@ -147,7 +906,7 @@ export const OSDesktop: React.FC = () => {
       { divider: true },
       { label: 'Keyboard Shortcuts', action: () => console.log('Keyboard Shortcuts') },
       { divider: true },
-      { label: 'About NAVA OS', action: () => console.log('About NAVA OS') },
+      { label: 'About NAVΛ OS', action: () => console.log('About NAVΛ OS') },
     ],
   };
 
@@ -162,7 +921,7 @@ export const OSDesktop: React.FC = () => {
     
     if (route.startsWith('http')) {
       console.log('[NAVIGATE] External URL, opening in new tab');
-      window.open(route, '_blank');
+      safeWindowOpen(route, '_blank');
       return;
     }
     
@@ -177,11 +936,11 @@ export const OSDesktop: React.FC = () => {
     const activity = urlParams.get('activity');
     if (activity) {
       console.log(`[NAVIGATE] Updating localStorage with activity: ${activity}`);
-      localStorage.setItem('navlambda-active-activity', activity);
+      safeLocalStorage.setItem('navlambda-active-activity', activity);
     } else if (absoluteRoute === '/app.html') {
       // No activity specified, clear it
       console.log(`[NAVIGATE] No activity in route, clearing localStorage`);
-      localStorage.removeItem('navlambda-active-activity');
+      safeLocalStorage.removeItem('navlambda-active-activity');
     }
     
     // Check current activity vs target activity
@@ -223,7 +982,7 @@ export const OSDesktop: React.FC = () => {
     }
   };
 
-  const handleDockClick = (app: typeof dockApps[0], event?: React.MouseEvent | React.KeyboardEvent) => {
+  const handleDockClick = (app: DockApp, event?: React.MouseEvent | React.KeyboardEvent) => {
     console.log(`[DOCK CLICK] ========== DOCK ICON CLICKED ==========`);
     console.log(`[DOCK CLICK] App: ${app.name}`);
     console.log(`[DOCK CLICK] Route: ${app.route}`);
@@ -239,6 +998,20 @@ export const OSDesktop: React.FC = () => {
     
     console.log(`[DOCK CLICK] Setting active dock app to: ${app.id}`);
     setActiveDockApp(app.id);
+    
+    // LOCKED: NAVΛ RS1 always opens overlay - highest priority
+    if (app.id === 'robotis-systemic') {
+      console.log(`[DOCK CLICK] NAVΛ RS1 detected - LOCKED ROUTE to overlay`);
+      handleOpenNavARS1();
+      return;
+    }
+    
+    // Handle onClick for apps that use overlays
+    if (app.onClick) {
+      console.log(`[DOCK CLICK] onClick handler exists, calling it...`);
+      app.onClick();
+      return;
+    }
     
     if (app.route) {
       console.log(`[DOCK CLICK] Route exists, calling navigate...`);
@@ -355,9 +1128,7 @@ export const OSDesktop: React.FC = () => {
     setActiveMenu(activeMenu === menuName ? null : menuName);
   };
 
-  const handleDownloadInterface = () => {
-    navigate('/download.html');
-  };
+  // Removed handleDownloadInterface - replaced with SDKDownloadButton
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -368,17 +1139,96 @@ export const OSDesktop: React.FC = () => {
           setActiveMenu(null);
         }
       }
+      // Close NAVA menu
+      const navaMenuElement = document.querySelector('.nava-menu-container');
+      if (showNavaMenu && navaMenuElement && !navaMenuElement.contains(event.target as Node)) {
+        setShowNavaMenu(false);
+        setHoveredSubmenu(null);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [activeMenu]);
+  }, [activeMenu, showNavaMenu]);
 
   return (
     <div className="os-desktop">
       {/* Top Menu Bar */}
       <div className="desktop-top-bar">
         <div className="desktop-menu">
+          {/* NAVA Logo Menu */}
+          <div className="nava-menu-container" ref={(el) => (menuRefs.current['nava'] = el)}>
+            <span
+              className={`menu-item nava-logo-menu ${showNavaMenu ? 'active' : ''}`}
+              onClick={() => setShowNavaMenu(!showNavaMenu)}
+            >
+              <span className="nava-logo-icon">⋋</span>
+            </span>
+            {showNavaMenu && (
+              <div className="menu-dropdown nava-menu-dropdown">
+                {navaMenuItems.map((item, index) => (
+                  <React.Fragment key={index}>
+                    {item.divider ? (
+                      <div className="menu-divider" />
+                    ) : (
+                      <div
+                        className="menu-dropdown-item menu-item-with-submenu"
+                        onMouseEnter={() => item.submenu && setHoveredSubmenu(`nava-${index}`)}
+                        onMouseLeave={() => !item.submenu && setHoveredSubmenu(null)}
+                        onClick={() => {
+                          if (!item.submenu) {
+                            if (item.route) {
+                              navigate(item.route);
+                            } else if (item.action) {
+                              item.action();
+                            }
+                            setShowNavaMenu(false);
+                          }
+                        }}
+                      >
+                        <span>{item.label}</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {item.shortcut && (
+                            <span className="menu-shortcut">{item.shortcut}</span>
+                          )}
+                          {item.submenu && (
+                            <span className="menu-arrow">▶</span>
+                          )}
+                        </span>
+                        {item.submenu && hoveredSubmenu === `nava-${index}` && (
+                          <div 
+                            className="menu-submenu"
+                            onMouseEnter={() => setHoveredSubmenu(`nava-${index}`)}
+                            onMouseLeave={() => setHoveredSubmenu(null)}
+                          >
+                            <div className="submenu-title">Applications</div>
+                            {item.submenu.map((subItem, subIndex) => (
+                              <div
+                                key={subIndex}
+                                className="menu-dropdown-item"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (subItem.route) {
+                                    navigate(subItem.route);
+                                  } else if (subItem.action) {
+                                    subItem.action();
+                                  }
+                                  setShowNavaMenu(false);
+                                  setHoveredSubmenu(null);
+                                }}
+                              >
+                                {subItem.label}
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            )}
+          </div>
           {Object.keys(menuItems).map((menuName) => (
             <div key={menuName} className="menu-item-container" ref={(el) => (menuRefs.current[menuName] = el)}>
               <span
@@ -418,19 +1268,108 @@ export const OSDesktop: React.FC = () => {
         <div className="desktop-logo">
           <span className="logo-icon">⋋</span>
           <div className="logo-text">
-            <div className="logo-main">NAVA OS</div>
+            <div className="logo-main">NAV<span className="lambda-in-text">Λ</span> OS</div>
             <div className="logo-subtitle">THE FUTURE OF AI DESKTOP COMPUTING</div>
           </div>
         </div>
-        <button className="download-interface-btn" onClick={handleDownloadInterface}>
-          Download Interface
-        </button>
+        <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <button 
+            className="media-centre-btn" 
+            onClick={() => setShowMediaCentre(true)}
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(59, 130, 246, 0.2)',
+              border: '1px solid rgba(59, 130, 246, 0.4)',
+              borderRadius: '8px',
+              color: '#60a5fa',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.3)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+              e.currentTarget.style.transform = 'translateY(0)';
+            }}
+          >
+            <span>🎛️</span>
+            <span>Media Centre</span>
+          </button>
+          <button 
+            className="branding-controls-btn" 
+            onClick={() => setShowBrandingControls(!showBrandingControls)}
+            title="Branding Controls"
+            style={{
+              padding: '8px 16px',
+              background: 'rgba(0, 255, 0, 0.2)',
+              border: '1px solid rgba(0, 255, 0, 0.4)',
+              borderRadius: '8px',
+              color: '#00ff00',
+              fontSize: '13px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              textShadow: '0 0 8px rgba(0, 255, 0, 0.6), 0 0 16px rgba(0, 255, 0, 0.4)',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 255, 0, 0.3)';
+              e.currentTarget.style.transform = 'translateY(-1px)';
+              e.currentTarget.style.textShadow = '0 0 12px rgba(0, 255, 0, 0.8), 0 0 24px rgba(0, 255, 0, 0.6)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'rgba(0, 255, 0, 0.2)';
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.textShadow = '0 0 8px rgba(0, 255, 0, 0.6), 0 0 16px rgba(0, 255, 0, 0.4)';
+            }}
+          >
+            <span>🎨</span>
+            <span>Branding</span>
+          </button>
+          <IDEDownloadButton />
+        </div>
       </div>
 
       {/* Main Desktop Content */}
       <div className="desktop-content">
-        {/* Left Sidebar */}
-        <div className="desktop-sidebar-left">
+        {/* Left Sidebar - Finder Style */}
+        {!leftSidebarCollapsed && (
+          <FinderSidebar
+            onItemClick={(item) => {
+              console.log('[FINDER SIDEBAR] Item clicked:', item);
+              handleSidebarClick(item.name);
+            }}
+            onCollapse={() => {
+              setLeftSidebarCollapsed(true);
+              localStorage.setItem('nava-left-sidebar-collapsed', 'true');
+            }}
+          />
+        )}
+        {leftSidebarCollapsed && (
+          <div className="desktop-sidebar-left-collapsed">
+            <button 
+              className="sidebar-expand-btn"
+              onClick={() => {
+                setLeftSidebarCollapsed(false);
+                localStorage.setItem('nava-left-sidebar-collapsed', 'false');
+              }}
+              title="Show Sidebar"
+            >
+              ◀
+            </button>
+          </div>
+        )}
+        {/* Old Sidebar - Hidden but kept for reference */}
+        <div className="desktop-sidebar-left" style={{ display: 'none' }}>
           {/* Community Projects */}
           <div className="sidebar-section">
             <h3 className="sidebar-title">COMMUNITY PROJECTS</h3>
@@ -679,105 +1618,20 @@ export const OSDesktop: React.FC = () => {
             <WindowManager />
           </div>
           
-          {/* The NAVA Navigation Institute Branding */}
+          {/* The NAVΛ Navigation Institute Branding */}
           <div className="desktop-branding">
             <div className="branding-logo">⋋</div>
             <div className="branding-text">
-              <h1 className="branding-title">The NAVA</h1>
+              <h1 className="branding-title">The NAV<span className="lambda-in-text">Λ</span></h1>
               <p className="branding-subtitle">NAVIGATION INSTITUTE</p>
             </div>
           </div>
 
-          {/* Blueprint Canvas Control Bar */}
-          <div className="blueprint-control-bar">
-            <div className="control-bar-left">
-              <button className="control-btn record-btn" title="Record">
-                <span className="control-dot"></span>
-                <span>Record</span>
-              </button>
-              <button className="control-btn" title="Camera">
-                📷 Camera
-              </button>
-              <button className="control-btn" title="Fullscreen">
-                ⛶ Fullscreen
-              </button>
-            </div>
-            <div className="control-bar-tabs">
-              <button className="tab-btn active">Blueprint</button>
-              <button className="tab-btn">
-                <span className="tab-dot"></span>
-                Live Ad
-              </button>
-              <button className="tab-btn">YouTube</button>
-              <button className="tab-btn">Twitch</button>
-              <button className="tab-btn">Video</button>
-              <button className="tab-btn">Image</button>
-              <button className="tab-btn">Web</button>
-              <button className="tab-btn">Slides</button>
-            </div>
-          </div>
+          {/* Media apps are now in Media Centre - click Media Centre button in top right to access */}
 
-          {/* ROBOTIS & Univarm Featured Section */}
-          <div className="robotis-featured-section" style={{ 
-            padding: '24px', 
-            marginBottom: '24px',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(16, 185, 129, 0.15) 100%)',
-            border: '2px solid rgba(59, 130, 246, 0.4)',
-            borderRadius: '16px',
-            boxShadow: '0 8px 32px rgba(59, 130, 246, 0.2)'
-          }}>
-            <h2 style={{ 
-              margin: '0 0 20px 0', 
-              fontSize: '24px', 
-              fontWeight: '700',
-              color: '#a7f3d0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px'
-            }}>
-              <span style={{ fontSize: '32px' }}>🤖</span>
-              ROBOTIS & Univarm Systems
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              {robotisApps.map((app) => (
-                <button
-                  key={app.id}
-                  onClick={() => app.onClick ? app.onClick() : handleAppClick(app)}
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(14, 20, 28, 0.95) 0%, rgba(10, 15, 26, 0.95) 100%)',
-                    border: `2px solid ${app.color || '#3b82f6'}`,
-                    borderRadius: '12px',
-                    padding: '24px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    textAlign: 'center',
-                  }}
-                  className="robotis-app-button"
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = `0 12px 24px ${app.color}40`;
-                    e.currentTarget.style.borderColor = app.color || '#3b82f6';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '56px', marginBottom: '12px' }}>{app.icon}</div>
-                  <div style={{ fontSize: '18px', fontWeight: '600', color: '#e6f1ff', marginBottom: '8px' }}>
-                    {app.name}
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#a9c1db', lineHeight: '1.4' }}>
-                    {app.id === 'robotis-systemic' ? 'Enterprise Robot Control Platform' : 
-                     app.id === 'univarm-starter' ? 'Multi-Language Code Generation' :
-                     'Real-Time Path Planning & SSE'}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Apps are now in App Centre - click App Centre icon (📱) in dock to access */}
 
-          {/* Blueprint Canvas/Grid Area */}
+          {/* Blueprint Canvas/Grid Area - Green Arch Visualization */}
           <div className="blueprint-canvas">
             <div className="canvas-grid">
               {/* Grid background with faint NAVA logo */}
@@ -785,101 +1639,75 @@ export const OSDesktop: React.FC = () => {
                 <div className="grid-logo">⋋</div>
               </div>
               {/* Grid lines and coordinate system */}
-              <svg className="grid-svg" viewBox="0 0 800 600">
+              <svg className="grid-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet">
                 <defs>
                   <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
                     <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(59, 130, 246, 0.2)" strokeWidth="1"/>
                   </pattern>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
                 </defs>
                 <rect width="100%" height="100%" fill="url(#grid)" />
                 {/* Coordinate axes */}
                 <line x1="50" y1="550" x2="750" y2="550" stroke="rgba(59, 130, 246, 0.5)" strokeWidth="2" />
                 <line x1="50" y1="550" x2="50" y2="50" stroke="rgba(59, 130, 246, 0.5)" strokeWidth="2" />
-                {/* Sample path visualization */}
-                <path d="M 100 500 Q 350 300 600 500" fill="none" stroke="#22c55e" strokeWidth="3" />
-                <circle cx="100" cy="500" r="5" fill="#22c55e" />
-                <circle cx="350" cy="300" r="5" fill="#3b82f6" />
-                <circle cx="600" cy="500" r="5" fill="#22c55e" />
+                {/* Green Arch Path - Prominent visualization (shows above dock) */}
+                <g>
+                  <path 
+                    d="M 100 500 Q 350 300 600 500" 
+                    fill="none" 
+                    stroke="#00ff00" 
+                    strokeWidth="4" 
+                    filter="url(#glow)"
+                    style={{ 
+                      stroke: '#00ff00',
+                      strokeWidth: '4px',
+                    }}
+                  />
+                  <circle cx="100" cy="500" r="6" fill="#00ff00" filter="url(#glow)" />
+                  <circle cx="350" cy="300" r="6" fill="#3b82f6" filter="url(#glow)" />
+                  <circle cx="600" cy="500" r="6" fill="#00ff00" filter="url(#glow)" />
+                </g>
               </svg>
             </div>
           </div>
 
-          {/* ROBOTIS & Univarm Featured Section */}
-          <div className="robotis-featured-section" style={{ 
-            padding: '24px', 
-            marginBottom: '24px',
-            background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: '16px'
-          }}>
-            <h2 style={{ 
-              margin: '0 0 16px 0', 
-              fontSize: '20px', 
-              fontWeight: '600',
-              color: '#a7f3d0'
-            }}>
-              🤖 ROBOTIS & Univarm Systems
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-              {robotisApps.map((app) => (
-                <button
-                  key={app.id}
-                  onClick={() => app.onClick ? app.onClick() : handleAppClick(app)}
-                  style={{
-                    background: 'linear-gradient(135deg, rgba(14, 20, 28, 0.9) 0%, rgba(10, 15, 26, 0.9) 100%)',
-                    border: `2px solid ${app.color || '#3b82f6'}`,
-                    borderRadius: '12px',
-                    padding: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s',
-                    textAlign: 'center',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-4px)';
-                    e.currentTarget.style.boxShadow = `0 8px 16px rgba(59, 130, 246, 0.3)`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = 'none';
-                  }}
-                >
-                  <div style={{ fontSize: '48px', marginBottom: '12px' }}>{app.icon}</div>
-                  <div style={{ fontSize: '16px', fontWeight: '600', color: '#e6f1ff', marginBottom: '4px' }}>
-                    {app.name}
-                  </div>
-                  <div style={{ fontSize: '12px', color: '#88a2bf' }}>
-                    {app.id === 'robotis-systemic' ? 'WebXR Control Platform' : 
-                     app.id === 'univarm-starter' ? 'Path Optimization & Codegen' :
-                     'Production Path Planning'}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
+          {/* Apps are now in App Centre - click App Centre icon in dock to access */}
 
-          {/* Desktop App Icons Grid (Alternative view - can be toggled) */}
-          <div className="desktop-apps-grid" style={{ display: 'none' }}>
-            {desktopApps.map((app) => (
-              <div
-                key={app.id}
-                className={`desktop-app-icon ${selectedApp === app.id ? 'selected' : ''}`}
-                onClick={() => handleAppClick(app)}
-                style={{ borderColor: app.color }}
-                title={app.name}
-              >
-                <div className="app-icon-image" style={{ color: app.color }}>
-                  {app.icon}
-                </div>
-                <div className="app-icon-name">{app.name}</div>
-              </div>
-            ))}
-          </div>
+          {/* Media apps are now in Media Centre - click Media Centre button in top right to access */}
+
+          {/* Desktop Branding Elements */}
+          <DesktopBranding />
         </div>
 
         {/* Right Sidebar - Widgets */}
+        {!rightSidebarCollapsed && (
         <div className="desktop-sidebar-right">
-          <WorldWidgets />
+            <WorldWidgets onCollapse={() => {
+              setRightSidebarCollapsed(true);
+              localStorage.setItem('nava-right-sidebar-collapsed', 'true');
+            }} />
         </div>
+        )}
+        {rightSidebarCollapsed && (
+          <div className="desktop-sidebar-right-collapsed">
+            <button 
+              className="widgets-expand-btn"
+              onClick={() => {
+                setRightSidebarCollapsed(false);
+                localStorage.setItem('nava-right-sidebar-collapsed', 'false');
+              }}
+              title="Show Widgets"
+            >
+              ▶
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Bottom Container - Separated sections */}
@@ -902,7 +1730,9 @@ export const OSDesktop: React.FC = () => {
           padding: '8px 0',
           pointerEvents: 'auto'
         }}>
-          <div className="desktop-dock" style={{ 
+          <div 
+            className="desktop-dock" 
+            style={{ 
             display: 'flex', 
             justifyContent: 'center',
             alignItems: 'center',
@@ -910,13 +1740,80 @@ export const OSDesktop: React.FC = () => {
             visibility: 'visible', 
             opacity: 1,
             padding: '4px 16px'
-          }}>
+            }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              try {
+                const data = e.dataTransfer.getData('application/json');
+                if (data) {
+                  const appData = JSON.parse(data);
+                  // Check if dragging over trash bin
+                  const target = e.target as HTMLElement;
+                  const trashIcon = target.closest('[data-dock-id="trash"]');
+                  if (trashIcon && appData.type === 'app' && appData.id) {
+                    e.dataTransfer.dropEffect = 'move';
+                  } else if (appData.type === 'app' && appData.id) {
+                    e.dataTransfer.dropEffect = 'copy';
+                  }
+                }
+              } catch {}
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              try {
+                const data = e.dataTransfer.getData('application/json');
+                if (data) {
+                  const appData = JSON.parse(data);
+                  
+                  // Check if dropped on trash bin
+                  const target = e.target as HTMLElement;
+                  const trashIcon = target.closest('[data-dock-id="trash"]');
+                  
+                  if (trashIcon && appData.type === 'app' && appData.id) {
+                    // Move to trash
+                    import('../../utils/appStorage').then(({ getAllApps, deleteApp }) => {
+                      const apps = getAllApps();
+                      const app = apps.find(a => a.id === appData.id);
+                      if (app) {
+                        import('../../utils/trashStorage').then(({ addToTrash }) => {
+                          addToTrash({
+                            originalId: app.id,
+                            name: app.name,
+                            icon: app.icon,
+                            color: app.color,
+                            description: app.description,
+                            route: app.route,
+                            category: app.category,
+                            type: 'app',
+                            originalData: app,
+                          });
+                          deleteApp(app.id);
+                          setTrashHasItems(true);
+                        });
+                      }
+                    });
+                  } else if (appData.type === 'app' && appData.id) {
+                    // Add to dock
+                    import('../../utils/appStorage').then(({ addToDock }) => {
+                      addToDock(appData.id);
+                      console.log(`[DOCK] Added ${appData.id} to dock`);
+                      // Refresh to show updated dock
+                      setTimeout(() => window.location.reload(), 500);
+                    });
+                  }
+                }
+              } catch (error) {
+                console.error('[DOCK] Error handling drop:', error);
+              }
+            }}
+          >
             {dockApps.map((app, index) => {
               console.log(`[OS DESKTOP] Rendering dock icon ${index + 1}/${dockApps.length}: ${app.name}`);
               return (
                 <div
                   key={app.id}
-                  className={`dock-icon ${activeDockApp === app.id ? 'active' : ''} ${hoveredDockApp === app.id ? 'hovered' : ''}`}
+                  data-dock-id={app.id}
+                  className={`dock-icon ${activeDockApp === app.id ? 'active' : ''} ${hoveredDockApp === app.id ? 'hovered' : ''} ${app.id === 'trash' && trashHasItems ? 'trash-full' : ''} ${app.id === 'downloads' && downloadsCount > 0 ? 'downloads-full' : ''}`}
                   title={app.name}
                   style={{ 
                     display: 'flex', 
@@ -926,10 +1823,39 @@ export const OSDesktop: React.FC = () => {
                     position: 'relative'
                   }}
                   onClick={(e) => {
-                    console.log(`[DOCK] Click detected on: ${app.name}`);
-                    handleDockClick(app, e);
+                    // Only handle click if context menu is not showing
+                    if (!contextMenu || contextMenu.appId !== app.id) {
+                      console.log(`[DOCK] Click detected on: ${app.name}`);
+                      handleDockClick(app, e);
+                    }
+                  }}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                    setContextMenu({
+                      appId: app.id,
+                      appName: app.name,
+                      position: {
+                        x: rect.left + rect.width / 2,
+                        y: rect.top,
+                      },
+                    });
                   }}
                   onMouseDown={(e) => {
+                    // Handle double-tap (double-click) for context menu on touch devices
+                    if (e.detail === 2) {
+                      e.preventDefault();
+                      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                      setContextMenu({
+                        appId: app.id,
+                        appName: app.name,
+                        position: {
+                          x: rect.left + rect.width / 2,
+                          y: rect.top,
+                        },
+                      });
+                    }
                     console.log(`[DOCK] MouseDown on: ${app.name}`);
                   }}
                   onMouseEnter={() => {
@@ -950,7 +1876,23 @@ export const OSDesktop: React.FC = () => {
                   }}
                 >
                   <div className="dock-icon-badge">
-                    <span className="dock-icon-emoji">{app.icon}</span>
+                    <span className="dock-icon-emoji" style={{
+                      opacity: app.id === 'trash' && trashHasItems ? 1 : (app.id === 'trash' ? 0.5 : 1)
+                    }}>{app.icon}</span>
+                    {app.id === 'trash' && trashHasItems && (
+                      <div className="trash-indicator" style={{
+                        position: 'absolute',
+                        bottom: '4px',
+                        right: '4px',
+                        width: '12px',
+                        height: '12px',
+                        background: 'rgba(16, 185, 129, 0.9)',
+                        border: '2px solid rgba(15, 23, 42, 0.9)',
+                        borderRadius: '50%',
+                        boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)',
+                        zIndex: 10,
+                      }} />
+                    )}
                   </div>
                   {activeDockApp === app.id && <div className="dock-active-indicator" />}
                   <div className="dock-tooltip">{app.name}</div>
@@ -959,6 +1901,67 @@ export const OSDesktop: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* Dock Context Menu */}
+        {contextMenu && (
+          <DockContextMenu
+            appId={contextMenu.appId}
+            appName={contextMenu.appName}
+            position={contextMenu.position}
+            preferences={getAppPreferences(contextMenu.appId)}
+            onClose={() => setContextMenu(null)}
+            onRemoveFromDock={() => {
+              removeFromDock(contextMenu.appId);
+              setContextMenu(null);
+              // Refresh the page or update dock apps
+              window.location.reload();
+            }}
+            onOpenAtLogin={(enabled) => {
+              const prefs = getAppPreferences(contextMenu.appId);
+              saveDockPreferences(contextMenu.appId, {
+                ...prefs,
+                openAtLogin: enabled,
+              });
+            }}
+            onShowInFinder={() => {
+              // Show app in finder/file explorer
+              const app = dockApps.find(a => a.id === contextMenu.appId);
+              if (app) {
+                // Navigate to explorer and highlight the app
+                navigate('/app.html?activity=explorer');
+                // Dispatch event to highlight app in explorer
+                const event = new CustomEvent('nava:highlight-app', { detail: { appId: contextMenu.appId } });
+                window.dispatchEvent(event);
+              }
+              setContextMenu(null);
+            }}
+            onAssignToDesktop={(desktop) => {
+              const prefs = getAppPreferences(contextMenu.appId);
+              saveDockPreferences(contextMenu.appId, {
+                ...prefs,
+                assignToDesktop: desktop,
+              });
+            }}
+            onShowRecents={() => {
+              // Show recent files/activity for this app
+              const app = dockApps.find(a => a.id === contextMenu.appId);
+              if (app) {
+                // Could show a recent files panel or navigate to recent activity
+                console.log(`[Dock] Show recents for: ${app.name}`);
+                // For now, just open the app
+                handleDockClick(app);
+              }
+              setContextMenu(null);
+            }}
+            onOpen={() => {
+              const app = dockApps.find(a => a.id === contextMenu.appId);
+              if (app) {
+                handleDockClick(app);
+              }
+              setContextMenu(null);
+            }}
+          />
+        )}
 
         {/* Status Bar Section - Separated below dock */}
         <div className="desktop-status-bar" style={{
@@ -988,11 +1991,362 @@ export const OSDesktop: React.FC = () => {
         </div>
       </div>
 
-      {/* Blur Overlay for modals */}
-      <BlurOverlay />
+      {/* LOCKED: NAVΛ RS1 Overlay - Always renders when showRobotisOverlay is true */}
+      {showRobotisOverlay && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 99999,
+            background: robotisTheme === 'dark' ? '#000000' : '#ffffff',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: 'background-color 0.3s ease',
+          }}
+          // Backend check is now handled by useEffect hook
+        >
+          {/* Header with NAVΛ Logo and Theme Toggle */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '12px 20px',
+              background: robotisTheme === 'dark' 
+                ? 'rgba(59, 130, 246, 0.2)' 
+                : 'rgba(59, 130, 246, 0.1)',
+              borderBottom: robotisTheme === 'dark'
+                ? '1px solid rgba(59, 130, 246, 0.3)'
+                : '1px solid rgba(59, 130, 246, 0.2)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+              {/* NAVΛ Logo - Clickable to return home */}
+              <div
+                onClick={() => {
+                  setShowRobotisOverlay(false);
+                  setRobotisError(null);
+                  setRobotisLoading(true);
+                  navigate('/workspace.html');
+                }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  cursor: 'pointer',
+                  padding: '4px 8px',
+                  borderRadius: '6px',
+                  transition: 'all 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = robotisTheme === 'dark' 
+                    ? 'rgba(0, 255, 0, 0.15)' 
+                    : 'rgba(0, 255, 0, 0.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'transparent';
+                }}
+                title="Back to Workspace"
+              >
+                <span style={{
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  color: '#00ff00',
+                  textShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
+                  transition: 'all 0.3s ease',
+                }}>λ</span>
+                <span style={{
+                  fontSize: '20px',
+                  fontWeight: '700',
+                  color: '#00ff00',
+                  textShadow: '0 0 10px rgba(0, 255, 0, 0.5)',
+                  transition: 'all 0.3s ease',
+                }}>Λ</span>
+              </div>
+              <span style={{ 
+                color: robotisTheme === 'dark' ? '#ffffff' : '#1e293b', 
+                fontWeight: '600' 
+              }}>
+                🔷 NAVΛ RS1
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {/* Theme Toggle */}
+              <button
+                onClick={() => {
+                  const newTheme = robotisTheme === 'dark' ? 'light' : 'dark';
+                  setRobotisTheme(newTheme);
+                  try {
+                    localStorage.setItem('robotis-overlay-theme', newTheme);
+                  } catch (e) {
+                    console.warn('Failed to save theme preference:', e);
+                  }
+                }}
+                style={{
+                  background: robotisTheme === 'dark'
+                    ? 'rgba(255, 255, 255, 0.1)'
+                    : 'rgba(0, 0, 0, 0.05)',
+                  border: robotisTheme === 'dark'
+                    ? '1px solid rgba(255, 255, 255, 0.2)'
+                    : '1px solid rgba(0, 0, 0, 0.1)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  color: robotisTheme === 'dark' ? '#ffffff' : '#1e293b',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+                title={`Switch to ${robotisTheme === 'dark' ? 'light' : 'dark'} theme`}
+              >
+                {robotisTheme === 'dark' ? '☀️' : '🌙'} {robotisTheme === 'dark' ? 'Light' : 'Dark'}
+              </button>
+              {/* Close Button */}
+              <button
+                onClick={() => {
+                  setShowRobotisOverlay(false);
+                  setRobotisError(null);
+                  setRobotisLoading(true);
+                }}
+                style={{
+                  background: 'rgba(220, 38, 38, 0.3)',
+                  border: '1px solid rgba(220, 38, 38, 0.5)',
+                  borderRadius: '6px',
+                  padding: '6px 12px',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                }}
+              >
+                ✕ Close
+              </button>
+            </div>
+          </div>
+          
+          {/* Error Display or Iframe */}
+          {robotisError ? (
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '40px',
+              color: robotisTheme === 'dark' ? '#ffffff' : '#1e293b',
+              textAlign: 'center',
+            }}>
+              <div style={{
+                background: robotisTheme === 'dark' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(220, 38, 38, 0.1)',
+                border: `1px solid ${robotisTheme === 'dark' ? 'rgba(220, 38, 38, 0.5)' : 'rgba(220, 38, 38, 0.3)'}`,
+                borderRadius: '12px',
+                padding: '32px',
+                maxWidth: '600px',
+              }}>
+                <h2 style={{ margin: '0 0 16px 0', fontSize: '20px', fontWeight: '600' }}>
+                  🔷 NAVΛ RS1 Backend Not Running
+                </h2>
+                <p style={{ margin: '0 0 24px 0', fontSize: '14px', lineHeight: '1.6', opacity: 0.9 }}>
+                  {robotisError}
+                </p>
+                {robotisRetryCount > 0 && (
+                  <p style={{ margin: '0 0 16px 0', fontSize: '12px', opacity: 0.7, color: '#00ff00' }}>
+                    🔄 Auto-checking backend... (Attempt {robotisRetryCount})
+                    {robotisRetryCount > 30 && (
+                      <span style={{ display: 'block', marginTop: '4px', fontSize: '11px', opacity: 0.6 }}>
+                        Backend is starting automatically. This may take a minute...
+                      </span>
+                    )}
+                  </p>
+                )}
+                <div style={{ marginBottom: '24px', fontSize: '13px', opacity: 0.8 }}>
+                  <p style={{ margin: '0 0 12px 0', fontWeight: '600' }}>To start the backend:</p>
+                  <div style={{
+                    background: robotisTheme === 'dark' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(0, 0, 0, 0.05)',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    fontFamily: 'monospace',
+                    fontSize: '12px',
+                    textAlign: 'left',
+                    marginBottom: '16px',
+                  }}>
+                    <div style={{ marginBottom: '8px' }}>1. Open terminal</div>
+                    <div style={{ marginBottom: '8px' }}>2. Run: <code style={{ color: '#00ff00' }}>./start-robotis-system.sh</code></div>
+                    <div>3. Wait for services to start (ports 3000 and 8080)</div>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    onClick={async () => {
+                      // Retry connection - restart the check process
+                      setRobotisError(null);
+                      setRobotisLoading(true);
+                      setRobotisRetryCount(0);
+                      
+                      // Clear existing interval
+                      if (robotisCheckIntervalRef.current) {
+                        clearInterval(robotisCheckIntervalRef.current);
+                        robotisCheckIntervalRef.current = null;
+                      }
+
+                      // Start persistent checking again
+                      let retryCount = 0;
+                      const maxRetriesBeforeError = 30;
+                      let hasShownError = false;
+                      
+                      robotisCheckIntervalRef.current = setInterval(async () => {
+                        retryCount++;
+                        setRobotisRetryCount(retryCount);
+
+                        const isRunning = await checkRobotisBackend();
+                        if (isRunning) {
+                          setRobotisLoading(false);
+                          setRobotisError(null);
+                          hasShownError = false;
+                          // Reload iframe
+                          const iframe = document.querySelector('iframe[title="ROBOTIS-SYSTEMIC Platform"]') as HTMLIFrameElement;
+                          if (iframe) {
+                            iframe.src = iframe.src;
+                          }
+                          if (robotisCheckIntervalRef.current) {
+                            clearInterval(robotisCheckIntervalRef.current);
+                            robotisCheckIntervalRef.current = null;
+                          }
+                        } else if (retryCount >= maxRetriesBeforeError && !hasShownError) {
+                          setRobotisError('The NAVΛ RS1 backend server is not running on http://localhost:3000. The system is automatically trying to start it. Please wait...');
+                          setRobotisLoading(true);
+                          hasShownError = true;
+                        }
+                        // Continue checking indefinitely
+                      }, 2000);
+                    }}
+                    style={{
+                      background: 'linear-gradient(135deg, #00ff00 0%, #00cc00 100%)',
+                      border: '1px solid rgba(0, 255, 0, 0.3)',
+                      borderRadius: '8px',
+                      color: '#ffffff',
+                      padding: '12px 24px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 4px 12px rgba(0, 255, 0, 0.3)',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                      e.currentTarget.style.boxShadow = '0 6px 16px rgba(0, 255, 0, 0.4)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.transform = 'translateY(0)';
+                      e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 255, 0, 0.3)';
+                    }}
+                  >
+                    🔄 Retry Connection
+                  </button>
+                  <button
+                    onClick={() => {
+                      // Open terminal instruction
+                      alert('To start the backend manually:\n\n1. Open Terminal\n2. Navigate to: /Users/frankvanlaarhoven/Desktop/NAVA Studio IDE\n3. Run: ./start-robotis-system.sh\n\nOr the system will try to start it automatically.');
+                    }}
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.1)',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                      borderRadius: '8px',
+                      color: '#3b82f6',
+                      padding: '12px 24px',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = 'rgba(59, 130, 246, 0.2)';
+                      e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)';
+                      e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.3)';
+                    }}
+                  >
+                    📖 Manual Start Instructions
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <iframe
+              src={`http://localhost:3000?theme=${robotisTheme}`}
+              style={{
+                flex: 1,
+                width: '100%',
+                height: '100%',
+                border: 'none',
+                background: robotisTheme === 'dark' ? '#000000' : '#ffffff',
+                display: robotisLoading ? 'none' : 'block',
+              }}
+                      title="NAVΛ RS1 Platform"
+              allow="xr-spatial-tracking; pointer-lock; fullscreen; autoplay; camera; microphone"
+              sandbox="allow-same-origin allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-pointer-lock allow-presentation"
+              onLoad={() => {
+                // Only clear error if iframe loaded successfully
+                if (!robotisError) {
+                  setRobotisLoading(false);
+                }
+              }}
+              onError={() => {
+                // Don't set error here - let the health check handle it
+                // This prevents false errors when backend is starting up
+              }}
+            />
+          )}
+          {robotisLoading && !robotisError && (
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: robotisTheme === 'dark' ? '#ffffff' : '#1e293b',
+              fontSize: '16px',
+            }}>
+              Loading NAVΛ RS1...
+            </div>
+          )}
+        </div>
+      )}
       
-      {/* CI Indicator Widget */}
-      <CIIndicatorWidget />
+      {/* Media Centre Overlay */}
+      {showMediaCentre && (
+        <MediaCentre onClose={() => setShowMediaCentre(false)} />
+      )}
+
+      {/* Trash Bin Window */}
+      {showTrashBin && (
+        <TrashBin onClose={() => setShowTrashBin(false)} />
+      )}
+
+      {showDownloadsStack && (
+        <DownloadsStack onClose={() => setShowDownloadsStack(false)} />
+      )}
+
+      {/* Branding Controls Panel */}
+      {showBrandingControls && (
+        <BrandingControlsPanel 
+          onClose={() => setShowBrandingControls(false)}
+          onUpdate={() => {
+            // Force re-render of DesktopBranding component
+            setShowBrandingControls(false);
+            setTimeout(() => setShowBrandingControls(true), 100);
+          }}
+        />
+      )}
+      
+      {/* CI Indicator Widget - Removed */}
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import type { Vec3 } from '../engine/mock'
+import type { Vec3 } from '../engine/nava-engine'
 
 export type Target = 'rust' | 'cpp' | 'python' | 'typescript'
 

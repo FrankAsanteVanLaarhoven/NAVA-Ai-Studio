@@ -36,7 +36,7 @@
   justify-content: space-between;
   padding: 8px 12px;
   background: #252526;
-  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
   min-height: 35px;
   gap: 8px;
   flex-shrink: 0; /* Prevent header from shrinking */
@@ -127,125 +127,121 @@
   position: relative;
 }
 
-/* Horizontal resize handles (for left/right panels) */
+/* Horizontal resize handles (for left/right panels) - Cursor-style Orange */
 .resize-handle.horizontal-handle {
   position: absolute !important;
   top: 0 !important;
   bottom: 0 !important;
-  width: 15px !important;
+  width: 1px !important;
   cursor: col-resize !important;
   z-index: 9999999 !important;
   display: block !important;
   visibility: visible !important;
-  background: linear-gradient(90deg, 
-    #ff0000 0%, 
-    #00ff00 50%, 
-    #ffff00 100%) !important;
-  transition: none !important;
+  background: transparent !important;
+  transition: all 0.15s ease !important;
   pointer-events: all !important;
-  border: 3px solid #ffffff !important;
-  box-shadow: 0 0 30px rgba(255, 0, 0, 1), 
-              inset 0 0 20px rgba(255, 255, 255, 0.5) !important;
+  border: none !important;
+  box-shadow: none !important;
   opacity: 1 !important;
 }
 
 .resize-handle.horizontal-handle::before {
   content: '';
   position: absolute;
-  width: 4px;
+  width: 1px;
   height: 100%;
-  background: #00ff00;
+  background: #ff6b35;
   transition: all 0.15s ease;
   z-index: 10000;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  box-shadow: none;
   opacity: 1;
 }
 
 .resize-handle.horizontal-handle .resize-handle-bar {
   width: 100%;
   height: 100%;
-  background: rgba(0, 255, 0, 0.15);
+  background: rgba(255, 107, 53, 0.1);
   opacity: 0;
   transition: all 0.15s ease;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  box-shadow: none;
 }
 
 .resize-handle.horizontal-handle:hover {
-  background: rgba(0, 255, 0, 0.08);
-  width: 8px;
+  background: transparent;
+  width: 4px;
 }
 
 .resize-handle.horizontal-handle:hover::before {
-  width: 4px;
-  background: #00ff00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 1), 0 0 25px rgba(0, 255, 0, 0.8);
+  width: 1px;
+  background: #ff6b35;
+  box-shadow: none;
   opacity: 1;
 }
 
 .resize-handle.horizontal-handle:hover .resize-handle-bar {
   opacity: 1;
-  background: rgba(0, 255, 0, 0.25);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  background: rgba(255, 107, 53, 0.15);
+  box-shadow: none;
 }
 
-/* Vertical resize handles (for top/bottom panels) */
+/* Vertical resize handles (for top/bottom panels) - Cursor-style Orange */
 .resize-handle.vertical-handle {
   position: absolute;
   left: 0;
   right: 0;
-  height: 8px;
+  height: 1px;
   cursor: ns-resize;
   z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 255, 0, 0.3);
+  background: transparent;
   transition: all 0.15s ease;
   pointer-events: all;
-  border: 1px solid #00ff00;
+  border: none;
 }
 
 .resize-handle.vertical-handle::before {
   content: '';
   position: absolute;
   width: 100%;
-  height: 4px;
-  background: #00ff00;
+  height: 1px;
+  background: #ff6b35;
   transition: all 0.15s ease;
   z-index: 10000;
   top: 50%;
   transform: translateY(-50%);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  box-shadow: none;
   opacity: 1;
 }
 
 .resize-handle.vertical-handle .resize-handle-bar {
   height: 100%;
   width: 100%;
-  background: rgba(0, 255, 0, 0.15);
+  background: rgba(255, 107, 53, 0.1);
   opacity: 0;
   transition: all 0.15s ease;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  box-shadow: none;
 }
 
 .resize-handle.vertical-handle:hover {
-  background: rgba(0, 255, 0, 0.08);
-  height: 8px;
+  background: transparent;
+  height: 4px;
 }
 
 .resize-handle.vertical-handle:hover::before {
-  height: 4px;
-  background: #00ff00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 1), 0 0 25px rgba(0, 255, 0, 0.8);
+  height: 1px;
+  background: #ff6b35;
+  box-shadow: none;
   opacity: 1;
 }
 
 .resize-handle.vertical-handle:hover .resize-handle-bar {
   opacity: 1;
-  background: rgba(0, 255, 0, 0.25);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  background: rgba(255, 107, 53, 0.15);
+  box-shadow: none;
 }
 
 .left-handle {
@@ -268,14 +264,14 @@
   transform: translateY(-100%) !important;
 }
 
-/* Active dragging state */
+/* Active dragging state - Orange */
 .resizable-panel.dragging .resize-handle {
-  background: rgba(0, 255, 0, 0.12) !important;
+  background: transparent !important;
 }
 
 .resizable-panel.dragging .resize-handle::before {
-  background: #00ff00 !important;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.9) !important;
+  background: #ff6b35 !important;
+  box-shadow: none !important;
 }
 
 .resizable-panel.dragging.horizontal .resize-handle {
@@ -298,7 +294,7 @@
   opacity: 1 !important;
 }
 
-/* Full-height/width gradient highlight effect */
+/* Full-height/width gradient highlight effect - Orange */
 .resize-handle.horizontal-handle::after {
   content: '';
   position: absolute;
@@ -309,9 +305,9 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 0, 0.08) 5%,
-    rgba(0, 255, 0, 0.15) 50%,
-    rgba(0, 255, 0, 0.08) 95%,
+    rgba(255, 107, 53, 0.08) 5%,
+    rgba(255, 107, 53, 0.15) 50%,
+    rgba(255, 107, 53, 0.08) 95%,
     transparent 100%
   );
   opacity: 0;
@@ -335,9 +331,9 @@
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(0, 255, 0, 0.08) 5%,
-    rgba(0, 255, 0, 0.15) 50%,
-    rgba(0, 255, 0, 0.08) 95%,
+    rgba(255, 107, 53, 0.08) 5%,
+    rgba(255, 107, 53, 0.15) 50%,
+    rgba(255, 107, 53, 0.08) 95%,
     transparent 100%
   );
   opacity: 0;

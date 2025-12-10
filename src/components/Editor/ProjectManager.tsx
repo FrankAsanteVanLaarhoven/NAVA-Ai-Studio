@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fileService, Project } from '../../services/file-service';
+import { projectSourceService, projectSources, type ProjectSource } from '../../services/project-source-service';
 import './ProjectManager.css';
 
 interface ProjectManagerProps {
@@ -14,6 +15,9 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
   const [projectName, setProjectName] = useState('');
   const [recentFiles, setRecentFiles] = useState<string[]>([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [selectedSource, setSelectedSource] = useState<ProjectSource | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [sourceInput, setSourceInput] = useState('');
 
   useEffect(() => {
     loadRecentFiles();
@@ -46,22 +50,70 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
     }
   };
 
-  const handleOpenProject = async () => {
+  const handleOpenProject = async (source?: ProjectSource) => {
     try {
-      // In a real app, you'd use a directory picker dialog
-      const path = prompt('Enter project path:');
-      if (!path) return;
+      setIsLoading(true);
+      let projectData: { path: string; files: any[] } | null = null;
 
-      const project = await fileService.openProject(path);
-      if (project) {
-        onProjectOpen(project);
-        onClose();
+      if (source === 'local' || !source) {
+        // Use File System Access API or file input
+        projectData = await projectSourceService.openFromLocal();
+      } else if (source === 'github') {
+        const repoUrl = sourceInput || prompt('Enter GitHub repository URL:');
+        if (!repoUrl) {
+          setIsLoading(false);
+          return;
+        }
+        projectData = await projectSourceService.cloneFromGitHub(repoUrl);
+      } else if (source === 'huggingface') {
+        const repoId = sourceInput || prompt('Enter HuggingFace repository ID:');
+        if (!repoId) {
+          setIsLoading(false);
+          return;
+        }
+        projectData = await projectSourceService.importFromHuggingFace(repoId);
       } else {
-        alert('Failed to open project');
+        alert(`${source} integration coming soon!`);
+        setIsLoading(false);
+        return;
       }
+
+      if (!projectData) {
+        setIsLoading(false);
+        return;
+      }
+
+      // Import files into file service
+      if (projectData.files && projectData.files.length > 0) {
+        await fileService.importFiles(projectData.files);
+      }
+
+      // Convert to Project format
+      const project: Project = {
+        name: projectData.path,
+        path: projectData.path,
+        files: projectData.files,
+        createdAt: new Date(),
+        lastModified: new Date(),
+      };
+
+      // Save project metadata
+      await fileService.saveProject(project);
+      fileService.setCurrentProject(project);
+      
+      // Trigger explorer refresh
+      const refreshEvent = new CustomEvent('nava:refresh-explorer');
+      window.dispatchEvent(refreshEvent);
+      
+      onProjectOpen(project);
+      onClose();
     } catch (error) {
       console.error('Error opening project:', error);
       alert('Failed to open project');
+    } finally {
+      setIsLoading(false);
+      setSelectedSource(null);
+      setSourceInput('');
     }
   };
 
@@ -132,9 +184,93 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({
           {/* Open Existing Project */}
           <section className="pm-section">
             <h3>Open Project</h3>
-            <button className="secondary-btn" onClick={handleOpenProject}>
-              📁 Open Folder
-            </button>
+            {!selectedSource ? (
+              <div className="source-grid">
+                {projectSources.map((source) => (
+                  <button
+                    key={source.source}
+                    className="source-btn"
+                    onClick={() => {
+                      if (source.requiresAuth) {
+                        setSelectedSource(source.source);
+                      } else {
+                        handleOpenProject(source.source);
+                      }
+                    }}
+                    title={source.description}
+                  >
+                    <span className="source-icon">{source.icon}</span>
+                    <span className="source-name">{source.name}</span>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="source-input-container">
+                <div className="source-header">
+                  <span className="source-icon-large">
+                    {projectSources.find(s => s.source === selectedSource)?.icon}
+                  </span>
+                  <div>
+                    <h4>{projectSources.find(s => s.source === selectedSource)?.name}</h4>
+                    <p className="source-description">
+                      {projectSources.find(s => s.source === selectedSource)?.description}
+                    </p>
+                  </div>
+                </div>
+                {selectedSource === 'github' && (
+                  <div className="form-group">
+                    <label htmlFor="github-url">GitHub Repository URL</label>
+                    <input
+                      id="github-url"
+                      type="text"
+                      value={sourceInput}
+                      onChange={(e) => setSourceInput(e.target.value)}
+                      placeholder="https://github.com/owner/repo"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && sourceInput) {
+                          handleOpenProject(selectedSource);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                {selectedSource === 'huggingface' && (
+                  <div className="form-group">
+                    <label htmlFor="hf-repo">HuggingFace Repository ID</label>
+                    <input
+                      id="hf-repo"
+                      type="text"
+                      value={sourceInput}
+                      onChange={(e) => setSourceInput(e.target.value)}
+                      placeholder="username/dataset-name"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && sourceInput) {
+                          handleOpenProject(selectedSource);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+                <div className="source-actions">
+                  <button
+                    className="secondary-btn"
+                    onClick={() => {
+                      setSelectedSource(null);
+                      setSourceInput('');
+                    }}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="primary-btn"
+                    onClick={() => handleOpenProject(selectedSource)}
+                    disabled={isLoading || (selectedSource !== 'local' && !sourceInput.trim())}
+                  >
+                    {isLoading ? 'Loading...' : 'Open'}
+                  </button>
+                </div>
+              </div>
+            )}
           </section>
 
           {/* Recent Files */}

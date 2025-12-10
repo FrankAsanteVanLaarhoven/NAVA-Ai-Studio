@@ -38,7 +38,7 @@
   justify-content: space-between;
   padding: 8px 12px;
   background: #252526;
-  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+  border-bottom: 1px solid rgba(255, 107, 53, 0.2);
   min-height: 35px;
   gap: 8px;
 }
@@ -85,12 +85,12 @@
   min-height: 0;
 }
 
-/* Horizontal Divider (for vertical split) */
+/* Horizontal Divider (for vertical split) - Cursor-style Orange */
 .split-divider.vertical {
-  height: 8px;
+  height: 1px;
   width: 100%;
   cursor: row-resize;
-  background: rgba(0, 255, 0, 0.3);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -101,57 +101,57 @@
   margin: 0;
   padding: 0;
   pointer-events: all;
-  border: 1px solid #00ff00;
+  border: none;
 }
 
 .split-divider.vertical::before {
   content: '';
   position: absolute;
   width: 100%;
-  height: 4px;
-  background: #00ff00;
+  height: 1px;
+  background: #ff6b35;
   transition: all 0.15s ease;
   z-index: 10000;
   top: 50%;
   transform: translateY(-50%);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  box-shadow: none;
   opacity: 1;
 }
 
 .split-divider.vertical .split-divider-bar {
   height: 100%;
   width: 100%;
-  background: rgba(0, 255, 0, 0.2);
+  background: rgba(255, 107, 53, 0.1);
   opacity: 0;
   transition: all 0.15s ease;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  box-shadow: none;
   z-index: 0;
 }
 
 .split-divider.vertical:hover {
-  background: rgba(0, 255, 0, 0.08);
-  height: 8px;
+  background: transparent;
+  height: 4px;
 }
 
 .split-divider.vertical:hover::before {
-  height: 4px;
-  background: #00ff00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 1), 0 0 25px rgba(0, 255, 0, 0.8);
+  height: 1px;
+  background: #ff6b35;
+  box-shadow: none;
   opacity: 1;
 }
 
 .split-divider.vertical:hover .split-divider-bar {
   opacity: 1;
-  background: rgba(0, 255, 0, 0.25);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  background: rgba(255, 107, 53, 0.15);
+  box-shadow: none;
 }
 
-/* Vertical Divider (for horizontal split) */
+/* Vertical Divider (for horizontal split) - Cursor-style Orange */
 .split-divider.horizontal {
-  width: 12px;
+  width: 1px;
   height: 100%;
   cursor: col-resize;
-  background: rgba(0, 255, 0, 0.9) !important;
+  background: transparent !important;
   display: block !important;
   z-index: 999999 !important;
   position: relative;
@@ -160,61 +160,60 @@
   margin: 0;
   padding: 0;
   pointer-events: all !important;
-  border-left: 3px solid #00ff00 !important;
-  border-right: 3px solid #ffff00 !important;
-  box-shadow: 0 0 20px rgba(0, 255, 0, 1) !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .split-divider.horizontal::before {
   content: '';
   position: absolute;
-  width: 4px;
+  width: 1px;
   height: 100%;
-  background: #00ff00;
+  background: #ff6b35;
   transition: all 0.15s ease;
   z-index: 10000;
   left: 50%;
   transform: translateX(-50%);
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+  box-shadow: none;
   opacity: 1;
 }
 
 .split-divider.horizontal .split-divider-bar {
   width: 100%;
   height: 100%;
-  background: rgba(0, 255, 0, 0.2);
+  background: rgba(255, 107, 53, 0.1);
   opacity: 0;
   transition: all 0.15s ease;
-  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  box-shadow: none;
   z-index: 0;
 }
 
 .split-divider.horizontal:hover {
-  background: rgba(0, 255, 0, 0.08);
-  width: 8px;
+  background: transparent;
+  width: 4px;
 }
 
 .split-divider.horizontal:hover::before {
-  width: 4px;
-  background: #00ff00;
-  box-shadow: 0 0 15px rgba(0, 255, 0, 1), 0 0 25px rgba(0, 255, 0, 0.8);
+  width: 1px;
+  background: #ff6b35;
+  box-shadow: none;
   opacity: 1;
 }
 
 .split-divider.horizontal:hover .split-divider-bar {
   opacity: 1;
-  background: rgba(0, 255, 0, 0.25);
-  box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+  background: rgba(255, 107, 53, 0.15);
+  box-shadow: none;
 }
 
-/* Active dragging state */
+/* Active dragging state - Orange */
 .split-panel.dragging .split-divider {
-  background: rgba(0, 255, 0, 0.12) !important;
+  background: transparent !important;
 }
 
 .split-panel.dragging .split-divider::before {
-  background: #00ff00 !important;
-  box-shadow: 0 0 10px rgba(0, 255, 0, 0.9) !important;
+  background: #ff6b35 !important;
+  box-shadow: none !important;
 }
 
 .split-panel.dragging.vertical .split-divider {
@@ -233,7 +232,7 @@
   width: 2px !important;
 }
 
-/* Full-height/width highlight effect */
+/* Full-height/width highlight effect - Orange */
 .split-divider.horizontal::after {
   content: '';
   position: absolute;
@@ -244,9 +243,9 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 255, 0, 0.1) 10%,
-    rgba(0, 255, 0, 0.15) 50%,
-    rgba(0, 255, 0, 0.1) 90%,
+    rgba(255, 107, 53, 0.1) 10%,
+    rgba(255, 107, 53, 0.15) 50%,
+    rgba(255, 107, 53, 0.1) 90%,
     transparent 100%
   );
   opacity: 0;
@@ -269,9 +268,9 @@
   background: linear-gradient(
     to right,
     transparent 0%,
-    rgba(0, 255, 0, 0.1) 10%,
-    rgba(0, 255, 0, 0.15) 50%,
-    rgba(0, 255, 0, 0.1) 90%,
+    rgba(255, 107, 53, 0.1) 10%,
+    rgba(255, 107, 53, 0.15) 50%,
+    rgba(255, 107, 53, 0.1) 90%,
     transparent 100%
   );
   opacity: 0;

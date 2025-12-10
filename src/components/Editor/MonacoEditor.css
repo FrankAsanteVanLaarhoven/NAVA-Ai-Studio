@@ -6,6 +6,231 @@
   background: #1a1a1a;
 }
 
+/* NAVLAMBDA Badge - Top Only (Removed Bottom Duplicate) */
+.navlambda-badge-top {
+  background: #252526;
+  border-bottom: 1px solid #3e3e42;
+  padding: 8px 12px;
+  min-height: 36px;
+}
+
+.navlambda-badge-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.navlambda-badge-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #ffffff;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.navlambda-lambda {
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+  font-weight: 900;
+}
+
+/* VS Code/Cursor Style Top Toolbar */
+.editor-top-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* Search Bar */
+.editor-search-form {
+  display: flex;
+  align-items: center;
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 4px 8px;
+  gap: 6px;
+  min-width: 200px;
+  transition: border-color 0.2s;
+}
+
+.editor-search-form:focus-within {
+  border-color: #00ff00;
+}
+
+.editor-search-form .search-icon {
+  color: #858585;
+  flex-shrink: 0;
+}
+
+.editor-search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 12px;
+  outline: none;
+  min-width: 0;
+}
+
+.editor-search-input::placeholder {
+  color: #858585;
+}
+
+/* Symbol Toolbar Buttons */
+.vnc-symbols-toolbar {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.vnc-symbol-toolbar-btn {
+  background: #2d2d2d;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #00ff00;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 32px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vnc-symbol-toolbar-btn:hover {
+  background: #3e3e42;
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
+  transform: translateY(-1px);
+}
+
+.vnc-symbol-toolbar-btn:active {
+  transform: translateY(0);
+}
+
+/* Layout Controls */
+.editor-layout-controls {
+  position: relative;
+}
+
+.layout-menu-container {
+  position: relative;
+}
+
+.layout-menu-btn {
+  background: #2d2d2d;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #cccccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+  font-size: 12px;
+}
+
+.layout-menu-btn:hover {
+  background: #3e3e42;
+  border-color: #00ff00;
+  color: #00ff00;
+}
+
+.layout-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  min-width: 240px;
+  z-index: 1000;
+  padding: 4px 0;
+}
+
+.layout-menu-section {
+  padding: 4px 0;
+}
+
+.layout-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-size: 12px;
+  color: #cccccc;
+}
+
+.layout-menu-item:hover {
+  background: #2a2d2e;
+}
+
+.layout-menu-item span:first-of-type {
+  flex: 1;
+}
+
+.layout-shortcut {
+  color: #858585;
+  font-size: 11px;
+  font-family: monospace;
+}
+
+.layout-toggle {
+  width: 36px;
+  height: 20px;
+  background: #3e3e42;
+  border-radius: 10px;
+  position: relative;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.layout-toggle.on {
+  background: #00ff00;
+}
+
+.toggle-slider {
+  width: 16px;
+  height: 16px;
+  background: #ffffff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.layout-toggle.on .toggle-slider {
+  transform: translateX(16px);
+}
+
+.layout-menu-divider {
+  height: 1px;
+  background: #3e3e42;
+  margin: 4px 0;
+}
+
+/* Action Buttons */
+.editor-action-buttons {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
 .monaco-editor-toolbar {
   background: #2a2a2a;
   border-bottom: 1px solid #444;
@@ -14,6 +239,33 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.editor-action-btn {
+  background: #2d2d2d;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #cccccc;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  min-width: 28px;
+  height: 24px;
+}
+
+.editor-action-btn:hover {
+  background: #3e3e42;
+  border-color: #00ff00;
+  color: #00ff00;
+}
+
+.editor-action-btn.active {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: #00ff00;
+  color: #00ff00;
 }
 
 .file-info {

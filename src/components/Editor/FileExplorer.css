@@ -9,6 +9,61 @@
   overflow: hidden;
 }
 
+.file-explorer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: rgba(15, 23, 42, 0.95);
+  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+  min-height: 48px;
+}
+
+.file-explorer-logo-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.file-explorer-logo-title:hover {
+  background: rgba(0, 255, 0, 0.1);
+  transform: translateX(-2px);
+}
+
+.file-explorer-logo {
+  font-size: 20px;
+  font-weight: 700;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+  transition: all 0.3s ease;
+}
+
+.file-explorer-logo-capital {
+  font-size: 22px;
+  font-weight: 700;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.8), 0 0 20px rgba(0, 255, 0, 0.6);
+  transition: all 0.3s ease;
+}
+
+.file-explorer-logo-title:hover .file-explorer-logo,
+.file-explorer-logo-title:hover .file-explorer-logo-capital {
+  text-shadow: 0 0 15px rgba(0, 255, 0, 1), 0 0 30px rgba(0, 255, 0, 0.8);
+  transform: scale(1.1);
+}
+
+.file-explorer-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: 0.5px;
+  margin-left: 4px;
+}
+
 .file-explorer-toolbar {
   display: flex;
   align-items: center;
@@ -48,52 +103,49 @@
   flex: 1;
 }
 
-.file-explorer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 12px;
-  background: #252526;
-  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-  min-height: 35px;
-}
-
-.file-explorer-header h3 {
-  margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #cccccc;
-}
-
 .file-explorer-actions {
   display: flex;
-  gap: 2px;
   align-items: center;
+  gap: 4px;
 }
 
-.file-tree {
+.file-explorer-search {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  background: #252526;
+  border-bottom: 1px solid rgba(0, 255, 0, 0.1);
+  position: relative;
+}
+
+.search-icon {
+  position: absolute;
+  left: 20px;
+  color: #666;
+  pointer-events: none;
+}
+
+.file-explorer-search input {
+  width: 100%;
+  padding: 6px 8px 6px 32px;
+  background: #1e1e1e;
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 4px;
+  color: #cccccc;
+  font-size: 12px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.file-explorer-search input:focus {
+  border-color: rgba(0, 255, 0, 0.5);
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.2);
+}
+
+.file-explorer-content {
   flex: 1;
   overflow-y: auto;
-  overflow-x: hidden;
-}
-
-.file-tree::-webkit-scrollbar {
-  width: 10px;
-}
-
-.file-tree::-webkit-scrollbar-track {
-  background: #1e1e1e;
-}
-
-.file-tree::-webkit-scrollbar-thumb {
-  background: #424242;
-  border-radius: 5px;
-}
-
-.file-tree::-webkit-scrollbar-thumb:hover {
-  background: #4e4e4e;
+  padding: 8px;
 }
 
 .file-tree-item {
@@ -103,123 +155,95 @@
 .file-item {
   display: flex;
   align-items: center;
+  gap: 6px;
   padding: 4px 8px;
   cursor: pointer;
-  transition: background 0.1s;
-  white-space: nowrap;
-  overflow: hidden;
+  border-radius: 4px;
+  transition: all 0.15s;
+  margin: 1px 0;
 }
 
 .file-item:hover {
-  background: #2a2d2e;
+  background: rgba(0, 255, 0, 0.1);
 }
 
 .file-item.selected {
-  background: #094771;
+  background: rgba(0, 255, 0, 0.2);
+  border-left: 2px solid #00ff00;
 }
 
-.file-item.selected:hover {
-  background: #0e639c;
+.file-item.dragging {
+  opacity: 0.5;
 }
 
 .folder-icon,
 .file-icon {
-  margin-right: 6px;
   font-size: 16px;
-  flex-shrink: 0;
+  width: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .file-name {
+  flex: 1;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
-/* Nested items are indented via inline styles */
 .file-tree-children {
   margin-left: 0;
-}
-
-.empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 40px 20px;
-  text-align: center;
-  color: #858585;
-}
-
-.empty-state p {
-  margin-bottom: 16px;
-  font-size: 14px;
-}
-
-.empty-state button {
-  background: #0e639c;
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.2s;
-}
-
-.empty-state button:hover {
-  background: #1177bb;
-}
-
-/* Context Menu */
-.context-menu-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 999;
 }
 
 .context-menu {
   position: fixed;
   background: #252526;
-  border: 1px solid #454545;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 6px;
+  padding: 4px;
   z-index: 1000;
-  min-width: 180px;
-  padding: 4px 0;
+  min-width: 160px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .context-menu-item {
-  padding: 6px 16px;
+  padding: 8px 12px;
   cursor: pointer;
-  transition: background 0.1s;
+  border-radius: 4px;
   font-size: 13px;
+  color: #cccccc;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .context-menu-item:hover {
-  background: #094771;
+  background: rgba(0, 255, 0, 0.15);
+  color: #00ff00;
 }
 
 .context-menu-divider {
   height: 1px;
-  background: #454545;
+  background: rgba(0, 255, 0, 0.2);
   margin: 4px 0;
 }
 
-/* Animations */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+/* Custom scrollbar */
+.file-explorer-content::-webkit-scrollbar {
+  width: 8px;
 }
 
-.file-tree-item {
-  animation: slideIn 0.2s ease-out;
+.file-explorer-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.file-explorer-content::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 0, 0.3);
+  border-radius: 4px;
+}
+
+.file-explorer-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 0, 0.5);
 }

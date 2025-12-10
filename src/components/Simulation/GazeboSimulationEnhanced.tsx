@@ -36,7 +36,7 @@ export const GazeboSimulationEnhanced: React.FC = () => {
   const [selectedRobot, setSelectedRobot] = useState<string | null>(null);
   const [showSpawnMenu, setShowSpawnMenu] = useState(false);
   const [showWorldSelector, setShowWorldSelector] = useState(false);
-  const [demoMode, setDemoMode] = useState(true); // Auto-demo on first load
+  const [demoMode, setDemoMode] = useState(false); // Disable auto-demo to prevent stuck loading
   const [rightPanelTab, setRightPanelTab] = useState<PanelTab>('models'); // Integrated panel tabs
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false); // Sidebar toggle
   const [viewMode, setViewMode] = useState<ViewMode>('3D'); // View mode
@@ -292,8 +292,8 @@ export const GazeboSimulationEnhanced: React.FC = () => {
         <Gazebo3DViewer />
       </div>
 
-      {/* Demo Mode Banner */}
-      {demoMode && (
+      {/* Demo Mode Banner - Disabled to prevent stuck loading */}
+      {false && demoMode && (
         <div className="demo-banner">
           <span className="demo-icon">🚀</span>
           <span>Loading demo: Spawning robot and objects...</span>

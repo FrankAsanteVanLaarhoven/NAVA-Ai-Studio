@@ -79,3 +79,44 @@
   font-size: 11px;
 }
 
+.outline-empty {
+  padding: 20px;
+  text-align: center;
+  color: #858585;
+}
+
+.outline-empty p {
+  margin: 4px 0;
+  font-size: 12px;
+}
+
+.outline-hint {
+  font-size: 11px !important;
+  color: #6b7280 !important;
+}
+
+.outline-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.outline-item:hover {
+  background-color: rgba(0, 122, 204, 0.1);
+}
+
+.outline-item.class .outline-icon {
+  color: #4ec9b0;
+}
+
+.outline-item.interface .outline-icon {
+  color: #b5cea8;
+}
+
+.outline-item.constant .outline-icon {
+  color: #569cd6;
+}
+
+.outline-item.import .outline-icon {
+  color: #858585;
+}
+

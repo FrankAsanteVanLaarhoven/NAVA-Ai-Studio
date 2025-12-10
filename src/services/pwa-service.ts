@@ -13,6 +13,8 @@ class PWAService {
   private deferredPrompt: any = null;
 
   async initialize(): Promise<void> {
+    // Enable PWA in both dev and prod for full SDK functionality
+    // Service worker is now enabled in dev mode for testing
     if ('serviceWorker' in navigator) {
       try {
         this.registration = await navigator.serviceWorker.register('/service-worker.js');

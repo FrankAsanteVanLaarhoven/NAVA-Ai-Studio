@@ -1,0 +1,118 @@
+.traditional-menu-bar {
+  display: flex;
+  align-items: center;
+  background: #2d2d30;
+  border-bottom: 1px solid #3e3e42;
+  height: 22px;
+  padding: 0;
+  font-size: 13px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  user-select: none;
+  z-index: 1000;
+}
+
+.menu-bar-items {
+  display: flex;
+  align-items: center;
+  height: 100%;
+}
+
+.menu-bar-item-container {
+  position: relative;
+  height: 100%;
+}
+
+.menu-bar-item {
+  background: transparent;
+  border: none;
+  color: #cccccc;
+  padding: 0 8px;
+  height: 100%;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background-color 0.1s;
+  display: flex;
+  align-items: center;
+}
+
+.menu-bar-item:hover {
+  background: #3e3e42;
+}
+
+.menu-bar-item.active {
+  background: #007acc;
+  color: #ffffff;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #252526;
+  border: 1px solid #3e3e42;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  min-width: 200px;
+  padding: 4px 0;
+  z-index: 1001;
+  margin-top: 1px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 20px 4px 24px;
+  color: #cccccc;
+  cursor: pointer;
+  font-size: 13px;
+  position: relative;
+  transition: background-color 0.1s;
+}
+
+.menu-item:hover:not(.disabled) {
+  background: #094771;
+  color: #ffffff;
+}
+
+.menu-item.disabled {
+  color: #6a6a6a;
+  cursor: not-allowed;
+}
+
+.menu-item.has-submenu::after {
+  content: '›';
+  position: absolute;
+  right: 8px;
+  color: #858585;
+}
+
+.menu-item-label {
+  flex: 1;
+}
+
+.menu-item-shortcut {
+  color: #858585;
+  font-size: 11px;
+  margin-left: 16px;
+  font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Roboto Mono', monospace;
+}
+
+.menu-item:hover:not(.disabled) .menu-item-shortcut {
+  color: #cccccc;
+}
+
+.menu-separator {
+  height: 1px;
+  background: #3e3e42;
+  margin: 4px 0;
+}
+
+/* Ensure menu appears above other content */
+.menu-bar-item-container {
+  z-index: 1000;
+}
+
+.menu-dropdown {
+  z-index: 1001;
+}
+

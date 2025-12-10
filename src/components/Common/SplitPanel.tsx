@@ -123,8 +123,16 @@ export const SplitPanel: React.FC<SplitPanelProps> = ({
         className={`split-section first ${firstCollapsed ? 'collapsed' : ''}`}
         style={
           firstCollapsed
-            ? { [direction === 'horizontal' ? 'width' : 'height']: '0px' }
-            : { [direction === 'horizontal' ? 'width' : 'height']: `${split}%` }
+            ? { 
+                [direction === 'horizontal' ? 'width' : 'height']: '0px',
+                minWidth: direction === 'horizontal' ? '0px' : undefined,
+                minHeight: direction === 'vertical' ? '0px' : undefined,
+              }
+            : { 
+                [direction === 'horizontal' ? 'width' : 'height']: `${split}%`,
+                minWidth: direction === 'horizontal' ? `${minSize}px` : undefined,
+                minHeight: direction === 'vertical' ? `${minSize}px` : undefined,
+              }
         }
       >
         {firstPanelTitle && (
@@ -161,8 +169,16 @@ export const SplitPanel: React.FC<SplitPanelProps> = ({
         className={`split-section second ${secondCollapsed ? 'collapsed' : ''}`}
         style={
           secondCollapsed
-            ? { [direction === 'horizontal' ? 'width' : 'height']: '0px' }
-            : { [direction === 'horizontal' ? 'width' : 'height']: `${100 - split}%` }
+            ? { 
+                [direction === 'horizontal' ? 'width' : 'height']: '0px',
+                minWidth: direction === 'horizontal' ? '0px' : undefined,
+                minHeight: direction === 'vertical' ? '0px' : undefined,
+              }
+            : { 
+                [direction === 'horizontal' ? 'width' : 'height']: `${100 - split}%`,
+                minWidth: direction === 'horizontal' ? `${minSize}px` : undefined,
+                minHeight: direction === 'vertical' ? `${minSize}px` : undefined,
+              }
         }
       >
         {secondPanelTitle && (

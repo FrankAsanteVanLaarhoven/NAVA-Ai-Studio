@@ -368,6 +368,70 @@
 .output-content.lang-typescript { color: #3178c6; }
 .output-content.lang-bash { color: #4ec9b0; }
 
+/* Rich output rendering */
+.output-content-wrapper {
+  padding: 12px;
+}
+
+.output-error {
+  background: #3a1f1f;
+  border-left: 3px solid #dc2626;
+  padding: 12px;
+  margin: 8px 0;
+}
+
+.output-error .output-content {
+  color: #ff6b6b;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  white-space: pre-wrap;
+}
+
+.output-image {
+  padding: 12px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.output-image img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.output-html {
+  padding: 12px;
+  background: #1e1e1e;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+.output-stream {
+  padding: 8px 12px;
+}
+
+.output-stream .output-content {
+  margin: 0;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.output-text {
+  padding: 8px 12px;
+}
+
+.output-text .output-content {
+  margin: 0;
+  font-family: 'Fira Code', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  color: #4ec9b0;
+}
+
 /* Custom scrollbar */
 .notebook-cells::-webkit-scrollbar {
   width: 12px;

@@ -132,9 +132,18 @@ export const ResizablePanel: React.FC<ResizablePanelProps> = ({
     }
   };
 
+  // When expanding from collapsed, restore saved size or use default
   const panelStyle = isVertical
-    ? { height: isCollapsed ? '0px' : `${size}px` }
-    : { width: isCollapsed ? '0px' : `${size}px` };
+    ? { 
+        height: isCollapsed ? '0px' : `${size}px`,
+        minHeight: isCollapsed ? '0px' : `${minHeight}px`,
+        maxHeight: isCollapsed ? '0px' : `${maxHeight}px`,
+      }
+    : { 
+        width: isCollapsed ? '0px' : `${size}px`,
+        minWidth: isCollapsed ? '0px' : `${minWidth}px`,
+        maxWidth: isCollapsed ? '0px' : `${maxWidth}px`,
+      };
 
   return (
     <div

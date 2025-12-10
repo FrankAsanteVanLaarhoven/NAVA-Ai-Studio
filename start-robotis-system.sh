@@ -3,7 +3,8 @@
 # ROBOTIS-SYSTEMIC Full Integration Startup Script
 # This script starts all required services for the fully integrated platform
 
-set -e
+# Don't exit on error - continue even if one service fails
+# set -e
 
 echo "================================================"
 echo "🚀 Starting ROBOTIS-SYSTEMIC Integration"
@@ -19,7 +20,7 @@ NC='\033[0m' # No Color
 
 # Configuration
 ROBOTIS_DIR="/Users/frankvanlaarhoven/Downloads/ROBOTIS-SYSTEMIC"
-NAVA_DIR="/Users/frankvanlaarhoven/Downloads/NAVΛ STUDIO IDE"
+NAVA_DIR="/Users/frankvanlaarhoven/Desktop/NAVA Studio IDE"
 
 # Check if directories exist
 if [ ! -d "$ROBOTIS_DIR" ]; then

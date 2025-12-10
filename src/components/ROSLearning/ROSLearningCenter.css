@@ -1,18 +1,45 @@
+.ros-learning-container {
+  display: flex;
+  flex-direction: row;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
 .ros-learning-center {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #1a1a1a;
   color: #cccccc;
-  min-height: 100vh;
-  padding: 24px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.ros-learning-center > * {
+  flex-shrink: 0;
+}
+
+.ros-learning-center .courses-grid,
+.ros-learning-center .course-detail,
+.ros-learning-center .unit-viewer {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 8px;
 }
 
 /* Header */
 .ros-header {
   text-align: center;
-  margin-bottom: 48px;
-  padding: 48px 24px;
+  margin-bottom: 24px;
+  padding: 32px 20px;
   background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(34, 197, 94, 0.1));
-  border-radius: 16px;
+  border-radius: 12px;
   border: 2px solid rgba(59, 130, 246, 0.3);
+  flex-shrink: 0;
 }
 
 .ros-header-content {
@@ -48,18 +75,20 @@
 }
 
 .ros-header h1 {
-  font-size: 48px;
+  font-size: clamp(28px, 4vw, 42px);
   font-weight: 700;
   background: linear-gradient(135deg, #60a5fa, #22c55e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
+  line-height: 1.2;
 }
 
 .ros-header p {
-  font-size: 18px;
+  font-size: clamp(14px, 2vw, 16px);
   color: #cbd5e1;
   margin-bottom: 0;
+  line-height: 1.5;
 }
 
 .ros-stats {
@@ -92,18 +121,21 @@
 /* Courses Grid */
 .courses-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  padding-bottom: 20px;
 }
 
 .course-card {
   background: #252526;
   border: 1px solid #3c3c3c;
   border-radius: 12px;
-  padding: 24px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   transition: all 0.3s;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .course-card:hover {
@@ -140,18 +172,24 @@
 }
 
 .course-card h2 {
-  font-size: 20px;
+  font-size: clamp(16px, 2.5vw, 18px);
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   color: #ffffff;
+  line-height: 1.3;
 }
 
 .course-description {
-  font-size: 14px;
+  font-size: clamp(12px, 1.5vw, 13px);
   color: #cbd5e1;
-  line-height: 1.6;
-  margin-bottom: 16px;
+  line-height: 1.5;
+  margin-bottom: 12px;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
 }
 
 .course-meta {
@@ -289,12 +327,16 @@
 }
 
 /* Course Detail */
+.course-detail {
+  padding-bottom: 20px;
+}
+
 .course-detail-header {
   background: rgba(59, 130, 246, 0.05);
   border: 1px solid rgba(59, 130, 246, 0.2);
   border-radius: 12px;
-  padding: 32px;
-  margin-bottom: 32px;
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
 .course-detail-header h1 {
@@ -544,8 +586,7 @@
 
 /* Unit Viewer */
 .unit-viewer {
-  max-width: 900px;
-  margin: 0 auto;
+  padding-bottom: 20px;
 }
 
 .unit-header-section {
@@ -719,6 +760,47 @@
   margin-top: 48px;
   padding-top: 32px;
   border-top: 2px solid #3c3c3c;
+}
+
+/* Scrollbar Styling */
+.ros-learning-center *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ros-learning-center *::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: 4px;
+}
+
+.ros-learning-center *::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.4);
+  border-radius: 4px;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.ros-learning-center *::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.6);
+}
+
+/* Ensure text is readable */
+.ros-learning-center {
+  font-size: clamp(13px, 1.5vw, 15px);
+  line-height: 1.6;
+}
+
+.ros-learning-center h1,
+.ros-learning-center h2,
+.ros-learning-center h3,
+.ros-learning-center h4 {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.ros-learning-center p,
+.ros-learning-center li,
+.ros-learning-center span {
+  color: #e0e0e0;
 }
 
 /* Responsive */

@@ -1,0 +1,509 @@
+/* NAVΛ SDK Download Button - Production Ready */
+
+.sdk-download-btn {
+  position: relative;
+  padding: 8px 20px;
+  background: linear-gradient(135deg, #3b82f6 0%, #00ff00 100%);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  overflow: hidden;
+}
+
+.sdk-download-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 255, 0, 0.4);
+  border-color: rgba(0, 255, 0, 0.6);
+  background: linear-gradient(135deg, #2563eb 0%, #00ff00 100%);
+}
+
+.sdk-download-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.sdk-download-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.sdk-download-btn.downloading {
+  background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%);
+}
+
+/* Error state removed - silent retry only */
+
+.sdk-btn-logo {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  font-weight: 700;
+}
+
+.sdk-logo-lambda {
+  font-size: 18px;
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8), 0 0 16px rgba(0, 255, 0, 0.6);
+  filter: drop-shadow(0 0 4px rgba(0, 255, 0, 0.5));
+}
+
+.sdk-logo-capital {
+  font-size: 20px;
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0, 255, 0, 0.8), 0 0 16px rgba(0, 255, 0, 0.6);
+  filter: drop-shadow(0 0 4px rgba(0, 255, 0, 0.5));
+}
+
+.sdk-download-btn:hover .sdk-logo-lambda,
+.sdk-download-btn:hover .sdk-logo-capital {
+  text-shadow: 0 0 12px rgba(0, 255, 0, 1), 0 0 24px rgba(0, 255, 0, 0.8);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.8));
+}
+
+.sdk-btn-text {
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.sdk-btn-platform {
+  font-size: 11px;
+  opacity: 0.9;
+  font-weight: 500;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.sdk-progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+}
+
+.sdk-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #00ff00, #3b82f6);
+  transition: width 0.3s ease;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.6);
+}
+
+/* Modal */
+.sdk-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.sdk-modal {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 700px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sdk-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px;
+  border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.sdk-modal-header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.sdk-modal-logo-container {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  background: rgba(0, 255, 0, 0.1);
+  border: 2px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.sdk-modal-logo-lambda {
+  font-size: 32px;
+  font-weight: 700;
+  color: #00ff00;
+  text-shadow: 0 0 12px rgba(0, 255, 0, 0.9), 0 0 24px rgba(0, 255, 0, 0.7);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.6));
+}
+
+.sdk-modal-logo-capital {
+  font-size: 36px;
+  font-weight: 700;
+  color: #00ff00;
+  text-shadow: 0 0 12px rgba(0, 255, 0, 0.9), 0 0 24px rgba(0, 255, 0, 0.7);
+  filter: drop-shadow(0 0 8px rgba(0, 255, 0, 0.6));
+}
+
+.sdk-modal-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.sdk-platform-badge {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 500;
+}
+
+.sdk-modal-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.sdk-modal-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+.sdk-modal-content {
+  padding: 24px;
+}
+
+.sdk-success-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.sdk-success-icon {
+  font-size: 24px;
+}
+
+.sdk-success-message p {
+  margin: 0;
+  color: #00ff00;
+  font-weight: 600;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.6), 0 0 20px rgba(0, 255, 0, 0.4);
+}
+
+.sdk-error-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.sdk-error-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.sdk-error-message p {
+  margin: 0 0 4px 0;
+  color: #f87171;
+  font-size: 14px;
+}
+
+.sdk-error-message p strong {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.sdk-instructions {
+  margin-bottom: 24px;
+}
+
+.sdk-instructions h3 {
+  margin: 0 0 12px 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sdk-download-section {
+  margin-bottom: 24px;
+  padding: 20px;
+  background: rgba(0, 255, 0, 0.05);
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 12px;
+}
+
+.sdk-download-section h3 {
+  margin: 0 0 12px 0;
+  color: #00ff00;
+  font-size: 18px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sdk-build-command {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(0, 255, 0, 0.3);
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin: 16px 0;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  color: #00ff00;
+  text-align: center;
+  box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+}
+
+.sdk-build-command code {
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: #00ff00;
+  font-size: 13px;
+}
+
+.sdk-install-steps {
+  margin-top: 16px;
+}
+
+.sdk-install-steps h4 {
+  margin: 0 0 12px 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sdk-steps-list {
+  margin: 0;
+  padding-left: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.8;
+}
+
+.sdk-steps-list li {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.sdk-steps-list code {
+  background: rgba(0, 0, 0, 0.4);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  color: #00ff00;
+  border: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.sdk-steps-list strong {
+  color: #00ff00;
+  font-weight: 600;
+}
+
+.sdk-instructions-code {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  margin: 0;
+  overflow-x: auto;
+}
+
+.sdk-quick-start {
+  margin-bottom: 24px;
+}
+
+.sdk-quick-start h3 {
+  margin: 0 0 12px 0;
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.sdk-code-example {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(0, 255, 0, 0.2);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+  overflow-x: auto;
+}
+
+.sdk-code-example pre {
+  margin: 0;
+  color: #e2e8f0;
+  font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.sdk-modal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(0, 255, 0, 0.2);
+}
+
+.sdk-docs-link {
+  color: #3b82f6;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sdk-docs-link:hover {
+  color: #60a5fa;
+  text-decoration: underline;
+}
+
+.sdk-modal-btn {
+  padding: 10px 24px;
+  background: linear-gradient(135deg, #3b82f6 0%, #00ff00 100%);
+  border: none;
+  border-radius: 8px;
+  color: #ffffff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sdk-modal-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
+/* Error Toast */
+.sdk-error-toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: rgba(239, 68, 68, 0.95);
+  border: 1px solid rgba(239, 68, 68, 0.5);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: #ffffff;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  z-index: 10001;
+  animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.sdk-error-toast button {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.sdk-error-toast button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Custom Scrollbar */
+.sdk-modal::-webkit-scrollbar {
+  width: 8px;
+}
+
+.sdk-modal::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sdk-modal::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 0, 0.3);
+  border-radius: 4px;
+}
+
+.sdk-modal::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 0, 0.5);
+}
+

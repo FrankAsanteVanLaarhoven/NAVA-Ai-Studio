@@ -1,0 +1,216 @@
+[
+  {
+    "title": "Overview",
+    "content": "NAV\u039b (pronounced \"nav-lambda\") is a **decision + motion** framework that unifies\nlanguage-level intents, spatial reasoning, and robot control under one roof.\nIt compiles to Rust/C++/Python/TypeScript and backstops every decision with\n**Timing Contracts** and **Evidence Packs**:\n\n- **Timing Contracts**: formal bounds that the runtime enforces (and benchmarks) on\n  compute + control cycles.\n- **Evidence Packs**: signed bundles logging inputs, constraints, metrics, and verdicts.\n\nThis overview maps",
+    "file": "docs/OVERVIEW.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "NAV\u039b (NAVA) \u2014 Production Documentation Suite",
+    "content": "This repository is a **production-ready documentation** corpus for the NAV\u039b framework:\nlanguage, runtime, mathematics, verification, and SDKs. It is structured for direct\npublishing via MkDocs Material or Docusaurus and mirrors the code layout of your\nUnivarm stack.\n\n> Scope: language spec, math formalism, real\u2011time metrics (DMR/AJ/TTP), timing contracts,\n> constraint calculus, IK, collision safety, VR/WebXR semantics, and evidence-backed V&V.\n\nIf you are reading this offline, start with **Overv",
+    "file": "docs/README.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Quick local preview (MkDocs)",
+    "content": "```bash\npip install -U mkdocs mkdocs-material\nmkdocs serve\n```",
+    "file": "docs/README.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Safety & Collision Theorems (Operational)",
+    "content": "**Assumptions**: accurate URDF geometry, FCL broadphase/narrowphase, bounded latency.\n\n**Claim A (Keep-out compliance)** \u2014 If path samples obey \\\\(d(\\\\gamma(s),\\\\mathcal{K}) \\\\ge r\\\\)\nand follower tracking error \\\\(\\\\le r/2\\\\), then executed path avoids \\\\(\\\\mathcal{K}\\\\).\n*Proof*: triangle inequality on closest-point distances.\n\n**Claim B (Approach cone)** \u2014 With orientation cone \\\\(\\\\alpha\\\\), the end-effector\nerror is bounded by \\\\(\\\\alpha\\\\) at the terminal pose when JT/DLS is run to converg",
+    "file": "docs/NAVLA-MATHS/SAFETY-THEOREMS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Intent as a Markov Process",
+    "content": "We model operator/world uncertainty as an MDP with state \\(s\\), action \\(a\\),\ntransition \\(P(s'|s,a)\\), and reward shaped by constraint satisfaction.\nNAV\u039b compiles high-level intents into reward terms + terminal conditions.",
+    "file": "docs/NAVLA-MATHS/INTENT-MARKOV.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Mathematical Foundations",
+    "content": "We ground NAV\u039b in classical results and practical control theorems:\n\n- **Euclidean geometry** (frames, transforms)\n- **Calculus of variations** (path optimality)\n- **Markov decision processes** (intent under uncertainty)\n- **Lyapunov stability** (controller convergence)\n- **Damped least-squares IK** (near-singularity robustness)\n- **Collision geometry** via FCL\n\nWe cite well-known results and provide reproducible derivations tailored to our\nruntime, avoiding claims beyond established mathematics",
+    "file": "docs/NAVLA-MATHS/FOUNDATIONS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Timing Contracts and Real-Time Metrics",
+    "content": "Let \\\\(\\\\Delta t\\\\) be the control period and \\\\(B\\\\) the budget. We record:\n\n- **DMR** (deadline miss rate): fraction of cycles with runtime \\\\(> B\\\\).\n- **AJ** (average jitter): mean absolute deviation of cycle times.\n- **TTP** (time to plan): wall time of the planning call.\n\n**Theorem (Gate Safety)** \u2014 If the follower command is held at the last good command\nwhenever runtime \\\\(> B\\\\) and the planner is preemptable with bounded worst-case\noverrun \\\\(\\\\epsilon\\\\), then closed-loop command stre",
+    "file": "docs/NAVLA-MATHS/TIMING-CONTRACTS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Spatial4D Calculus (NAV\u039b-\u03a3)",
+    "content": "We model occupancy as a field \\\\(\\\\rho: \\\\mathbb{R}^2 \\\\times \\\\mathbb{R}_{\\\\ge 0} \\\\to [0,1]\\\\).\n\n**Constant-velocity rollout.**\nFor an entity with pose \\\\(p_0=(x_0,y_0)\\\\) and velocity \\\\(v=(v_x,v_y)\\\\),\nthe predicted position at horizon \\\\(t\\\\) is \\\\(p(t) = p_0 + v t\\\\). Occupancy\nis the convolution of a kernel \\\\(K\\\\) with world entities:\n\n\\\\[\n\\\\rho(x,y,t) = 1 - \\\\prod_i \\\\bigl(1 - (K \\\\ast \\\\chi_{i,t})(x,y)\\\\bigr).\n\\\\]\n\nWe use \\\\(\\\\sigma\\\\)-controlled Gaussian kernels for **risk intensity**",
+    "file": "docs/NAVLA-MATHS/SPATIAL4D-CALCULUS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "IK via Jacobian Transpose + Damped Least Squares",
+    "content": "Given task error \\\\(e = x_d - x(q)\\\\), Jacobian \\\\(J(q)\\\\), and damping \\\\(\\\\lambda\\\\):\n\n**JT step**: \\\\(\\\\Delta q = \\\\alpha J^T e\\\\)\n\n**DLS step**: \\\\(\\\\Delta q = J^T (J J^T + \\\\lambda^2 I)^{-1} e\\\\)\n\n**Joint-limit avoidance**: add gradient term \\\\(\\\\nabla U(q)\\\\) with weight \\\\(w\\\\).\n\n**Task priority** (position over orientation): stack errors with weights or use\nnullspace projection \\\\(N = I - J_1^\\\\# J_1\\\\).\nWe provide reference code in Rust/C++ in the main repo.",
+    "file": "docs/NAVLA-MATHS/IK-JACOBIAN-DLS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Licenses",
+    "content": "Documentation \u00a9 Univarm/NAV\u039b authors. Code snippets under Apache-2.0 unless noted.\nThird\u2011party names/marks belong to their owners.",
+    "file": "docs/APPENDIX/LICENSES.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "References (Selected)",
+    "content": "- Robotics: Siciliano et al., *Springer Handbook of Robotics*\n- Control: Khalil, *Nonlinear Systems*\n- IK: Wampler, Nakamura, Buss (DLS methods)\n- Collision: Pan & Manocha (FCL), LaValle (Planning)\n- Real-time: Buttazzo, *Hard Real-Time Computing Systems*",
+    "file": "docs/APPENDIX/REFERENCES.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Classical References (Concise)",
+    "content": "- Newton's laws of motion \u2014 basis for simple dynamic models.\n- Euclidean geometry \u2014 frames, distances, angles.\n- Markov processes \u2014 stochastic decision modeling.\n- Lyapunov stability \u2014 control convergence criteria.\n- Damped least squares \u2014 IK robustness near singularities.\n\nWe align operational claims with these established results; we do not assert\nnew proofs of unrelated open problems.",
+    "file": "docs/APPENDIX/THEOREMS-REFERENCE.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Code Generation Targets",
+    "content": "NAV\u039b emits portable kernels with identical semantics:\n\n| Target | Usage | Runtime |\n|---|---|---|\n| Rust | Planner kernels, real-time gates | `no_std`-friendly subsets supported |\n| C++17/20 | ROS 2 nodes, IK | With Eigen / FCL |\n| Python | Prototyping, gluing | NumPy; asyncio SSE helpers |\n| TypeScript | WebXR front-end | Fetch/SSE clients |\n\n**Prefix templates** are included in `/TEMPLATES/CODEGEN-PREFIXES/` to unify logging,\nmetrics hooks, and error surfaces across languages.",
+    "file": "docs/NAVLA-LANGUAGE/CODEGEN.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "DSL \u2192 Constraints Mapping",
+    "content": "`approach target:bin_12 from +X within 20deg`\n\u2192 orientation cone constraint (axis + tolerance), terminal translation,\nkeep-out set from scene graph, and speed bound if requested.\n\nWe provide a JSON IR for constraints which the planner consumes.",
+    "file": "docs/NAVLA-LANGUAGE/DSL-TO-CONSTRAINTS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "NAV\u039b Language Specification",
+    "content": "",
+    "file": "docs/NAVLA-LANGUAGE/SPEC.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Lexical",
+    "content": "- Identifiers: `[A-Za-z_][A-Za-z0-9_]*`\n- Numbers: decimal floats with SI suffix optional (e.g., `0.5m`, `15deg`)",
+    "file": "docs/NAVLA-LANGUAGE/SPEC.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Grammar (EBNF excerpt)",
+    "content": "```\nintent     := \"approach\" target from? angle? constraints*\ntarget     := IDENT | \"target:\" IDENT\nfrom       := \"from\" axis\naxis       := \"+X\" | \"-X\" | \"+Y\" | \"-Y\"\nangle      := \"within\" NUMBER \"deg\"\nconstraints:= \"avoid\" IDENT | \"keepout:\" IDENT | \"speed<\" NUMBER \"m/s\"\n```",
+    "file": "docs/NAVLA-LANGUAGE/SPEC.md",
+    "code_examples": [
+      "intent     := \"approach\" target from? angle? constraints*\ntarget     := IDENT | \"target:\" IDENT\nfrom       := \"from\" axis\naxis       := \"+X\" | \"-X\" | \"+Y\" | \"-Y\"\nangle      := \"within\" NUMBER \"deg\"\nconstraints:= \"avoid\" IDENT | \"keepout:\" IDENT | \"speed<\" NUMBER \"m/s\"\n"
+    ],
+    "functions": []
+  },
+  {
+    "title": "Semantics",
+    "content": "- `approach t from +X within A`: set desired end-effector orientation and angular cone.\n- `avoid k`: soft constraint with penalty weight; `keepout:k`: hard constraint (FCL).\n- `speed< v`: follower velocity cap.",
+    "file": "docs/NAVLA-LANGUAGE/SPEC.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Type System",
+    "content": "- `Pose`, `Frame`, `Distance`, `Angle`, `Speed`. Units enforced at compile time.\n- Constraint sets are first-class values; combinators produce new sets.",
+    "file": "docs/NAVLA-LANGUAGE/SPEC.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Theorem Template (NAV\u039b)",
+    "content": "**Name**:  \n**Context**: (modules, assumptions)  \n**Statement**: (formal)  \n**Proof**: step by step  \n**Operational Impact**: what this guarantees in runtime  \n**Limits**: where the theorem doesn't apply  \n**References**: texts, papers",
+    "file": "docs/TEMPLATES/THEOREM-TEMPLATE.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Experiment Template",
+    "content": "**ID**: PERF-### / SAFETY-### / IK-###  \n**Purpose**:  \n**Hypothesis**:  \n**Setup**: (URDF, presets, HZ, samples)  \n**Procedure**: steps 1..N  \n**Metrics**: (DMR, AJ, TTP, min distance, final error)  \n**Results**: tables/plots  \n**Verdict**: pass/fail  \n**Pack**: path to evidence zip",
+    "file": "docs/TEMPLATES/EXPERIMENT-TEMPLATE.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Symbols, Acronyms, Abbreviations",
+    "content": "| Symbol | Meaning | Units | Notes |\n|---|---|---|---|\n| \\(x,y\\) | Planar position | m | Map frame unless stated |\n| \\(\\theta\\) | Heading (yaw) | rad | Robot body frame yaw |\n| \\(v\\) | Linear velocity | m/s | Forward (+) |\n| \\(\\omega\\) | Angular velocity | rad/s | Left (+) |\n| \\(\\kappa\\) | Curvature | 1/m | Pure-pursuit curvature |\n| \\(\\lambda\\) | Damping | \u2014 | DLS (damped least-squares) |\n| DMR | Deadline Miss Rate | % | Real-time metric |\n| AJ | Average Jitter | ms | Real-time metric |\n| TTP |",
+    "file": "docs/NAVLA-MANUAL/SYMBOLS-ACRONYMS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "NAV\u039b Manual \u2014 Introduction",
+    "content": "NAV\u039b is a **language-first robotics stack**. Operators write intents such as:\n\n```\napproach target:bin_12 from +X within 20 deg avoid keepout:zone_A\n```\n\nThe runtime compiles this into constraints, plans a collision-safe, time-feasible\npath, and emits commands with **live metrics**. All runs produce an **Evidence Pack**\nyou can audit, sign, and attach to releases.\n\n**Design goals**\n- Deterministic core, real-time friendly\n- Multi-target codegen (Rust/C++/Python/TS)\n- Safety-by-construction const",
+    "file": "docs/NAVLA-MANUAL/INTRO.md",
+    "code_examples": [
+      "approach target:bin_12 from +X within 20 deg avoid keepout:zone_A\n"
+    ],
+    "functions": []
+  },
+  {
+    "title": "SDK \u2014 Tooling & Prefixes",
+    "content": "- **CLI**: compile, simulate, emit code for Rust/C++/Py/TS\n- **Prefixes**: standardized scaffolding per language (logging, metrics)\n- **Templates**: theorem & experiment scaffolds for reproducibility\n- **NAVA Studio**: one-click presets, action queue, Evidence Pack capture",
+    "file": "docs/NAVLA-MANUAL/SDK.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Runtime Model",
+    "content": "1. **Intent Parse** \u2192 constraint set \\(\\mathcal{C}\\)\n2. **Spatial4D** occupancy rollout \u2192 risk field \\(\\rho(x,y,t)\\)\n3. **Planner** \u2192 path \\(\\gamma\\) with curvature profile \\(\\kappa(s)\\)\n4. **Follower** \u2192 \\((v,\\omega)\\) under dynamic limits scaled by \\(\\rho\\)\n5. **Timing Gate** enforces cycle budgets; records DMR/AJ/TTP\n6. **Evidence Pack** sealed with content hash and optional signatures",
+    "file": "docs/NAVLA-MANUAL/RUNTIME.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Benchmarks",
+    "content": "- **Latency & Jitter**: 30/60/120 Hz followers, planner bursts (N=100).\n- **Path fidelity**: curvature-limited tracks vs ground truth.\n- **Collision safety**: randomized keep-outs, moving obstacles with CV rollouts.\n- **XR operator efficiency**: task completion time with/without presets.\n\nAll benchmark **fixtures** live in scenario catalogs; results are captured as\nEvidence Packs and summarized in the Release manifest.",
+    "file": "docs/VALIDATION/BENCHMARKS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Claims \u2192 Tests \u2192 Evidence Traceability",
+    "content": "| Claim | Test ID | Evidence | Pass Criteria |\n|---|---|---|---|\n| Timing contracts enforced | RT-001 | EvidencePack JSON + charts | DMR < 1%, AJ < 5 ms |\n| Occupancy-aware slowdown | OCC-002 | Path logs + SSE | v scaled vs \u03c1 along path |\n| Keep-out respected | COL-010 | FCL logs + min distance | min(d) \u2265 margin |\n| Approach cone satisfied | IK-020 | Pose logs | terminal orientation error \u2264 \u03b1 |",
+    "file": "docs/VALIDATION/CLAIMS-TRACEABILITY.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Verification & Validation Plan",
+    "content": "1. **Unit** \u2014 parsers, codegen, IK, follower math.\n2. **Integration** \u2014 /api/solve \u2192 path \u2192 follower \u2192 cmd_vel.\n3. **System** \u2014 XR/Web, haptics, metrics SSE, Evidence Pack generation.\n4. **Performance** \u2014 PGO scenarios, CI shards, multi-URDF catalog.\n5. **Audit** \u2014 signatures, SBOM/SLSA, Release manifest summary.\n\nEach test stores inputs, config, and outputs in an **Evidence Pack** that is\nmachine-verifiable and reproducible.",
+    "file": "docs/VALIDATION/VV-PLAN.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Evidence Packs",
+    "content": "A pack is a signed zip containing:\n- config (presets, versions)\n- inputs (intent, URDF fingerprint)\n- outputs (path, metrics, violations)\n- plots (latency, curvature, risk)\n- signatures and optional attestations\n\nPacks are reproducible; CI can reject merges when thresholds are exceeded.",
+    "file": "docs/VALIDATION/EVIDENCE-PACKS.md",
+    "code_examples": [],
+    "functions": []
+  },
+  {
+    "title": "Tutorial 01 \u2014 Hello, Intent",
+    "content": "1) Write: `approach target:bin_12 from +X within 20deg avoid keepout:zone_A`\n2) Compile to constraints (CLI).\n3) Simulate Spatial4D rollout.\n4) Plan path; visualize curvature profile.\n5) Follow path with dynamic limits; inspect DMR/AJ/TTP.\n6) Export Evidence Pack; verify signature.",
+    "file": "docs/NAVLA-MANUAL/TUTORIALS/01-hello-intent.md",
+    "code_examples": [],
+    "functions": []
+  }
+]

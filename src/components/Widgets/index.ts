@@ -1,10 +1,12 @@
 // Widget Components
+import React from 'react';
 import { Calculator } from './Calculator';
 import { Notes } from './Notes';
 import { FileExplorer } from './FileExplorer';
 import { Terminal } from './Terminal';
+import { WidgetManager } from './WidgetManager';
 
-export { Calculator, Notes, FileExplorer, Terminal };
+export { Calculator, Notes, FileExplorer, Terminal, WidgetManager };
 
 // Widget Types
 export interface Widget {

@@ -1,6 +1,6 @@
 import React from 'react'
 import manifest from '../prefixes/nava-prefixes.json'
-import { solveOptimalPath } from '../engine/mock'
+import { solveOptimalPath, getAvailableInterpreters, type InterpreterType } from '../engine/nava-engine'
 import { emitPath, type Target } from '../codegen/emit'
 
 function Card(props:{title:string, children:React.ReactNode}) {
@@ -20,13 +20,34 @@ export function Toolbar() {
   const [code, setCode] = React.useState<string>('')
   const [status, setStatus] = React.useState<string>('Idle')
   const [points, setPoints] = React.useState<{x:number,y:number,z:number}[]|null>(null)
+  const [interpreter, setInterpreter] = React.useState<InterpreterType>('auto')
+  const [availableInterpreters, setAvailableInterpreters] = React.useState<InterpreterType[]>(['browser-sim'])
+  const [energyLandscape, setEnergyLandscape] = React.useState(true)
+
+  // Load available interpreters on mount
+  React.useEffect(() => {
+    getAvailableInterpreters().then(setAvailableInterpreters)
+  }, [])
 
   async function run() {
-    setStatus('Solving…')
-    const res = await solveOptimalPath({ start:{x:sx,y:sy,z:sz}, goal:{x:gx,y:gy,z:gz}, samples:48 })
-    setPoints(res.points)
-    setStatus(`OK — cost ≈ ${res.cost.toFixed(3)} (samples=${res.points.length})`)
-    setCode('') // clear stale code
+    setStatus('Solving with NAVΛ…')
+    try {
+      const res = await solveOptimalPath({ 
+        start:{x:sx,y:sy,z:sz}, 
+        goal:{x:gx,y:gy,z:gz}, 
+        samples:48,
+        interpreter,
+        energyLandscape,
+      })
+      setPoints(res.points)
+      const metadata = res.metadata 
+        ? ` (${res.metadata.interpreter}, ${res.metadata.executionTime.toFixed(1)}ms)`
+        : ''
+      setStatus(`OK — cost ≈ ${res.cost.toFixed(3)}, energy ≈ ${res.energy?.toFixed(3) || res.cost.toFixed(3)}${metadata}`)
+      setCode('') // clear stale code
+    } catch (error: any) {
+      setStatus(`Error: ${error.message}`)
+    }
   }
 
   function exportCode(target: Target) {
@@ -36,6 +57,39 @@ export function Toolbar() {
   }
 
   return <div>
+    <Card title="NAVΛ Engine Configuration">
+      <div style={{display:'flex', gap:8, alignItems:'center', marginBottom:8}}>
+        <label style={{fontSize:12, color:'#88a2bf', minWidth:80}}>Interpreter:</label>
+        <select 
+          value={interpreter} 
+          onChange={e=>setInterpreter(e.target.value as InterpreterType)}
+          style={{
+            flex:1, background:'#0e141c', color:'#e6f1ff', 
+            border:'1px solid #1c2633', borderRadius:8, padding:'6px 8px', fontSize:12
+          }}
+        >
+          <option value="auto">Auto (Best Available)</option>
+          {availableInterpreters.map(interp => (
+            <option key={interp} value={interp}>
+              {interp === 'tauri-backend' ? '🦀 Tauri Backend (Rust)' :
+               interp === 'python' ? '🐍 Python (Pyodide)' :
+               interp === 'wasm' ? '⚡ WebAssembly' :
+               interp === 'browser-sim' ? '🌐 Browser Simulation' : interp}
+            </option>
+          ))}
+        </select>
+      </div>
+      <label style={{display:'flex', gap:8, alignItems:'center', fontSize:12, color:'#88a2bf'}}>
+        <input 
+          type="checkbox" 
+          checked={energyLandscape} 
+          onChange={e=>setEnergyLandscape(e.target.checked)}
+          style={{cursor:'pointer'}}
+        />
+        <span>Use VNC Energy Landscape Optimization</span>
+      </label>
+    </Card>
+
     <Card title="One-click actions">
       <button onClick={run} style={btn()}>Find optimal path (⋋)</button>
       <div style={{fontSize:12, color:'#88a2bf', marginTop:6}}>

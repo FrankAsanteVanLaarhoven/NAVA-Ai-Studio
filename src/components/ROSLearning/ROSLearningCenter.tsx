@@ -44,7 +44,7 @@ export const ROSLearningCenter: React.FC = () => {
   
   return (
     <div className="ros-learning-center">
-      <div className="ros-header">
+      <div className="ros-header" style={{ flexShrink: 0 }}>
         <div className="ros-header-content">
           <div className="ros-header-text">
             <h1>🤖 ROS Learning Center</h1>
@@ -125,7 +125,7 @@ export const ROSLearningCenter: React.FC = () => {
       )}
       
       {selectedCourse && !selectedModule && (
-        <div className="course-detail">
+        <div className="course-detail" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
           <button className="back-btn" onClick={() => setSelectedCourse(null)}>
             ← Back to Courses
           </button>
@@ -244,7 +244,7 @@ export const ROSLearningCenter: React.FC = () => {
       )}
       
       {selectedUnit && (
-        <div className="unit-viewer">
+        <div className="unit-viewer" style={{ flex: 1, overflowY: 'auto', overflowX: 'hidden' }}>
           <button 
             className="back-btn" 
             onClick={() => setSelectedUnit(null)}

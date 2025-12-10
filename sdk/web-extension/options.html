@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAVΛ SDK Settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <div class="options-container">
+    <header class="options-header">
+      <div class="options-logo">
+        <span class="logo-lambda">λ</span>
+        <span class="logo-capital">Λ</span>
+      </div>
+      <h1>NAVΛ SDK Settings</h1>
+    </header>
+    
+    <main class="options-content">
+      <section class="settings-section">
+        <h2>General</h2>
+        
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="auto-inject">
+            <span>Auto-inject SDK on page load</span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="show-badge">
+            <span>Show SDK badge indicator</span>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label>
+            <input type="checkbox" id="enable-notifications">
+            <span>Enable notifications</span>
+          </label>
+        </div>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Navigation</h2>
+        
+        <div class="setting-item">
+          <label>
+            Default calculation method:
+            <select id="calculation-method">
+              <option value="euclidean">Euclidean</option>
+              <option value="riemannian">Riemannian</option>
+              <option value="custom">Custom</option>
+            </select>
+          </label>
+        </div>
+        
+        <div class="setting-item">
+          <label>
+            <input type="number" id="max-iterations" min="1" max="1000" value="100">
+            <span>Max iterations</span>
+          </label>
+        </div>
+      </section>
+      
+      <section class="settings-section">
+        <h2>Storage</h2>
+        
+        <div class="setting-item">
+          <button class="btn-secondary" id="clear-storage">Clear Storage</button>
+          <button class="btn-secondary" id="export-settings">Export Settings</button>
+          <button class="btn-secondary" id="import-settings">Import Settings</button>
+        </div>
+      </section>
+    </main>
+    
+    <footer class="options-footer">
+      <button class="btn-primary" id="save-btn">Save Settings</button>
+    </footer>
+  </div>
+  
+  <script src="options.js"></script>
+</body>
+</html>
+

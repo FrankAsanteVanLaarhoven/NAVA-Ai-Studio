@@ -1,0 +1,43 @@
+name: Build NAVΛ SDK
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-native:
+    name: Build Native (Rust)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+      - name: Build
+        run: cd native && cargo build --release
+      - name: Test
+        run: cd native && cargo test
+
+  build-web:
+    name: Build Web (TypeScript/WASM)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+      - name: Build
+        run: |
+          cd web
+          npm install
+          npm run build
+      - name: Test
+        run: cd web && npm test
+

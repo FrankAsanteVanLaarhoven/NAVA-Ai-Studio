@@ -28,6 +28,16 @@
   font-size: 14px;
 }
 
+.ai-user-badge {
+  font-size: 11px;
+  font-weight: 500;
+  color: #4fc1ff;
+  background: rgba(79, 193, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 8px;
+}
+
 .ai-icon {
   font-size: 18px;
 }
@@ -69,6 +79,27 @@
   flex-direction: column;
   gap: 16px;
   min-height: 0; /* Allow flex shrinking */
+  scroll-behavior: smooth;
+  /* Ensure smooth scrolling and auto-scroll to bottom */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.ai-messages::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ai-messages::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-messages::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+}
+
+.ai-messages::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .ai-message {
@@ -312,12 +343,37 @@
   font-size: 16px;
   font-weight: 600;
   transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .symbol-btn-sm:hover {
   background: rgba(0, 255, 0, 0.2);
   transform: translateY(-1px);
   box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+}
+
+.symbol-btn-sm.nava-symbol {
+  color: #00ff00;
+  border-color: rgba(0, 255, 0, 0.4);
+  background: rgba(0, 255, 0, 0.1);
+  font-weight: 700;
+}
+
+.symbol-btn-sm.nava-symbol:hover {
+  background: rgba(0, 255, 0, 0.2);
+  border-color: #00ff00;
+  color: #00ff00;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.5);
+  transform: translateY(-2px) scale(1.05);
+}
+
+.symbol-btn-sm.voice-control-btn.active {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: #00ff00;
+  color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.3);
 }
 
 .prompt-input-container {

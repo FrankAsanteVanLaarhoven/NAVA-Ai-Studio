@@ -1,0 +1,45 @@
+{
+  "name": "@nava/sdk-web-extension",
+  "version": "1.0.0",
+  "description": "NAVΛ Studio SDK as Browser Extension - Enterprise Web Extension Build",
+  "type": "module",
+  "scripts": {
+    "build": "npm run build:chrome && npm run build:firefox && npm run build:edge",
+    "build:chrome": "web-ext build --source-dir=. --artifacts-dir=dist/chrome --filename=nava-sdk-chrome.zip",
+    "build:firefox": "web-ext build --source-dir=. --artifacts-dir=dist/firefox --filename=nava-sdk-firefox.zip",
+    "build:edge": "npm run build:chrome && cp dist/chrome/nava-sdk-chrome.zip dist/edge/nava-sdk-edge.zip",
+    "dev": "web-ext run --source-dir=.",
+    "lint": "web-ext lint --source-dir=.",
+    "package": "npm run build && npm run package:icons",
+    "package:icons": "node scripts/generate-icons.js"
+  },
+  "keywords": [
+    "nava",
+    "sdk",
+    "browser-extension",
+    "chrome-extension",
+    "firefox-extension",
+    "edge-extension",
+    "web-extension"
+  ],
+  "author": "NAVΛ Team <team@nava.studio>",
+  "license": "MIT OR Apache-2.0",
+  "devDependencies": {
+    "web-ext": "^7.8.0"
+  },
+  "files": [
+    "manifest.json",
+    "background.js",
+    "content.js",
+    "content.css",
+    "popup.html",
+    "popup.js",
+    "popup.css",
+    "options.html",
+    "options.js",
+    "options.css",
+    "injected.js",
+    "assets"
+  ]
+}
+

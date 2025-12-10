@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAVΛ SDK Web Example</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+        .container {
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 12px;
+            padding: 24px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+        h1 {
+            color: #00ff00;
+            margin-top: 0;
+        }
+        .logo {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background: linear-gradient(135deg, #3b82f6, #00ff00);
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin: 10px 0;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+        }
+        pre {
+            background: rgba(15, 23, 42, 0.9);
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        .result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">λΛ</div>
+        <h1>NAVΛ SDK Web Example</h1>
+        <p>Demonstrates NAVΛ SDK usage in the browser</p>
+        
+        <button onclick="runExample()">Run Navigation Example</button>
+        
+        <div id="result" class="result"></div>
+    </div>
+
+    <script type="module">
+        import { NavigationField, Manifold, NavigationConstraints, initSDK } from '../web/dist/nava-sdk.js';
+
+        window.runExample = async function() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<p>Initializing SDK...</p>';
+
+            try {
+                // Initialize SDK
+                await initSDK();
+                resultDiv.innerHTML += '<p>✓ SDK initialized</p>';
+
+                // Create navigation field
+                const nav = new NavigationField();
+                await nav.setManifold(Manifold.euclidean(3));
+                resultDiv.innerHTML += '<p>✓ Navigation field created</p>';
+
+                // Find path
+                const start = [0, 0, 0];
+                const goal = [5, 5, 5];
+                const constraints = NavigationConstraints.default();
+                constraints.maxVelocity = 2.0;
+
+                resultDiv.innerHTML += `<p>Finding path from [${start.join(', ')}] to [${goal.join(', ')}]...</p>`;
+                
+                const path = await nav.findOptimalPath(start, goal, constraints);
+                
+                resultDiv.innerHTML += `
+                    <h3>✓ Path Found!</h3>
+                    <pre>${JSON.stringify(path, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML += `<p style="color: #ef4444;">Error: ${error.message}</p>`;
+            }
+        };
+    </script>
+</body>
+</html>
+

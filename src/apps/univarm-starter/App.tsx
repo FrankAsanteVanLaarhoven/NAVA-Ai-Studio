@@ -43,22 +43,22 @@ export function UnivarmStarterApp() {
           </div>
 
           <div className="info-section">
-            <h3>🔧 Customization</h3>
+            <h3>🔧 API Reference</h3>
             <p className="muted">
-              Replace <code>src/apps/univarm-starter/engine/mock.ts</code> with your 
-              real NAVΛ engine bindings for production use.
-            </p>
-            <p className="muted">
-              The solver API expects:
+              The solver API:
             </p>
             <pre className="code-block">
 {`solveOptimalPath({
   start: {x, y, z},
   goal: {x, y, z},
-  samples?: number
+  samples?: number,
+  interpreter?: 'auto' | 'tauri-backend' | 'python' | 'wasm' | 'browser-sim',
+  energyLandscape?: boolean
 }): Promise<{
   points: Vec3[],
-  cost: number
+  cost: number,
+  energy?: number,
+  metadata?: { interpreter, executionTime, iterations }
 }>`}
             </pre>
           </div>
@@ -66,9 +66,12 @@ export function UnivarmStarterApp() {
           <div className="info-section">
             <h3>📚 Features</h3>
             <ul>
+              <li>✅ <strong>Real NAVΛ Engine</strong> - Full Van Laarhoven Navigation Calculus support</li>
+              <li>✅ <strong>Multiple Interpreters</strong> - Tauri, Python, WASM, Browser simulation</li>
+              <li>✅ <strong>VNC Energy Landscape</strong> - Advanced path optimization</li>
               <li>✅ Manifest-backed actions (<code>λopt</code> prefix)</li>
               <li>✅ Real-time path solving with configurable parameters</li>
-              <li>✅ Multi-language code generation</li>
+              <li>✅ Multi-language code generation (Rust, C++, Python, TypeScript)</li>
               <li>✅ Embedded in NAVΛ Studio IDE</li>
               <li>✅ Production-ready architecture</li>
             </ul>

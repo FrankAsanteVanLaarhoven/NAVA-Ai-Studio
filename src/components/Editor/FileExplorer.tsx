@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, FilePlus, FolderPlus, Upload, Download, Trash2, MoreVertical } from 'lucide-react';
+import { RefreshCw, FilePlus, FolderPlus, Upload, Download, Trash2, MoreVertical, Search, X } from 'lucide-react';
 import { fileService, FileEntry } from '../../services/file-service';
 import './FileExplorer.css';
 
 interface FileExplorerProps {
   onFileSelect: (path: string, content: string) => void;
   currentFilePath?: string;
+  onOpenProject?: () => void;
 }
 
 export const FileExplorer: React.FC<FileExplorerProps> = ({
   onFileSelect,
   currentFilePath,
+  onOpenProject,
 }) => {
   const [files, setFiles] = useState<FileEntry[]>([]);
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
@@ -20,15 +22,55 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     path: string;
     isDirectory: boolean;
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [draggedItem, setDraggedItem] = useState<FileEntry | null>(null);
 
   useEffect(() => {
     loadCurrentProject();
+    
+    // Listen for refresh events
+    const handleRefresh = () => {
+      loadCurrentProject();
+    };
+    
+    // Also listen for storage changes (when files are saved in other tabs/windows)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key?.startsWith('file:') || e.key === 'navlambda-current-project') {
+        loadCurrentProject();
+      }
+    };
+    
+    window.addEventListener('nava:refresh-explorer', handleRefresh);
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Periodic refresh to catch any missed updates
+    const refreshInterval = setInterval(loadCurrentProject, 2000);
+    
+    return () => {
+      window.removeEventListener('nava:refresh-explorer', handleRefresh);
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(refreshInterval);
+    };
   }, []);
 
   const loadCurrentProject = async () => {
     const project = fileService.getCurrentProject();
     if (project) {
-      setFiles(project.files);
+      // Ensure all files are properly loaded
+      const loadedFiles = await Promise.all(
+        project.files.map(async (file) => {
+          if (!file.isDirectory) {
+            // Try to ensure file content is accessible
+            try {
+              await fileService.readFile(file.path);
+            } catch {
+              // File might not be stored yet, that's okay
+            }
+          }
+          return file;
+        })
+      );
+      setFiles(loadedFiles);
     }
   };
 
@@ -37,10 +79,77 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
       toggleDirectory(file.path);
     } else {
       try {
-        const content = await fileService.readFile(file.path);
-        onFileSelect(file.path, content);
+        console.log(`[FileExplorer] Opening file: ${file.path}`);
+        let content = '';
+        
+        // First, try reading from file service
+        try {
+          content = await fileService.readFile(file.path);
+          console.log(`[FileExplorer] ✓ Read file from service: ${file.path} (${content.length} bytes)`);
+        } catch (readError) {
+          console.warn(`[FileExplorer] File service read failed, trying alternatives...`);
+          
+          // Check if content is in the file entry (for newly imported files)
+          if ((file as any).content !== undefined) {
+            content = (file as any).content || '';
+            console.log(`[FileExplorer] Found content in file entry: ${content.length} bytes`);
+            
+            // Store it for future access
+            try {
+              await fileService.createFile(file.path, content);
+              console.log(`[FileExplorer] ✓ Stored file content for future access`);
+            } catch (storeError) {
+              console.error(`[FileExplorer] Failed to store file:`, storeError);
+            }
+          } else {
+            // Try reading directly from localStorage with various key formats
+            const normalizedPath = file.path.startsWith('/') ? file.path.substring(1) : file.path;
+            const altKeys = [
+              `file:${file.path}`,
+              `file:${normalizedPath}`,
+              `file:/${file.path}`,
+              `file:/${normalizedPath}`,
+            ];
+            
+            for (const key of altKeys) {
+              const stored = localStorage.getItem(key);
+              if (stored !== null) {
+                content = stored;
+                console.log(`[FileExplorer] ✓ Found file in localStorage with key: ${key}`);
+                break;
+              }
+            }
+            
+            if (!content) {
+              // Last resort: scan all localStorage keys
+              for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('file:')) {
+                  const storedPath = key.substring(5);
+                  const fileName = fileService.getFileName(storedPath);
+                  if (fileName === file.name || storedPath.endsWith(file.path) || storedPath.endsWith(`/${file.name}`)) {
+                    content = localStorage.getItem(key) || '';
+                    console.log(`[FileExplorer] ✓ Found file by name match: ${key}`);
+                    // Update the file path to match the stored key
+                    (file as any).path = storedPath;
+                    break;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        if (content !== null && content !== undefined) {
+          console.log(`[FileExplorer] ✓ File content ready: ${file.path} (${content.length} bytes)`);
+          onFileSelect(file.path, content);
+        } else {
+          console.error(`[FileExplorer] ✗ File content is empty or null: ${file.path}`);
+          alert(`Unable to read file: ${file.path}\n\nThe file may not have been properly imported.\n\nPlease try:\n1. Re-importing the file/folder\n2. Refreshing the explorer\n3. Checking the browser console for errors`);
+        }
       } catch (error) {
-        console.error('Error reading file:', error);
+        console.error('[FileExplorer] Error reading file:', error);
+        alert(`Error reading file: ${file.path}\n\n${error instanceof Error ? error.message : 'Unknown error'}\n\nPlease check the browser console for details.`);
       }
     }
   };
@@ -156,18 +265,96 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
+  const filterFiles = (fileList: FileEntry[]): FileEntry[] => {
+    if (!searchQuery.trim()) return fileList;
+    
+    const query = searchQuery.toLowerCase();
+    const filtered: FileEntry[] = [];
+    
+    fileList.forEach(file => {
+      const matches = file.name.toLowerCase().includes(query);
+      let hasMatchingChildren = false;
+      
+      if (file.isDirectory && file.children) {
+        const filteredChildren = filterFiles(file.children);
+        if (filteredChildren.length > 0) {
+          hasMatchingChildren = true;
+          filtered.push({
+            ...file,
+            children: filteredChildren,
+          });
+        }
+      }
+      
+      if (matches && !hasMatchingChildren) {
+        filtered.push(file);
+      }
+    });
+    
+    return filtered;
+  };
+
+  const handleDragStart = (e: React.DragEvent, file: FileEntry) => {
+    setDraggedItem(file);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetFile?: FileEntry) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!draggedItem) return;
+    
+    const targetPath = targetFile?.isDirectory 
+      ? `${targetFile.path}/${draggedItem.name}`
+      : targetFile 
+        ? `${fileService.getDirectoryName(targetFile.path)}/${draggedItem.name}`
+        : `/project/${draggedItem.name}`;
+    
+    try {
+      // Move file/folder
+      if (draggedItem.isDirectory) {
+        // For directories, we'd need to recursively move all files
+        // This is a simplified version
+        await fileService.createDirectory(targetPath);
+      } else {
+        const content = await fileService.readFile(draggedItem.path);
+        await fileService.createFile(targetPath, content);
+        await fileService.deleteFile(draggedItem.path);
+      }
+      
+      await loadCurrentProject();
+      setDraggedItem(null);
+    } catch (error) {
+      console.error('Error moving file:', error);
+      alert('Failed to move file');
+      setDraggedItem(null);
+    }
+  };
+
   const renderFileTree = (fileList: FileEntry[], depth: number = 0) => {
-    return fileList.map((file) => {
+    const filtered = filterFiles(fileList);
+    return filtered.map((file) => {
       const isExpanded = expandedDirs.has(file.path);
       const isSelected = currentFilePath === file.path;
 
       return (
         <div key={file.path} className="file-tree-item">
           <div
-            className={`file-item ${isSelected ? 'selected' : ''}`}
+            className={`file-item ${isSelected ? 'selected' : ''} ${draggedItem?.path === file.path ? 'dragging' : ''}`}
             style={{ paddingLeft: `${depth * 20 + 8}px` }}
             onClick={() => handleFileClick(file)}
             onContextMenu={(e) => handleContextMenu(e, file)}
+            draggable
+            onDragStart={(e) => handleDragStart(e, file)}
+            onDragOver={handleDragOver}
+            onDrop={(e) => handleDrop(e, file)}
           >
             {file.isDirectory && (
               <span className="folder-icon">
@@ -210,13 +397,13 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
     }
   };
 
-  // Handle drag and drop
-  const handleDragOver = (e: React.DragEvent) => {
+  // Handle external file drag and drop
+  const handleExternalDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  const handleDrop = async (e: React.DragEvent) => {
+  const handleExternalDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
@@ -268,11 +455,25 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
   return (
     <div 
       className="file-explorer"
-      onDragOver={handleDragOver}
-      onDrop={handleDrop}
+      onDragOver={handleExternalDragOver}
+      onDrop={handleExternalDrop}
     >
       <div className="file-explorer-header">
-        <h3>Explorer</h3>
+        <div 
+          className="file-explorer-logo-title"
+          onClick={() => {
+            // Navigate back to desktop/workspace
+            const url = new URL(window.location.href);
+            url.pathname = '/workspace.html';
+            url.search = '';
+            window.location.href = url.toString();
+          }}
+          title="Back to Desktop"
+        >
+          <span className="file-explorer-logo">λ</span>
+          <span className="file-explorer-logo-capital">Λ</span>
+          <span className="file-explorer-title">NAVΛ STUDIO IDE</span>
+        </div>
         <div className="file-explorer-actions">
           <button
             className="explorer-toolbar-btn"
@@ -304,13 +505,55 @@ export const FileExplorer: React.FC<FileExplorerProps> = ({
           </button>
         </div>
       </div>
+      <div className="file-explorer-search">
+        <Search size={14} className="search-icon" />
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="file-explorer-search-input"
+        />
+        {searchQuery && (
+          <button
+            className="file-explorer-search-clear"
+            onClick={() => setSearchQuery('')}
+            title="Clear search"
+          >
+            <X size={12} />
+          </button>
+        )}
+      </div>
       <div className="file-tree">
         {files.length > 0 ? (
           renderFileTree(files)
         ) : (
           <div className="empty-state">
             <p>No project open</p>
-            <button onClick={() => {/* Open project dialog */}}>
+            <button 
+              onClick={() => {
+                if (onOpenProject) {
+                  onOpenProject();
+                } else {
+                  // Fallback: try to open project via file service
+                  const path = prompt('Enter project path or folder:');
+                  if (path) {
+                    fileService.openProject(path).then(project => {
+                      if (project) {
+                        setFiles(project.files);
+                        fileService.setCurrentProject(project);
+                      } else {
+                        alert('Failed to open project. Please check the path.');
+                      }
+                    }).catch(error => {
+                      console.error('Error opening project:', error);
+                      alert('Failed to open project');
+                    });
+                  }
+                }
+              }}
+              className="open-project-btn"
+            >
               Open Project
             </button>
           </div>

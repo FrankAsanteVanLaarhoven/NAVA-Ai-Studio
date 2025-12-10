@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAVΛ Studio SDK</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <header class="popup-header">
+      <div class="popup-logo">
+        <span class="logo-lambda">λ</span>
+        <span class="logo-capital">Λ</span>
+      </div>
+      <h1>NAVΛ SDK</h1>
+      <button class="popup-settings" id="settings-btn" title="Settings">
+        ⚙️
+      </button>
+    </header>
+    
+    <main class="popup-content">
+      <div class="sdk-status">
+        <div class="status-indicator active"></div>
+        <span>SDK Active</span>
+      </div>
+      
+      <div class="sdk-actions">
+        <button class="action-btn primary" id="calculate-btn">
+          <span class="btn-icon">🧭</span>
+          <span>Calculate Navigation</span>
+        </button>
+        
+        <button class="action-btn" id="visualize-btn">
+          <span class="btn-icon">📊</span>
+          <span>Visualize Path</span>
+        </button>
+        
+        <button class="action-btn" id="inject-btn">
+          <span class="btn-icon">💉</span>
+          <span>Inject SDK</span>
+        </button>
+      </div>
+      
+      <div class="sdk-info">
+        <div class="info-item">
+          <span class="info-label">Version:</span>
+          <span class="info-value" id="version">1.0.0</span>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Status:</span>
+          <span class="info-value" id="status">Ready</span>
+        </div>
+      </div>
+    </main>
+    
+    <footer class="popup-footer">
+      <a href="options.html" target="_blank" class="footer-link">Settings</a>
+      <a href="https://nava.studio/docs" target="_blank" class="footer-link">Docs</a>
+    </footer>
+  </div>
+  
+  <script type="module" src="popup.js"></script>
+</body>
+</html>
+

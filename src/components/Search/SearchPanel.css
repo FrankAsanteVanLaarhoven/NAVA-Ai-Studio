@@ -1,0 +1,177 @@
+.search-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #1e1e1e;
+  color: #cccccc;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  font-size: 13px;
+}
+
+.search-header {
+  padding: 12px;
+  border-bottom: 1px solid #3e3e42;
+  background: #252526;
+}
+
+.search-input-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1e1e1e;
+  border: 1px solid #3e3e42;
+  border-radius: 4px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+}
+
+.search-input-container:focus-within {
+  border-color: #00ff00;
+}
+
+.search-icon {
+  color: #858585;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 13px;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #858585;
+}
+
+.search-clear-btn {
+  background: transparent;
+  border: none;
+  color: #858585;
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  transition: all 0.2s;
+}
+
+.search-clear-btn:hover {
+  background: #3e3e42;
+  color: #ffffff;
+}
+
+.search-options {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.search-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  color: #cccccc;
+  user-select: none;
+}
+
+.search-option input[type="checkbox"] {
+  cursor: pointer;
+}
+
+.search-results {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.search-results::-webkit-scrollbar {
+  width: 10px;
+}
+
+.search-results::-webkit-scrollbar-track {
+  background: #1e1e1e;
+}
+
+.search-results::-webkit-scrollbar-thumb {
+  background: #424242;
+  border-radius: 5px;
+}
+
+.search-loading,
+.search-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: #858585;
+  font-size: 13px;
+}
+
+.search-results-list {
+  padding: 8px;
+}
+
+.search-result-group {
+  margin-bottom: 16px;
+}
+
+.search-result-file {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #252526;
+  border-left: 3px solid #00ff00;
+  font-weight: 600;
+  font-size: 12px;
+  color: #ffffff;
+}
+
+.search-result-count {
+  margin-left: auto;
+  color: #858585;
+  font-weight: normal;
+}
+
+.search-result-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.1s;
+  font-family: 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.search-result-item:hover {
+  background: #2a2d2e;
+}
+
+.search-result-line {
+  color: #858585;
+  min-width: 40px;
+  text-align: right;
+  font-size: 11px;
+}
+
+.search-result-content {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #cccccc;
+}
+
+.search-highlight {
+  background: rgba(0, 255, 0, 0.3);
+  color: #00ff00;
+  font-weight: 600;
+  padding: 0 2px;
+}
+

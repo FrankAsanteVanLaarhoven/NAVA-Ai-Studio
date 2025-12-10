@@ -1,0 +1,125 @@
+{
+  "manifest_version": 3,
+  "name": "NAVΛ Studio SDK",
+  "short_name": "NAVΛ SDK",
+  "version": "1.0.0",
+  "description": "Enterprise-grade SDK for NAVΛ Platform - Navigation Calculus, Robotics, and AI Development",
+  "author": "NAVΛ Team <team@nava.studio>",
+  
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "64": "assets/icon-64.png",
+    "128": "assets/icon-128.png",
+    "256": "assets/icon-256.png",
+    "512": "assets/icon-512.png"
+  },
+  
+  "action": {
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png",
+      "48": "assets/icon-48.png",
+      "128": "assets/icon-128.png"
+    },
+    "default_title": "NAVΛ Studio SDK",
+    "default_popup": "popup.html"
+  },
+  
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle",
+      "all_frames": false
+    }
+  ],
+  
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/*",
+        "sdk/*",
+        "injected.js"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting",
+    "tabs",
+    "contextMenus",
+    "notifications",
+    "background"
+  ],
+  
+  "optional_permissions": [
+    "bookmarks",
+    "history",
+    "downloads",
+    "management"
+  ],
+  
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  
+  "options_page": "options.html",
+  
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
+  
+  "commands": {
+    "open-sdk": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+N",
+        "mac": "Command+Shift+N"
+      },
+      "description": "Open NAVΛ SDK"
+    },
+    "toggle-navigation": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Λ",
+        "mac": "Command+Shift+Λ"
+      },
+      "description": "Toggle Navigation Calculus"
+    }
+  },
+  
+  "externally_connectable": {
+    "matches": [
+      "https://*.nava.studio/*",
+      "http://localhost:*",
+      "http://127.0.0.1:*"
+    ]
+  },
+  
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA...",
+  
+  "oauth2": {
+    "client_id": "your-client-id.apps.googleusercontent.com",
+    "scopes": [
+      "https://www.googleapis.com/auth/userinfo.email",
+      "https://www.googleapis.com/auth/userinfo.profile"
+    ]
+  },
+  
+  "minimum_chrome_version": "109",
+  "minimum_opera_version": "95"
+}
+

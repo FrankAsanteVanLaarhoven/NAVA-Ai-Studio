@@ -1,0 +1,224 @@
+.menu-bar-container {
+  display: flex;
+  flex-direction: column;
+  background: #1e1e1e;
+  z-index: 1000;
+  position: relative;
+}
+
+/* Top Menu Bar */
+.menu-bar-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 48px;
+  padding: 0 16px;
+  background: #1e1e1e;
+  border-bottom: 1px solid #2d2d2d;
+}
+
+/* Logo Icons (Left) */
+.menu-bar-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.menu-bar-logo:hover {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+.menu-logo-icon {
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+  color: #00ff00;
+  text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.menu-logo-icon.lambda-icon {
+  font-size: 18px;
+}
+
+.menu-logo-icon.caret-icon {
+  font-size: 22px;
+}
+
+.menu-bar-logo:hover .menu-logo-icon {
+  color: #00ff00;
+  text-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+}
+
+/* Action Buttons (Middle) */
+.menu-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: transparent;
+  color: #cccccc;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.menu-action-btn-primary {
+  background: #00ff00;
+  color: #000000;
+  border-color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+.menu-action-btn-primary:hover {
+  background: #00ff00;
+  border-color: #00ff00;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.7);
+}
+
+.menu-action-btn-secondary {
+  background: #1e1e1e;
+  color: #888888;
+  border-color: #2d2d2d;
+}
+
+.menu-action-btn-secondary:hover {
+  background: #2d2d2d;
+  border-color: #3d3d3d;
+  color: #cccccc;
+}
+
+.menu-action-btn svg {
+  flex-shrink: 0;
+}
+
+/* Utility Icons (Right) */
+.menu-bar-utils {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.menu-util-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  background: transparent;
+  color: #00ff00;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.menu-util-icon:hover {
+  background: rgba(0, 255, 0, 0.1);
+  border-color: #00ff00;
+  color: #00ff00;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+.menu-util-icon.active {
+  background: rgba(0, 255, 0, 0.15);
+  border-color: #00ff00;
+  border-width: 2px;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.6);
+}
+
+.menu-util-icon-notification {
+  position: relative;
+}
+
+.notification-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 8px;
+  height: 8px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 1px solid #1e1e1e;
+}
+
+/* Status Bar */
+.menu-bar-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  padding: 0 16px;
+  background: #252525;
+  border-bottom: 1px solid #2d2d2d;
+  border-top: 1px solid #2d2d2d;
+}
+
+.status-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-icon {
+  color: #00ff00;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 5px rgba(0, 255, 0, 0.6));
+}
+
+.status-file-icon {
+  margin-left: 4px;
+}
+
+.status-text {
+  color: #cccccc;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-saved-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  background: #00ff00;
+  color: #000000;
+  border: 1px solid #00ff00;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+}
+
+.status-saved-btn:hover {
+  background: #00ff00;
+  border-color: #00ff00;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.7);
+}
+
+.status-saved-btn svg {
+  flex-shrink: 0;
+}
+

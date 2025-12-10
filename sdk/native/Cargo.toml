@@ -1,0 +1,40 @@
+[package]
+name = "nava-sdk"
+version = "0.1.0"
+edition = "2021"
+authors = ["NAVΛ Team <team@nava.studio>"]
+description = "NAVΛ SDK - Ultimate Cross-Platform SDK for Navigation Calculus"
+license = "MIT OR Apache-2.0"
+repository = "https://github.com/nava-studio/nava-sdk"
+homepage = "https://nava.studio"
+documentation = "https://docs.nava.studio/sdk"
+keywords = ["navigation", "robotics", "calculus", "path-planning", "sdk"]
+categories = ["science", "algorithms", "robotics"]
+
+[workspace]
+
+[lib]
+name = "nava_sdk"
+crate-type = ["cdylib", "rlib", "staticlib"]
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+log = "0.4"
+env_logger = "0.11"
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[features]
+default = []
+wasm = []
+

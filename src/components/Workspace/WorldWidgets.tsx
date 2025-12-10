@@ -4,12 +4,13 @@
  * Professional workspace widgets including:
  * - Multi-city world clocks
  * - Weather forecasts for multiple locations
- * - Perplexity-style news feed
+ * - Discovery panel (Reddit, RSS, Hugging Face papers)
  * - Currency calculator with live rates
  * - Real-time stock market feeds
  */
 
 import React, { useState, useEffect } from 'react';
+import { DiscoveryPanel } from '../ActivityPanels/DiscoveryPanel';
 import './WorldWidgets.css';
 
 interface WorldClock {
@@ -28,13 +29,6 @@ interface WeatherData {
   icon: string;
 }
 
-interface NewsItem {
-  title: string;
-  source: string;
-  time: string;
-  category: string;
-}
-
 interface StockData {
   symbol: string;
   price: number;
@@ -42,7 +36,46 @@ interface StockData {
   percentChange: number;
 }
 
-export const WorldWidgets: React.FC = () => {
+interface WorldWidgetsProps {
+  onCollapse?: () => void;
+}
+
+export const WorldWidgets: React.FC<WorldWidgetsProps> = ({ onCollapse }) => {
+  // Collapsible state for each widget - default to all collapsed
+  const [collapsed, setCollapsed] = useState<{ [key: string]: boolean }>(() => {
+    try {
+      const saved = localStorage.getItem('nava-widgets-collapsed');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+      // Default: all widgets collapsed
+      return {
+        weather: true,
+        'world-clock': true,
+        discovery: true,
+        currency: true,
+        stocks: true,
+      };
+    } catch {
+      // Default: all widgets collapsed
+      return {
+        weather: true,
+        'world-clock': true,
+        discovery: true,
+        currency: true,
+        stocks: true,
+      };
+    }
+  });
+
+  const toggleWidget = (widgetId: string) => {
+    setCollapsed(prev => {
+      const newState = { ...prev, [widgetId]: !prev[widgetId] };
+      localStorage.setItem('nava-widgets-collapsed', JSON.stringify(newState));
+      return newState;
+    });
+  };
+
   const [selectedCities, setSelectedCities] = useState<WorldClock[]>([
     { city: 'New York', country: 'USA', timezone: 'America/New_York', flag: '🇺🇸' },
     { city: 'London', country: 'UK', timezone: 'Europe/London', flag: '🇬🇧' },
@@ -55,11 +88,6 @@ export const WorldWidgets: React.FC = () => {
     { city: 'Tokyo', temp: 18, condition: 'Clear', humidity: 55, wind: 8, icon: '☀️' },
   ]);
 
-  const [newsItems, setNewsItems] = useState<NewsItem[]>([
-    { title: 'AI Breakthrough in Autonomous Navigation', source: 'Tech News', time: '2h ago', category: 'Technology' },
-    { title: 'New Robotics Standards Released', source: 'IEEE', time: '4h ago', category: 'Research' },
-    { title: 'Waymo Expands Self-Driving Service', source: 'Auto News', time: '6h ago', category: 'Business' },
-  ]);
 
   const [stocks, setStocks] = useState<StockData[]>([
     { symbol: 'TSLA', price: 242.84, change: +5.23, percentChange: +2.20 },
@@ -82,8 +110,8 @@ export const WorldWidgets: React.FC = () => {
   useEffect(() => {
     // Update clocks every second
     const clockInterval = setInterval(() => {
-      // Force re-render for clocks
-      setSelectedCities([...selectedCities]);
+      // Force re-render for clocks by updating state
+      setSelectedCities(prev => [...prev]);
     }, 1000);
 
     // Simulate stock updates every 5 seconds
@@ -125,10 +153,71 @@ export const WorldWidgets: React.FC = () => {
 
   return (
     <div className="world-widgets-container">
-      {/* World Clocks Grid */}
-      <div className="widget-section">
-        <h3 className="widget-section-title">🌍 World Clocks</h3>
-        <div className="world-clocks-grid">
+      {/* Hamburger Menu Button */}
+      {onCollapse && (
+        <div className="widgets-header-bar">
+          <button 
+            className="widgets-hamburger-btn"
+            onClick={onCollapse}
+            title="Collapse Sidebar"
+          >
+            <span className="hamburger-icon">☰</span>
+          </button>
+        </div>
+      )}
+      {/* Weather Widget */}
+      <div className="collapsible-widget">
+        <div className="widget-header" onClick={() => toggleWidget('weather')}>
+          <span className={`widget-toggle ${collapsed['weather'] ? 'collapsed' : ''}`}>{collapsed['weather'] ? '▼' : '▲'}</span>
+          <span className="widget-icon">⛅</span>
+          <span className="widget-title">Weather</span>
+          <div className="widget-header-right">
+            <select className="widget-location-select" onClick={(e) => e.stopPropagation()}>
+              <option>London, UK</option>
+              <option>New York, USA</option>
+              <option>Tokyo, Japan</option>
+            </select>
+          </div>
+        </div>
+        {!collapsed['weather'] && (
+          <div className="widget-content">
+            <div className="weather-grid">
+              {weatherData.map((weather, index) => (
+                <div key={index} className="weather-card">
+                  <div className="weather-card-header">
+                    <span className="weather-icon-large">{weather.icon}</span>
+                    <span className="weather-city">{weather.city}</span>
+                  </div>
+                  <div className="weather-temp-large">{weather.temp}°C</div>
+                  <div className="weather-condition">{weather.condition}</div>
+                  <div className="weather-details-grid">
+                    <div className="weather-detail">💧 {weather.humidity}%</div>
+                    <div className="weather-detail">💨 {weather.wind} km/h</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* World Clock Widget */}
+      <div className="collapsible-widget">
+        <div className="widget-header" onClick={() => toggleWidget('world-clock')}>
+          <span className={`widget-toggle ${collapsed['world-clock'] ? 'collapsed' : ''}`}>{collapsed['world-clock'] ? '▼' : '▲'}</span>
+          <span className="widget-icon">🕐</span>
+          <span className="widget-title">World Clock</span>
+          <div className="widget-header-right">
+            <select className="widget-location-select" onClick={(e) => e.stopPropagation()}>
+              <option>London, UK</option>
+              <option>New York, USA</option>
+              <option>Tokyo, Japan</option>
+            </select>
+          </div>
+        </div>
+        {!collapsed['world-clock'] && (
+          <div className="widget-content">
+            <div className="world-clocks-grid">
           {selectedCities.map((clock, index) => (
             <div key={index} className="world-clock-card">
               <div className="world-clock-header">
@@ -139,51 +228,38 @@ export const WorldWidgets: React.FC = () => {
               <div className="world-clock-country">{clock.country}</div>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Weather Forecasts */}
-      <div className="widget-section">
-        <h3 className="widget-section-title">🌦️ Weather Forecasts</h3>
-        <div className="weather-grid">
-          {weatherData.map((weather, index) => (
-            <div key={index} className="weather-card">
-              <div className="weather-card-header">
-                <span className="weather-icon-large">{weather.icon}</span>
-                <span className="weather-city">{weather.city}</span>
-              </div>
-              <div className="weather-temp-large">{weather.temp}°C</div>
-              <div className="weather-condition">{weather.condition}</div>
-              <div className="weather-details-grid">
-                <div className="weather-detail">💧 {weather.humidity}%</div>
-                <div className="weather-detail">💨 {weather.wind} km/h</div>
-              </div>
             </div>
-          ))}
-        </div>
+          </div>
+        )}
       </div>
 
-      {/* News Feed */}
-      <div className="widget-section">
-        <h3 className="widget-section-title">📰 News Feed</h3>
-        <div className="news-feed">
-          {newsItems.map((news, index) => (
-            <div key={index} className="news-item">
-              <div className="news-category">{news.category}</div>
-              <div className="news-title">{news.title}</div>
-              <div className="news-meta">
-                <span className="news-source">{news.source}</span>
-                <span className="news-time">{news.time}</span>
-              </div>
-            </div>
-          ))}
+      {/* Discovery Widget - Replaces News Feed */}
+      <div className="collapsible-widget discovery-widget">
+        <div className="widget-header" onClick={() => toggleWidget('discovery')}>
+          <span className={`widget-toggle ${collapsed['discovery'] ? 'collapsed' : ''}`}>{collapsed['discovery'] ? '▼' : '▲'}</span>
+          <span className="widget-icon">🔥</span>
+          <span className="widget-title">Discover</span>
+          <div className="widget-header-right">
+            <span className="discovery-badge" title="Real-time news, RSS feeds, and research papers">LIVE</span>
+          </div>
         </div>
+        {!collapsed['discovery'] && (
+          <div className="widget-content discovery-widget-content">
+            <DiscoveryPanel />
+          </div>
+        )}
       </div>
 
-      {/* Currency Calculator */}
-      <div className="widget-section">
-        <h3 className="widget-section-title">💱 Currency Calculator</h3>
-        <div className="currency-calculator">
+      {/* Currency Widget */}
+      <div className="collapsible-widget">
+        <div className="widget-header" onClick={() => toggleWidget('currency')}>
+          <span className={`widget-toggle ${collapsed['currency'] ? 'collapsed' : ''}`}>{collapsed['currency'] ? '▼' : '▲'}</span>
+          <span className="widget-icon">💱</span>
+          <span className="widget-title">Currency</span>
+        </div>
+        {!collapsed['currency'] && (
+          <div className="widget-content">
+            <div className="currency-calculator">
           <div className="currency-input-group">
             <input
               type="number"
@@ -234,12 +310,26 @@ export const WorldWidgets: React.FC = () => {
             Rate: 1 {fromCurrency} = {currencyRates[toCurrency as keyof typeof currencyRates] || 1} {toCurrency}
           </div>
         </div>
+          </div>
+        )}
       </div>
 
-      {/* Stock Market */}
-      <div className="widget-section">
-        <h3 className="widget-section-title">📈 Stock Market</h3>
-        <div className="stocks-list">
+      {/* Stocks Widget */}
+      <div className="collapsible-widget">
+        <div className="widget-header" onClick={() => toggleWidget('stocks')}>
+          <span className={`widget-toggle ${collapsed['stocks'] ? 'collapsed' : ''}`}>{collapsed['stocks'] ? '▼' : '▲'}</span>
+          <span className="widget-icon">📈</span>
+          <span className="widget-title">Stocks</span>
+          <div className="widget-header-right">
+            <span className="live-indicator">
+              <span className="live-dot"></span>
+              LIVE
+            </span>
+          </div>
+        </div>
+        {!collapsed['stocks'] && (
+          <div className="widget-content">
+            <div className="stocks-list">
           {stocks.map((stock, index) => (
             <div key={index} className="stock-item">
               <div className="stock-symbol">{stock.symbol}</div>
@@ -249,11 +339,14 @@ export const WorldWidgets: React.FC = () => {
               </div>
             </div>
           ))}
-        </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
 export default WorldWidgets;
+
 

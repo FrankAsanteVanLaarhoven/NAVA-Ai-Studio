@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../LLM_Training_Notebook"
+		},
+		{
+			"path": "../../Downloads/nava-docs-suite"
+		},
+		{
+			"path": "../../Downloads/univarm-nava-deadline-notebook-v1"
+		}
+	],
+	"settings": {}
+}

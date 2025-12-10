@@ -1,0 +1,46 @@
+NAVΛ Studio IDE - Installation Instructions
+===========================================
+
+macOS Security Warning (Gatekeeper)
+===================================
+
+When you first try to open "NAVΛ Studio IDE.app", macOS will show a security warning because the app is not code-signed.
+
+This is normal for apps that haven't been signed with an Apple Developer certificate.
+
+HOW TO OPEN THE APP:
+===================
+
+Method 1: Right-Click and Open (Recommended)
+---------------------------------------------
+1. Right-click (or Control+Click) on "NAVΛ Studio IDE.app"
+2. Select "Open" from the context menu
+3. Click "Open" in the security dialog that appears
+4. The app will now open and be added to your security exceptions
+
+Method 2: System Settings
+--------------------------
+1. Go to System Settings > Privacy & Security
+2. Scroll down to "Security"
+3. You'll see a message about "NAVΛ Studio IDE.app" being blocked
+4. Click "Open Anyway"
+5. Confirm by clicking "Open" in the dialog
+
+Method 3: Remove Quarantine Attribute (Advanced)
+--------------------------------------------------
+Open Terminal and run:
+  xattr -cr "/path/to/NAVΛ Studio IDE.app"
+
+INSTALLATION:
+=============
+
+After opening the app once:
+1. Drag "NAVΛ Studio IDE.app" to your Applications folder
+2. The app will appear in Applications with the NAVΛ logo
+3. You can add it to your Dock for quick access
+4. Double-click to launch the IDE
+
+NOTE: The app is safe - it's just a launcher that opens the IDE in your browser.
+The security warning appears because it's not signed with an Apple Developer certificate.
+
+For production releases, the app should be code-signed with an Apple Developer ID.
